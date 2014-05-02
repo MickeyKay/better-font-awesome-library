@@ -1,0 +1,36 @@
+/* Options page */
+.settings_page_options-general-better-font-awesome .titan-framework-panel-wrap [class*="icon-"],
+.settings_page_options-general-better-font-awesome .titan-framework-panel-wrap [class*="fa-"] {
+	display: inline-block;
+	width: 44px;
+	margin-right: 10px;
+	text-align: center;
+	vertical-align: middle;
+	-webkit-box-sizing: border-box;
+	   -moz-box-sizing: border-box;
+	        box-sizing: border-box;
+}
+
+/* TinyMCE */
+
+/* Override editor rules blocking these native Font Awesome styles */
+#menu_content_content_bfaSelect_menu .icon-fw,
+#menu_content_content_bfaSelect_menu .fa-fw,
+.mce-stack-layout-item .icon-fw,
+.mce-stack-layout-item .fa-fw {
+	display: inline-block;
+	width: 1.2857142857142858em;
+	text-align: center;
+}
+
+/* Override editor icon font family */
+.fa {
+	font-family: FontAwesome !important;
+}
+
+/* BFA select icon (for versions < and >= TinyMCE 4) */
+#content_bfaSelect_text:before {
+	content: "\f024";
+	margin-right: .5em;
+	font-family: FontAwesome;
+}
