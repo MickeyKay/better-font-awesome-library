@@ -12,7 +12,6 @@ The Better Font Awesome Library allows developers to integrate Font Awesome usin
    ```
 // Intialize Font Awesome once plugins are loaded
 add_action( 'plugins_loaded', 'my_slug_load_bfa' );
-
 // Set up the Font Awesome object, or get the existing one
 function my_slug_load_bfa() {
 		// Settings to load Font Awesome
