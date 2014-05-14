@@ -17,8 +17,8 @@ The Better Font Awesome Library allows you to integrate any version of Font Awes
 
 2. Add the following code to your main plugin file or your theme's function.php file.
    ```
-	// Include the Font Awesome Library in your project
-	require_once(	
+	// Include the library - modify the require_once path to match your directory structure
+	require_once ( dirname( __FILE__ ) . '/better-font-awesome-library/better-font-awesome-library.php' );	
 
 	// Intialize Font Awesome once plugins are loaded
 	add_action( 'plugins_loaded', 'my_slug_load_bfa' );
