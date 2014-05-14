@@ -37,7 +37,7 @@ Better Font Awesome Library
 ```
 
 ## Parameters ##
-**version**
+**version**  
 Which version of Font Awesome you want to use. The default setting is `latest`.
 * `'latest'` (default) - always use the latest available version
 
