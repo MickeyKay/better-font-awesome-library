@@ -23,7 +23,7 @@ The Better Font Awesome Library allows you to integrate any version of Font Awes
 	// Intialize Font Awesome once plugins are loaded
 	add_action( 'plugins_loaded', 'my_slug_load_bfa' );
 	function my_slug_load_bfa() {
-		// Settings to load Font Awesome
+		// Settings to load Font Awesome (defaults shown)
 		$args = array(
 				'version' => 'latest',
 				'minified' => true,
