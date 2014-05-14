@@ -6,7 +6,7 @@ Better Font Awesome Library
 The Better Font Awesome Library allows you to integrate any version of Font Awesome into your project (including the latest), along with accompanying CSS, a list of available icons, and a TinyMCE drop-down and shortcode generator.
 
 ## Features ##
-* Integrate any version of Font Awesome, including the option to always use most recent version (no more manual updates!).
+* Integrates any version of Font Awesome, including the option to always use most recent version (no more manual updates!).
 * Generates easy-to-use PHP object that contains all relevant info including: version, CSS URL, icons available in this version, prefix used (`icon` or `fa`).
 * CDN speeds - Font Awesome CSS is pulled from [Bootstrap CDN](http://www.bootstrapcdn.com/#fontawesome_tab).
 * Includes optional TinyMCE plugin with drop-down shortcode generator.
