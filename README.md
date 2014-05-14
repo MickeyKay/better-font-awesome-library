@@ -5,9 +5,21 @@ Better Font Awesome Library
 
 The Better Font Awesome Library allows developers to integrate Font Awesome using a variety of settings
 
-## Description ##
+## Usage ##
+1. Copy the better-font-awesome-libary folder into your project.
 
-asfadfasf af asdf asdf
+2. Add the following code to your main plugin file or your theme's function.php file.
+   ```
+$args = array(
+		'version' => 'latest',
+		'minified' => true,
+		'remove_existing_fa' => false,
+		'load_styles' => true,
+		'load_admin_styles' => true,
+		'load_tinymce_plugin' => false,
+);
+```
+
 
 ## Settings ##
 ```
