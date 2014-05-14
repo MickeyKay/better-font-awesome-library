@@ -13,18 +13,18 @@ The Better Font Awesome Library allows developers to integrate Font Awesome usin
 	// Intialize Font Awesome once plugins are loaded
 	add_action( 'plugins_loaded', 'my_slug_load_bfa' );
 	function my_slug_load_bfa() {
-			// Settings to load Font Awesome
-			$args = array(
-					'version' => 'latest',
-					'minified' => true,
-					'remove_existing_fa' => false,
-					'load_styles' => true,
-					'load_admin_styles' => true,
-					'load_tinymce_plugin' => false,
-			);
-			
-			// Initialize Font Awesome, or get the existing instance
-			Better_Font_Awesome_Object::get_instance( $args );
+		// Settings to load Font Awesome
+		$args = array(
+				'version' => 'latest',
+				'minified' => true,
+				'remove_existing_fa' => false,
+				'load_styles' => true,
+				'load_admin_styles' => true,
+				'load_tinymce_plugin' => false,
+		);
+		
+		// Initialize Font Awesome, or get the existing instance
+		Better_Font_Awesome_Object::get_instance( $args );
 	}
 	
 	// Get the Better Font Awesome instance anywhere in your code
