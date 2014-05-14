@@ -3,7 +3,9 @@ Better Font Awesome Library
 
 *The easiest way to integrate Font Awesome into your theme or plugin.*
 
-The Better Font Awesome Library allows developers to integrate Font Awesome using a variety of settings
+## Features ##
+* Integrate any version of Font Awesome, including the option to always use most recent version (no more manual updates!).
+* CDN speeds - Font Awesome CSS is pulled from (Bootstrap CDN)[http://www.bootstrapcdn.com/#fontawesome_tab]
 
 ## Usage ##
 1. Copy the better-font-awesome-libary folder into your project.
@@ -33,3 +35,5 @@ The Better Font Awesome Library allows developers to integrate Font Awesome usin
 
 ## Parameters ##
 #### version ####
+Which version of Font Awesome you want to load.
+* `'latest'` - l
