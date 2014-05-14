@@ -35,7 +35,7 @@ class Better_Font_Awesome_Object {
      *
      * @return Better_Font_Awesome_Object The BFA object
      */
-	public static function getInstance( $args = '' ) {
+	public static function get_instance( $args = '' ) {
 				
         static $instance = null;
         if (null === $instance) {
