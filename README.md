@@ -47,15 +47,6 @@ Better Font Awesome Library
 		echo $icon . '<br />';
 ```
 
-## The Better Font Awesome Object ##
-The Better Font Awesome object can be accessed with the following code:  
-`$my_bfa = Better_Font_Awesome_Object::get_instance();`
-
-The object has the following properties:
-##### $stylesheet_url #####
-
-
-
 ## Parameters ##
 ##### `version` #####
 (string) Which version of Font Awesome you want to use. The default setting is `'latest'`.
@@ -86,6 +77,20 @@ The object has the following properties:
 (boolean) Loads a TinyMCE drop-down list of available icons (based on `version`), which generates a `[icon]` shortcode. The default setting is `false`.
 * `false` (default)
 * `true`
+
+## The Better Font Awesome Object ##
+The Better Font Awesome object can be accessed with the following code:  
+`$my_bfa = Better_Font_Awesome_Object::get_instance();`
+
+The object has the following properties:
+##### `$stylesheet_url` #####
+(string) The Bootstrap CDN URL of the stylesheet for the selected version of Font Awesome.
+
+##### `$prefix` #####
+(string) The version-dependent prefix ('fa' or 'icon`) for use in CSS classes.
+
+##### `$icons` #####
+(array) An alphabetical array of unprefixed icon names for all available icons in the selected version of Font Awesome.
 
 ## To Do ##
 * Support for transients to prevent loading CDN info every time
