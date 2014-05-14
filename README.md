@@ -36,20 +36,6 @@ The Better Font Awesome Library allows you to integrate any version of Font Awes
 		// Initialize Font Awesome, or get the existing instance
 		Better_Font_Awesome_Object::get_instance( $args );
 	}
-	
-	// Get the Better Font Awesome instance
-	$my_bfa = Better_Font_Awesome_Object::get_instance();
-
-	// Get the URL for the Font Awesome stylesheet
-	$url = $my_bfa->stylesheet_url;
-	
-	// Get the prefix for the version of Font Awesome you are using
-	$prefix = $my_bfa->prefix;
-	
-	// Output a list of all available icons (unprefixed name, e.g. 'star')
-	$icons = $my_bfa->icons;
-	foreach ( $icons as $icon)
-		echo $icon . '<br />';
 ```
 
 ## Parameters ##
@@ -85,7 +71,7 @@ The following parameters can be passed to `Better_Font_Awesome_Library::get_inst
 * `false` (default)
 * `true`
 
-## The Better Font Awesome Object ##
+## Using The Better Font Awesome Object ##
 The Better Font Awesome object can be accessed with the following code:  
 `$my_bfa = Better_Font_Awesome_Object::get_instance();`
 
@@ -98,6 +84,23 @@ The object has the following properties:
 
 ##### $icons #####
 (array) An alphabetical array of unprefixed icon names for all available icons in the selected version of Font Awesome.
+
+### Example: ###
+```
+	// Get the Better Font Awesome instance
+	$my_bfa = Better_Font_Awesome_Object::get_instance( $args );
+
+	// Get the URL for the Font Awesome stylesheet
+	$url = $my_bfa->stylesheet_url;
+	
+	// Get the prefix for the version of Font Awesome you are using
+	$prefix = $my_bfa->prefix;
+	
+	// Output a list of all available icons (unprefixed name, e.g. 'star')
+	$icons = $my_bfa->icons;
+	foreach ( $icons as $icon)
+		echo $icon . '<br />';
+```
 
 ## To Do ##
 * Support for transients to prevent loading CDN info every time
