@@ -38,7 +38,7 @@ The Better Font Awesome Library allows you to integrate any version of Font Awes
 	}
 ```
 
-## Parameters ##
+## Arguments ##
 The following parameters can be passed to `Better_Font_Awesome_Library::get_instance( $args )` in the `$args` array.
 
 ##### version #####
@@ -87,19 +87,19 @@ The object has the following properties:
 
 ### Example: ###
 ```
-	// Get the Better Font Awesome instance
-	$my_bfa = Better_Font_Awesome_Object::get_instance( $args );
+// Get the Better Font Awesome instance
+$my_bfa = Better_Font_Awesome_Object::get_instance( $args );
 
-	// Get the URL for the Font Awesome stylesheet
-	$url = $my_bfa->stylesheet_url;
-	
-	// Get the prefix for the version of Font Awesome you are using
-	$prefix = $my_bfa->prefix;
-	
-	// Output a list of all available icons (unprefixed name, e.g. 'star')
-	$icons = $my_bfa->icons;
-	foreach ( $icons as $icon)
-		echo $icon . '<br />';
+// Get the URL for the Font Awesome stylesheet
+$url = $my_bfa->stylesheet_url;
+
+// Get the prefix for the version of Font Awesome you are using
+$prefix = $my_bfa->prefix;
+
+// Output a list of all available icons (unprefixed name, e.g. 'star')
+$icons = $my_bfa->icons;
+foreach ( $icons as $icon)
+	echo $icon . '<br />';
 ```
 
 ## To Do ##
