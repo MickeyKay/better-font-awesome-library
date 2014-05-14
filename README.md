@@ -5,7 +5,10 @@ Better Font Awesome Library
 
 ## Features ##
 * Integrate any version of Font Awesome, including the option to always use most recent version (no more manual updates!).
-* CDN speeds - Font Awesome CSS is pulled from (Bootstrap CDN)[http://www.bootstrapcdn.com/#fontawesome_tab]
+* Generates PHP object that contains all relevant info including: version, CSS URL, icons available in this version, prefix used (`icon` or `fa`).
+* CDN speeds - Font Awesome CSS is pulled from [Bootstrap CDN](http://www.bootstrapcdn.com/#fontawesome_tab).
+* Includes optional TinyMCE plugin with drop-down shortcode generator.
+* Ability to choose between minified or unminified CSS.
 
 ## Usage ##
 1. Copy the better-font-awesome-libary folder into your project.
@@ -35,5 +38,9 @@ Better Font Awesome Library
 
 ## Parameters ##
 #### version ####
-Which version of Font Awesome you want to load.
-* `'latest'` - l
+Which version of Font Awesome you want to use. The default setting is `latest`.
+* `'latest'` (default) - always use the latest available version
+
+
+## Coming Soon. . . ##
+* Support for transients to prevent loading CDN info every time
