@@ -48,7 +48,7 @@ Better Font Awesome Library
 ```
 
 ## The Better Font Awesome Object ##
-The Better Font Awesome object can be accessed with the following code:
+The Better Font Awesome object can be accessed with the following code:  
 `$my_bfa = Better_Font_Awesome_Object::get_instance();`
 
 The object has the following properties:
@@ -57,7 +57,7 @@ The object has the following properties:
 
 
 ## Parameters ##
-##### <code>version</code> #####
+##### `version` #####
 (string) Which version of Font Awesome you want to use. The default setting is `'latest'`.
 * `'latest'` (default) - always use the latest available version.
 * `'3.2.1'` - any existing Font Awesome version number.
