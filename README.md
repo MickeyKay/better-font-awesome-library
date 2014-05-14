@@ -88,13 +88,13 @@ The Better Font Awesome object can be accessed with the following code:
 `$my_bfa = Better_Font_Awesome_Object::get_instance();`
 
 The object has the following properties:
-##### `$stylesheet_url` #####
+##### $stylesheet_url #####
 (string) The Bootstrap CDN URL of the stylesheet for the selected version of Font Awesome.
 
-##### `$prefix` #####
+##### $prefix #####
 (string) The version-dependent prefix ('fa' or 'icon`) for use in CSS classes.
 
-##### `$icons` #####
+##### $icons #####
 (array) An alphabetical array of unprefixed icon names for all available icons in the selected version of Font Awesome.
 
 ## To Do ##
