@@ -32,12 +32,32 @@ Better Font Awesome Library
 		Better_Font_Awesome_Object::get_instance( $args );
 	}
 	
-	// Get the Better Font Awesome instance anywhere in your code
+	// Get the Better Font Awesome instance
 	$my_bfa = Better_Font_Awesome_Object::get_instance();
+
+	// Get the URL for the Font Awesome stylesheet
+	$url = $my_bfa->stylesheet_url;
+	
+	// Get the prefix for the version of Font Awesome you are using
+	$prefix = $my_bfa->prefix;
+	
+	// Output a list of all available icons (unprefixed name, e.g. 'star')
+	$icons = $my_bfa->icons;
+	foreach ( $icons as $icon)
+		echo $icon . '<br />';
 ```
 
+## The Better Font Awesome Object ##
+The Better Font Awesome object can be accessed with the following code:
+`$my_bfa = Better_Font_Awesome_Object::get_instance();`
+
+The object has the following properties:
+##### $stylesheet_url #####
+
+
+
 ## Parameters ##
-##### version #####
+##### <code>version</code> #####
 (string) Which version of Font Awesome you want to use. The default setting is `'latest'`.
 * `'latest'` (default) - always use the latest available version.
 * `'3.2.1'` - any existing Font Awesome version number.
@@ -71,3 +91,4 @@ Better Font Awesome Library
 * Support for transients to prevent loading CDN info every time
 * Clean up indenting
 * Remove & in class funtion calls
+* Add version to public properties
