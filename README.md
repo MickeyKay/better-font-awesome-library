@@ -71,7 +71,7 @@ foreach ( $icons as $icon)
 	echo $icon . '<br />';
 ```
 
-## Parameters (`$args`) ##
+## Parameters ($args) ##
 The following parameters can be passed to `Better_Font_Awesome_Library::get_instance( $args )` in the `$args` array.
 
 ##### version #####
