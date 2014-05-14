@@ -53,6 +53,8 @@ The Better Font Awesome Library allows you to integrate any version of Font Awes
 ```
 
 ## Parameters ##
+The following parameters can be passed to `Better_Font_Awesome_Library::get_instance( $args )` in the `$args` array.
+
 ##### version #####
 (string) Which version of Font Awesome you want to use. The default setting is `'latest'`.
 * `'latest'` (default) - always use the latest available version.
