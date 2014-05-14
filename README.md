@@ -10,14 +10,22 @@ The Better Font Awesome Library allows developers to integrate Font Awesome usin
 
 2. Add the following code to your main plugin file or your theme's function.php file.
    ```
-$args = array(
-		'version' => 'latest',
-		'minified' => true,
-		'remove_existing_fa' => false,
-		'load_styles' => true,
-		'load_admin_styles' => true,
-		'load_tinymce_plugin' => false,
-);
+add_action( 'plugins_loaded', 'my_slug_load_bfa' );
+function my_slug_load_bfa() {
+	
+	// Settings to load Font Awesome
+	$args = array(
+			'version' => 'latest',
+			'minified' => true,
+			'remove_existing_fa' => false,
+			'load_styles' => true,
+			'load_admin_styles' => true,
+			'load_tinymce_plugin' => false,
+	);
+
+	// Initialize Font Awesome, or get the existing instance
+	$my_bfa = Better_Font_Awesome_Object::get_instance( $args );
+}
 ```
 
 
