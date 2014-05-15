@@ -109,5 +109,6 @@ The following parameters can be passed to `Better_Font_Awesome_Library::get_inst
 * Clean up indenting
 * Remove & in class funtion calls
 * Add version to public properties
+* Switch from `admin_head_variables` to `wp_localize_script`
 * Remove dash (-) from prefixes and add programatically when needed.
 * Change `prefix` to `protocol` in get_icons
