@@ -13,7 +13,7 @@ The Better Font Awesome Library allows you to integrate any version of Font Awes
 * Ability to choose between minified or unminified CSS.
 
 ## Usage ##
-1. Copy the better-font-awesome-libary folder into your project.
+1. Copy the better-font-awesome-library folder into your project.
 
 2. Add the following code to your main plugin file or your theme's function.php file.
    ```
