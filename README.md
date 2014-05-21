@@ -1,7 +1,7 @@
-Better Font Awesome Library
+Better Font Awesome Library for WordPress
 ===========================
 
-*The easiest way to integrate Font Awesome into your theme or plugin.*
+*The easiest way to integrate Font Awesome into your WordPress project.*
 
 The Better Font Awesome Library allows you to integrate any version of Font Awesome into your project (including the latest), along with accompanying CSS, a list of available icons, and a TinyMCE drop-down and shortcode generator.
 
