@@ -4,10 +4,6 @@
     var icons = bfa_vars.fa_icons.split(',');
     var prefix = bfa_vars.fa_prefix;
 
-    var icon_i = function(id) {
-        return '<i class="fa ' + prefix + 'fw ' + prefix + id + '"></i>';
-    }
-
     var icon_shortcode = function(id) {
         return '[icon name="' + id + '" class=""]';
     }

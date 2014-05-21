@@ -99,6 +99,14 @@ The following parameters can be passed to `Better_Font_Awesome_Library::get_inst
 * `true` (default)
 * `false` - use this if you don't want to load the Font Awesome CSS in the admin, or wish to do it yourself.
 
+##### load_shortcode #####
+(boolean) Loads the included `[icon]` shortcode.
+* `false` (default)
+* `true`
+
+The shortcode has the following attributes:
+`[icon name="" class="" unprefixed_class=""]
+
 ##### load_tiny_mce_plugin #####
 (boolean) Loads a TinyMCE drop-down list of available icons (based on `version`), which generates a `[icon]` shortcode. The default setting is `false`.
 * `false` (default)

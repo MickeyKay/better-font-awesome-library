@@ -2,10 +2,11 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
+if ( ! class_exists( 'Better_Font_Awesome_Library') ) :
 /**
  * Better Font Awesome class
  */
-class Better_Font_Awesome_Object {
+class Better_Font_Awesome_Library {
 
 	/*--------------------------------------------*
 	 * Constants
@@ -17,8 +18,7 @@ class Better_Font_Awesome_Object {
 	/*--------------------------------------------*
 	 * Variables
 	 *--------------------------------------------*/
-	public $stylesheet_url, $prefix, $icons;
-	public $args; /* For variable settings in BFA library */
+	public $args, $version, $stylesheet_url, $prefix, $icons;
 	protected $cdn_data, $titan;
 	protected $default_args = array(
 		'version' => 'latest',
@@ -26,6 +26,7 @@ class Better_Font_Awesome_Object {
 		'remove_existing_fa' => false,
 		'load_styles' => true,
 		'load_admin_styles' => true,
+		'load_shortcode' => false,
 		'load_tinymce_plugin' => false,
 	);
 
@@ -33,10 +34,9 @@ class Better_Font_Awesome_Object {
      * Returns the instance of this class, and initializes 
      * the instance if it doesn't already exist
      *
-     * @return Better_Font_Awesome_Object The BFA object
+     * @return Better_Font_Awesome_Library The BFAL object
      */
 	public static function get_instance( $args = '' ) {
-				
         static $instance = null;
         if (null === $instance) {
             $instance = new static( $args );
@@ -53,29 +53,26 @@ class Better_Font_Awesome_Object {
 		// Initialize with specific args if passed
 		$this->args = wp_parse_args( $args, $this->default_args );
 
-		// Register an activation hook for the plugin
-		register_activation_hook( __FILE__, array( &$this, 'install' ) );
-
 		// Get CDN data
 		$this->setup_cdn_data();
 
-		// Hook up to the init action - on 11 to make sure it loads after other FA plugins
-		add_action( 'after_setup_theme', array( &$this, 'init_early' ), 1 );
-
 		// Late init functions - make sure this happens after other FA plugins are loaded
-		add_action( 'init', array( &$this, 'init_late' ), 11 );
+		add_action( 'init', array( $this, 'init' ) );
 
-		// Do scripts and styles - on 11 to make sure styles/scripts load after other plugins
-		if ( $this->args['load_styles'] )
-			add_action( 'wp_enqueue_scripts', array( &$this, 'register_scripts_and_styles' ), 11 );
-		if ( $this->args['load_admin_styles'] || $this->args['load_tinymce_plugin'] )
-			add_action( 'admin_enqueue_scripts', array( &$this, 'register_scripts_and_styles' ), 11 );
+		// Do scripts and styles - priority 11 to make sure styles/scripts load after other plugins
+		if ( $this->args['load_styles'] || $this->args['remove_existing_fa'] ) {
+			add_action( 'wp_enqueue_scripts', array( $this, 'do_scripts_and_styles' ), 11 );
+		}
+
+		if ( $this->args['load_admin_styles'] || $this->args['load_tinymce_plugin'] ) {
+			add_action( 'admin_enqueue_scripts', array( $this, 'do_scripts_and_styles' ), 11 );
+		}
 
 		// Load TinyMCE plugin
 		if ( $this->args['load_tinymce_plugin'] ) {
-			add_action( 'admin_head', array( &$this, 'admin_init' ) );
-			add_action( 'admin_head', array( &$this, 'admin_head_variables' ) );
-			add_action( 'admin_enqueue_scripts', array( &$this, 'custom_admin_css' ), 11 );
+			add_action( 'admin_head', array( $this, 'admin_init' ) );
+			add_action( 'admin_head', array( $this, 'admin_head_variables' ) );
+			add_action( 'admin_enqueue_scripts', array( $this, 'custom_admin_css' ), 11 );
 		}
 	}
 
@@ -98,46 +95,33 @@ class Better_Font_Awesome_Object {
     private function __wakeup()
     {
     }
-  
-	/**
-	 * Runs when the plugin is activated
-	 */  
-	function install() {
-		// do not generate any output here
-	}
 
 	/**
 	 * Runs when the plugin is initialized
 	 */
-	function init_early() {
-		// Setup localization
-		load_plugin_textdomain( self::slug, false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-
+	function init() {
 		// Set Font Awesome variables (stylesheet url, prefix, etc)
 		$this->setup_global_variables();
 
 		// Add Font Awesome stylesheet to TinyMCE
 		add_editor_style( $this->stylesheet_url );
-	}
 
-	/**
-	 * Runs after other plugins are initialized
-	 */
-	function init_late() {
 		// Remove existing [icon] shortcodes added via other plugins/themes
 		if ( $this->args['remove_existing_fa'] ) {
 			remove_shortcode('icon');
 		}
 
 		// Register the shortcode [icon]
-		add_shortcode( 'icon', array( &$this, 'render_shortcode' ) );
+		if ( $this->args['load_shortcode'] ) {
+			add_shortcode( 'icon', array( $this, 'render_shortcode' ) );
+		}
 	}
 
 	/**
 	 * Get CDN data and prefix based on selected version
 	 */
 	function setup_cdn_data() {
-		$remote_data = wp_remote_get( 'http://api.jsdelivr.com/v1/bootstrap/libraries/font-awesome/' );
+		$remote_data = wp_remote_get( 'http://api.jsdelivr.com/v1/jsdelivr/libraries/fontawesome/' );
 		$decoded_data = json_decode( wp_remote_retrieve_body( $remote_data ) );
 		$this->cdn_data = $decoded_data[0];
 	}
@@ -152,13 +136,13 @@ class Better_Font_Awesome_Object {
 
 		// Set stylesheet URL
 		$stylesheet = $this->args['minified'] ? '/css/font-awesome.min.css' : '/css/font-awesome.css';
-		$this->stylesheet_url = '//netdna.bootstrapcdn.com/font-awesome/' . $this->args['version'] . $stylesheet;
+		$this->stylesheet_url = '//cdn.jsdelivr.net/fontawesome/' . $this->args['version'] . $stylesheet;
 
 		// Set proper prefix based on version
 		if ( 0 <= version_compare( $this->args['version'], '4' ) )
-			$this->prefix = 'fa-';
+			$this->prefix = 'fa';
 		elseif ( 0 <= version_compare( $this->args['version'], '3' ) )
-			$this->prefix = 'icon-';
+			$this->prefix = 'icon';
 
 		// Setup icons for selected version of Font Awesome
 		$this->get_icons();
@@ -201,7 +185,7 @@ class Better_Font_Awesome_Object {
 	 * Output [icon] shortcode
 	 *
 	 * Example:
-	 * 	[icon name="flag" class="fw 2x spin"]
+	 * [icon name="flag" class="fw 2x spin" unprefixed_class="custom_class"]
 	 *
 	 * @param   array $atts Shortcode attributes
 	 * @return  string <i> Font Awesome output
@@ -210,6 +194,7 @@ class Better_Font_Awesome_Object {
 		extract(shortcode_atts(array(
 			'name' => '',
 			'class' => '',
+			'unprefixed_class' => '',
 			'title'     => '', /* For compatibility with other plugins */
             'size'      => '', /* For compatibility with other plugins */
             'space'     => '',
@@ -229,7 +214,7 @@ class Better_Font_Awesome_Object {
 		$name = str_replace( 'fa-', '', $name );
 		
 		// Add prefix to name
-		$icon_name = $this->prefix . $name;
+		$icon_name = $this->prefix . '-' . $name;
 
 		// Remove "icon-" and "fa-" from classes
 		$class = str_replace( 'icon-', '', $class );
@@ -240,7 +225,10 @@ class Better_Font_Awesome_Object {
 		$class = preg_replace('/\s{3,}/',' ', $class );
 
 		// Add prefix to each class (separated by space)
-		$class = ' ' . $this->prefix . str_replace( ' ', ' ' . $this->prefix, $class );
+		$class = $class ? ' ' . $this->prefix . '-' . str_replace( ' ', ' ' . $this->prefix . '-', $class ) : '';
+
+		// Add unprefixed classes
+		$class .= $unprefixed_class ? ' ' . $unprefixed_class : '';
 
 		return '<i class="fa ' . $icon_name . $class . $size . '" ' . $title . '>' . $space . '</i>';
 	}
@@ -249,16 +237,21 @@ class Better_Font_Awesome_Object {
 	 * Registers and enqueues stylesheets for the administration panel and the
 	 * public facing site.
 	 */
-	function register_scripts_and_styles() {
-		// Deregister any existing Font Awesome CSS (including Titan Framework)
+	function do_scripts_and_styles() {
+		global $wp_styles;
+						
+		// Deregister any existing Font Awesome CSS
 		if ( $this->args['remove_existing_fa'] ) {
-			wp_dequeue_style( 'tf-font-awesome' );
-			wp_dequeue_style( 'font-awesome' );
+			// Loop through all registered styles and remove any that appear to be font-awesome
+			foreach ( $wp_styles->registered as $script => $details ) {
+				if ( strpos( $script, 'fontawesome' ) !== false || strpos( $script, 'font-awesome' ) !== false )
+					wp_dequeue_style( $script );
+			}
 		}
 
 		// Enqueue Font Awesome CSS
-		wp_register_style( 'font-awesome', $this->stylesheet_url, '', $this->args['version'] );
-		wp_enqueue_style( 'font-awesome' );
+		wp_register_style( 'bfa-font-awesome', $this->stylesheet_url, '', $this->args['version'] );
+		wp_enqueue_style( 'bfa-font-awesome' );
 	}
 
 	/*
@@ -269,8 +262,8 @@ class Better_Font_Awesome_Object {
             return;     
 
         if ( get_user_option('rich_editing') == 'true' ) {  
-            add_filter( 'mce_external_plugins', array( &$this, 'register_tinymce_plugin' ) );
-	        add_filter( 'mce_buttons', array( &$this, 'add_tinymce_buttons' ) );
+            add_filter( 'mce_external_plugins', array( $this, 'register_tinymce_plugin' ) );
+	        add_filter( 'mce_buttons', array( $this, 'add_tinymce_buttons' ) );
         }  
     }  
 
@@ -317,10 +310,11 @@ class Better_Font_Awesome_Object {
 	}
 
 	/*
-	 * Load admin CSS
+	 * Load admin CSS to style TinyMCE dropdown
 	 */
 	function custom_admin_css() {
 		wp_enqueue_style( 'bfa-admin-styles', plugins_url( 'inc/css/admin-styles.css', __FILE__ ) );
 	}
   
 }
+endif;

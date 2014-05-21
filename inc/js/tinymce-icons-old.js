@@ -5,7 +5,7 @@
 		var prefix = bfa_vars.fa_prefix;
 
 		var icon_i = function(id) {
-			return '<i class="fa ' + prefix + 'fw ' + prefix + id + '"></i>';
+			return '<i class="fa ' + prefix + '-' + 'fw ' + prefix + '-' + id + '"></i>';
 		}
 
 		var icon_shortcode = function(id) {
