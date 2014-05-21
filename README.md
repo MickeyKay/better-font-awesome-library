@@ -109,7 +109,7 @@ The shortcode has the following attributes:
 [icon name="" class="" unprefixed_class=""]
 ```
 
-`name` - Unprefixed icon name (e.g. star)
+**name** - Unprefixed icon name (e.g. star)
 
 `class` - Unprefixed [Font Awesome icon classes](http://fortawesome.github.io/Font-Awesome/examples/), to which the appropriate prefix will automatically be added (e.g. 2x spin)
 
