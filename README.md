@@ -105,7 +105,11 @@ The following parameters can be passed to `Better_Font_Awesome_Library::get_inst
 * `true`
 
 The shortcode has the following attributes:
-`[icon name="" class="" unprefixed_class=""]
+```[icon name="" class="" unprefixed_class=""]```
+
+`name` - Unprefixed icon name (e.g. star)
+`class` - Unprefixed Font Awesome icon classes, to which the appropriate prefix will automatically be added (e.g. 2x spin)
+`unprefixed_class` - Classes the won't be auto-prefixed (e.g. my-custom-class)
 
 ##### load_tiny_mce_plugin #####
 (boolean) Loads a TinyMCE drop-down list of available icons (based on `version`), which generates a `[icon]` shortcode. The default setting is `false`.
