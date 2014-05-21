@@ -111,9 +111,9 @@ The shortcode has the following attributes:
 
 `name` - Unprefixed icon name (e.g. star)
 
-`class` - Unprefixed Font Awesome icon classes, to which the appropriate prefix will automatically be added (e.g. 2x spin)
+`class` - Unprefixed [Font Awesome icon classes](http://fortawesome.github.io/Font-Awesome/examples/), to which the appropriate prefix will automatically be added (e.g. 2x spin)
 
-`unprefixed_class` - Classes the won't be auto-prefixed (e.g. my-custom-class)
+`unprefixed_class` - Classes that you wish to remain unprefixed (e.g. my-custom-class)
 
 ##### load_tiny_mce_plugin #####
 (boolean) Loads a TinyMCE drop-down list of available icons (based on `version`), which generates a `[icon]` shortcode. The default setting is `false`.
