@@ -1,25 +1,35 @@
 <?php
+/**
+ * Better Font Awesome Library
+ *
+ * A class to implement Font Awesome via the jsDelivr CDN.
+ *
+ * @since 0.9.0
+ *
+ * @package Better Font Awesome Library
+ */
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
+// Includes
+require_once( dirname(__FILE__) . '/inc/class-jsdelivr-fetcher.php' );
+
 if ( ! class_exists( 'Better_Font_Awesome_Library') ) :
-/**
- * Better Font Awesome class
- */
 class Better_Font_Awesome_Library {
 
 	/*--------------------------------------------*
 	 * Constants
 	 *--------------------------------------------*/
-	const name = 'Better Font Awesome';
-	const slug = 'better-font-awesome';
+	const NAME = 'Better Font Awesome Library';
+	const SLUG = 'bfa';
+	const VERSION = '0.9.0';
 
 
 	/*--------------------------------------------*
-	 * Variables
+	 * Properties
 	 *--------------------------------------------*/
-	public $args, $version, $stylesheet_url, $prefix, $icons;
-	protected $cdn_data, $titan;
+	public $args, $stylesheet_url, $prefix, $icons, $version;
+	protected $jsdelivr_fetcher, $cdn_data, $titan;
 	protected $default_args = array(
 		'version' => 'latest',
 		'minified' => true,
@@ -49,15 +59,18 @@ class Better_Font_Awesome_Library {
 	 * Constructor
 	 */
 	protected function __construct( $args = '' ) {
-				
+
+		// Initialize jsDelivr Fercher class_alias()
+		$this->jsdelivr_fetcher = new jsDeliver_Fetcher();
+
 		// Initialize with specific args if passed
 		$this->args = wp_parse_args( $args, $this->default_args );
 
 		// Get CDN data
 		$this->setup_cdn_data();
 
-		// Late init functions - make sure this happens after other FA plugins are loaded
-		add_action( 'init', array( $this, 'init' ) );
+		// Initialize functionality
+		$this->init();
 
 		// Do scripts and styles - priority 11 to make sure styles/scripts load after other plugins
 		if ( $this->args['load_styles'] || $this->args['remove_existing_fa'] ) {
@@ -121,7 +134,7 @@ class Better_Font_Awesome_Library {
 	 * Get CDN data and prefix based on selected version
 	 */
 	function setup_cdn_data() {
-		$remote_data = wp_remote_get( 'http://api.jsdelivr.com/v1/jsdelivr/libraries/fontawesome/' );
+		$remote_data = wp_remote_get( 'http://api.jsdelivr.com/v1/jsdelivr/libraries/fontawesome/?fields=versions,lastversion' );
 		$decoded_data = json_decode( wp_remote_retrieve_body( $remote_data ) );
 		$this->cdn_data = $decoded_data[0];
 	}
@@ -160,7 +173,6 @@ class Better_Font_Awesome_Library {
 
 		$remote_data = wp_remote_get( $prefix . $this->stylesheet_url );
 	    $css = wp_remote_retrieve_body( $remote_data );
-	    		
 	 
 	 	// Get all CSS selectors that have a content: pseudo-element rule
 	 	preg_match_all('/(\.[^}]*)\s*{\s*(content:)/s', $css, $matches );
@@ -250,8 +262,8 @@ class Better_Font_Awesome_Library {
 		}
 
 		// Enqueue Font Awesome CSS
-		wp_register_style( 'bfa-font-awesome', $this->stylesheet_url, '', $this->args['version'] );
-		wp_enqueue_style( 'bfa-font-awesome' );
+		wp_register_style( self::SLUG . '-font-awesome', $this->stylesheet_url, '', $this->args['version'] );
+		wp_enqueue_style( self::SLUG . '-font-awesome' );
 	}
 
 	/*
@@ -313,7 +325,11 @@ class Better_Font_Awesome_Library {
 	 * Load admin CSS to style TinyMCE dropdown
 	 */
 	function custom_admin_css() {
-		wp_enqueue_style( 'bfa-admin-styles', plugins_url( 'inc/css/admin-styles.css', __FILE__ ) );
+		wp_enqueue_style( self::SLUG . '-admin-styles', plugins_url( 'inc/css/admin-styles.css', __FILE__ ) );
+	}
+
+	function get_cdn_value( $value ) {
+		return $this->jsdelivr_fetcher->get_value( $value );
 	}
   
 }

@@ -126,6 +126,7 @@ Classes that you wish to remain unprefixed (e.g. my-custom-class)
 ## To Do ##
 * Support for transients to prevent loading CDN info every time
 * Clean up indenting
+* Switch BFAL calls to use jsdelivr-fetcher class
 * Remove & in class funtion calls
 * Add version to public properties
 * Switch from `admin_head_variables` to `wp_localize_script`
