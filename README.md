@@ -40,7 +40,7 @@ The Better Font Awesome Library allows you to integrate any version of Font Awes
 
 3. If desired, use the [Better Font Awesome object](#using-the-better-font-awesome-object) to manually include Font Awesome CSS, output lists of available icons, create your own shortcodes, and much more.
 
-## Using The Better Font Awesome Object ##
+## The Better Font Awesome Object ##
 The Better Font Awesome object can be accessed with the following code:  
 `$my_bfa = Better_Font_Awesome_Object::get_instance();`
 
