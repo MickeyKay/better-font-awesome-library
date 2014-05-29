@@ -135,3 +135,4 @@ Classes that you wish to remain unprefixed (e.g. my-custom-class)
 * Add fallbacks to wp_remote_get() - http://tommcfarlin.com/wp_remote_get/
 * Add hard copy CSS file as final fallback.
 * Add MIGHTYminnow to credit
+* Icon menu icon not showing up in black studio widget - add attribute selector for admin CSS instead of exact ID selector.
