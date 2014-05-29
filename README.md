@@ -131,3 +131,7 @@ Classes that you wish to remain unprefixed (e.g. my-custom-class)
 * Switch from `admin_head_variables` to `wp_localize_script`
 * Remove dash (-) from prefixes and add programatically when needed.
 * Change `prefix` to `protocol` in get_icons
+* De-activating on update (perhaps need to remove install functionality)
+* Add fallbacks to wp_remote_get() - http://tommcfarlin.com/wp_remote_get/
+* Add hard copy CSS file as final fallback.
+* Add MIGHTYminnow to credit
