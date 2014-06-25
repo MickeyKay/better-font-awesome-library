@@ -10,7 +10,7 @@
  * @package Better Font Awesome Library
  */
 
-if ( ! class_exists( 'jsDeliver_Fetcher') ):
+if ( ! class_exists( 'jsDeliver_Fetcher' ) ):
 class jsDeliver_Fetcher {
 
 	/**
@@ -30,13 +30,13 @@ class jsDeliver_Fetcher {
 	private function get_cdn_data() {
 		$this->cdn_data = $this->fetch_cdn_data( self::CDN_URL )[0];
 	}
-	
+
 	private function fetch_cdn_data( $url ) {
 		$response = wp_remote_get( $url );
 
 		if ( is_wp_error( $response ) ) {
-   			$data = $response->get_error_message();
-   		} else {
+			$data = $response->get_error_message();
+		} else {
 			$data = json_decode( wp_remote_retrieve_body( $response ) );
 		}
 

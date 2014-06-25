@@ -12,10 +12,10 @@
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 // Includes
-require_once( dirname(__FILE__) . '/inc/class-jsdelivr-fetcher.php' );
+require_once dirname( __FILE__ ) . '/inc/class-jsdelivr-fetcher.php';
 
-if ( ! class_exists( 'Better_Font_Awesome_Library') ) :
-class Better_Font_Awesome_Library {
+if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
+	class Better_Font_Awesome_Library {
 
 	/*--------------------------------------------*
 	 * Constants
@@ -41,19 +41,19 @@ class Better_Font_Awesome_Library {
 	);
 
 	/**
-     * Returns the instance of this class, and initializes 
-     * the instance if it doesn't already exist
-     *
-     * @return Better_Font_Awesome_Library The BFAL object
-     */
+	 * Returns the instance of this class, and initializes
+	 * the instance if it doesn't already exist
+	 *
+	 * @return Better_Font_Awesome_Library The BFAL object
+	 */
 	public static function get_instance( $args = '' ) {
-        static $instance = null;
-        if (null === $instance) {
-            $instance = new static( $args );
-        }
+		static $instance = null;
+		if ( null === $instance ) {
+			$instance = new static( $args );
+		}
 
-        return $instance;
-    }
+		return $instance;
+	}
 
 	/**
 	 * Constructor
@@ -93,24 +93,22 @@ class Better_Font_Awesome_Library {
 	}
 
 	/**
-     * Private clone method to prevent cloning of the instance of the
-     * *Singleton* instance.
-     *
-     * @return void
-     */
-    private function __clone()
-    {
-    }
+	 * Private clone method to prevent cloning of the instance of the
+	 * *Singleton* instance.
+	 *
+	 * @return void
+	 */
+	private function __clone() {
+	}
 
-    /**
-     * Private unserialize method to prevent unserializing of the *Singleton*
-     * instance.
-     *
-     * @return void
-     */
-    private function __wakeup()
-    {
-    }
+	/**
+	 * Private unserialize method to prevent unserializing of the *Singleton*
+	 * instance.
+	 *
+	 * @return void
+	 */
+	private function __wakeup() {
+	}
 
 	/**
 	 * Runs when the plugin is initialized
@@ -124,7 +122,7 @@ class Better_Font_Awesome_Library {
 
 		// Remove existing [icon] shortcodes added via other plugins/themes
 		if ( $this->args['remove_existing_fa'] ) {
-			remove_shortcode('icon');
+			remove_shortcode( 'icon' );
 		}
 
 		// Register the shortcode [icon]
@@ -167,34 +165,34 @@ class Better_Font_Awesome_Library {
 	/*
      * Create list of available icons based on selected version of Font Awesome
      */
-    function get_icons() {
-    	// Get Font Awesome CSS
-	    if( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] == "on" )
-		    $prefix = 'https:';
+	function get_icons() {
+		// Get Font Awesome CSS
+		if ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] == "on" )
+			$prefix = 'https:';
 		else
-		    $prefix = 'http:';
+			$prefix = 'http:';
 
 		$remote_data = wp_remote_get( $prefix . $this->stylesheet_url );
-	    $css = wp_remote_retrieve_body( $remote_data );
-	 
-	 	// Get all CSS selectors that have a content: pseudo-element rule
-	 	preg_match_all('/(\.[^}]*)\s*{\s*(content:)/s', $css, $matches );
-	    $selectors = $matches[1];
+		$css = wp_remote_retrieve_body( $remote_data );
 
-	    // Select all icon- and fa- selectors from and split where there are commas
-	    foreach ( $selectors as $selector ) {
-	    	preg_match_all('/\.(icon-|fa-)([^,]*)\s*:before/s', $selector, $matches );
-	    	$clean_selectors = $matches[2];
+		// Get all CSS selectors that have a content: pseudo-element rule
+		preg_match_all( '/(\.[^}]*)\s*{\s*(content:)/s', $css, $matches );
+		$selectors = $matches[1];
 
-	    	// Create array of selectors
-	   		foreach( $clean_selectors as $clean_selector )
-	   			$this->icons[] = $clean_selector;
-	    }
+		// Select all icon- and fa- selectors from and split where there are commas
+		foreach ( $selectors as $selector ) {
+			preg_match_all( '/\.(icon-|fa-)([^,]*)\s*:before/s', $selector, $matches );
+			$clean_selectors = $matches[2];
 
-	    // Alphabetize & join with comma for use in JS array
+			// Create array of selectors
+			foreach ( $clean_selectors as $clean_selector )
+				$this->icons[] = $clean_selector;
+		}
+
+		// Alphabetize & join with comma for use in JS array
 		sort( $this->icons );
-				
-    }
+
+	}
 
 	/**
 	 * Output [icon] shortcode
@@ -202,42 +200,42 @@ class Better_Font_Awesome_Library {
 	 * Example:
 	 * [icon name="flag" class="fw 2x spin" unprefixed_class="custom_class"]
 	 *
-	 * @param   array $atts Shortcode attributes
+	 * @param array   $atts Shortcode attributes
 	 * @return  string <i> Font Awesome output
 	 */
 	function render_shortcode( $atts ) {
-		extract(shortcode_atts(array(
-			'name' => '',
-			'class' => '',
-			'unprefixed_class' => '',
-			'title'     => '', /* For compatibility with other plugins */
-            'size'      => '', /* For compatibility with other plugins */
-            'space'     => '',
-			), $atts)
+		extract( shortcode_atts( array(
+					'name' => '',
+					'class' => '',
+					'unprefixed_class' => '',
+					'title'     => '', /* For compatibility with other plugins */
+					'size'      => '', /* For compatibility with other plugins */
+					'space'     => '',
+				), $atts )
 		);
 
 		// Include for backwards compatibility with Font Awesome More Icons plugin
 		$title = $title ? 'title="' . $title . '" ' : '';
 		$space = 'true' == $space ? '&nbsp;' : '';
-        $size = $size ? ' '. $this->prefix . $size : '';
+		$size = $size ? ' '. $this->prefix . $size : '';
 
 		// Remove "icon-" and "fa-" from name
 		// This helps both:
-		// 	1. Incorrect shortcodes (when user includes full class name including prefix)
-		// 	2. Old shortcodes from other plugins that required prefixes
+		//  1. Incorrect shortcodes (when user includes full class name including prefix)
+		//  2. Old shortcodes from other plugins that required prefixes
 		$name = str_replace( 'icon-', '', $name );
 		$name = str_replace( 'fa-', '', $name );
-		
+
 		// Add prefix to name
 		$icon_name = $this->prefix . '-' . $name;
 
 		// Remove "icon-" and "fa-" from classes
 		$class = str_replace( 'icon-', '', $class );
 		$class = str_replace( 'fa-', '', $class );
-		
+
 		// Remove extra spaces from class
 		$class = trim( $class );
-		$class = preg_replace('/\s{3,}/',' ', $class );
+		$class = preg_replace( '/\s{3,}/', ' ', $class );
 
 		// Add prefix to each class (separated by space)
 		$class = $class ? ' ' . $this->prefix . '-' . str_replace( ' ', ' ' . $this->prefix . '-', $class ) : '';
@@ -247,14 +245,14 @@ class Better_Font_Awesome_Library {
 
 		return '<i class="fa ' . $icon_name . $class . $size . '" ' . $title . '>' . $space . '</i>';
 	}
-  
+
 	/**
 	 * Registers and enqueues stylesheets for the administration panel and the
 	 * public facing site.
 	 */
 	function do_scripts_and_styles() {
 		global $wp_styles;
-						
+
 		// Deregister any existing Font Awesome CSS
 		if ( $this->args['remove_existing_fa'] ) {
 			// Loop through all registered styles and remove any that appear to be font-awesome
@@ -273,50 +271,50 @@ class Better_Font_Awesome_Library {
 	 * Runs when admin is initialized
 	 */
 	function admin_init() {
-        if ( ! current_user_can('edit_posts') && ! current_user_can('edit_pages') )
-            return;     
+		if ( ! current_user_can( 'edit_posts' ) && ! current_user_can( 'edit_pages' ) )
+			return;
 
-        if ( get_user_option('rich_editing') == 'true' ) {  
-            add_filter( 'mce_external_plugins', array( $this, 'register_tinymce_plugin' ) );
-	        add_filter( 'mce_buttons', array( $this, 'add_tinymce_buttons' ) );
-        }  
-    }  
+		if ( get_user_option( 'rich_editing' ) == 'true' ) {
+			add_filter( 'mce_external_plugins', array( $this, 'register_tinymce_plugin' ) );
+			add_filter( 'mce_buttons', array( $this, 'add_tinymce_buttons' ) );
+		}
+	}
 
 	/**
 	 * Load TinyMCE Font Awesome dropdown plugin
-	*/
+	 */
 	function register_tinymce_plugin( $plugin_array ) {
-        global $tinymce_version;
+		global $tinymce_version;
 
-        // >= TinyMCE v4 - include newer plugin
-        if ( version_compare( $tinymce_version, '4000', '>=' ) )
-        	$plugin_array['bfa_plugin'] = plugins_url( 'inc/js/tinymce-icons.js', __FILE__ );
-        // < TinyMCE v4 - include old plugin
-        else
-        	$plugin_array['bfa_plugin'] = plugins_url( 'inc/js/tinymce-icons-old.js', __FILE__ );
+		// >= TinyMCE v4 - include newer plugin
+		if ( version_compare( $tinymce_version, '4000', '>=' ) )
+			$plugin_array['bfa_plugin'] = plugins_url( 'inc/js/tinymce-icons.js', __FILE__ );
+		// < TinyMCE v4 - include old plugin
+		else
+			$plugin_array['bfa_plugin'] = plugins_url( 'inc/js/tinymce-icons-old.js', __FILE__ );
 
-        return $plugin_array;
-    }
+		return $plugin_array;
+	}
 
-    /*
+	/*
      * Add TinyMCE dropdown element
      */
-    function add_tinymce_buttons( $buttons ) {
-        array_push( $buttons, 'bfaSelect' );
+	function add_tinymce_buttons( $buttons ) {
+		array_push( $buttons, 'bfaSelect' );
 
-        return $buttons;
-    }
+		return $buttons;
+	}
 
-    /**
+	/**
 	 * Add PHP variables in head for use by TinyMCE JavaScript
 	 */
 	function admin_head_variables() {
 		$icon_list = implode( ",", $this->icons );
-	    ?>
+?>
 		<!-- Better Font Awesome PHP variables for use by TinyMCE JavaScript -->
 		<script type='text/javascript'>
 		var bfa_vars = {
-		    'fa_prefix': '<?php echo $this->prefix; ?>', 
+		    'fa_prefix': '<?php echo $this->prefix; ?>',
 		    'fa_icons': '<?php echo $icon_list; ?>',
 		};
 		</script>
@@ -334,6 +332,6 @@ class Better_Font_Awesome_Library {
 	function get_cdn_value( $value ) {
 		return $this->jsdelivr_fetcher->get_value( $value );
 	}
-  
+
 }
 endif;
