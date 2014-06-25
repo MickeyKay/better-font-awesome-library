@@ -66,6 +66,9 @@ class Better_Font_Awesome_Library {
 		// Initialize with specific args if passed
 		$this->args = wp_parse_args( $args, $this->default_args );
 
+		// Filter args
+		$this->args = apply_filters( 'bfa_args', $this->args );
+		 
 		// Get CDN data
 		$this->setup_cdn_data();
 
