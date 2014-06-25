@@ -21,7 +21,7 @@ The Better Font Awesome Library allows you to integrate any version of Font Awes
 	require_once ( dirname( __FILE__ ) . '/better-font-awesome-library/better-font-awesome-library.php' );	
 
 	// Intialize Font Awesome once plugins are loaded
-	add_action( 'plugins_loaded', 'my_slug_load_bfa' );
+	add_action( 'init', 'my_slug_load_bfa' );
 	function my_slug_load_bfa() {
 		// Settings to load Font Awesome (defaults shown)
 		$args = array(
