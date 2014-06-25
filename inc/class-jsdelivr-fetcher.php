@@ -2,8 +2,8 @@
 /**
  * jsDelivr Fetcher class
  *
- * A class to retrieve remote jsDelivr data using the
- * jsDelivr API along with helper functions.
+ * A class to retrieve remote jsDelivr data about the Font Awesome CDN
+ * using the jsDelivr API along with helper functions.
  *
  * @since 0.9.0
  *
