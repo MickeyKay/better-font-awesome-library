@@ -68,27 +68,27 @@ class Better_Font_Awesome_Library {
 
 		// Filter args
 		$this->args = apply_filters( 'bfa_args', $this->args );
-		 
+
 		// Get CDN data
 		$this->setup_cdn_data();
 
 		// Initialize functionality
 		$this->init();
 
-		// Do scripts and styles - priority 11 to make sure styles/scripts load after other plugins
+		// Do scripts and styles - priority 15 to make sure styles/scripts load after other plugins
 		if ( $this->args['load_styles'] || $this->args['remove_existing_fa'] ) {
-			add_action( 'wp_enqueue_scripts', array( $this, 'do_scripts_and_styles' ), 11 );
+			add_action( 'wp_enqueue_scripts', array( $this, 'do_scripts_and_styles' ), 15 );
 		}
 
 		if ( $this->args['load_admin_styles'] || $this->args['load_tinymce_plugin'] ) {
-			add_action( 'admin_enqueue_scripts', array( $this, 'do_scripts_and_styles' ), 11 );
+			add_action( 'admin_enqueue_scripts', array( $this, 'do_scripts_and_styles' ), 15 );
 		}
 
 		// Load TinyMCE plugin
 		if ( $this->args['load_tinymce_plugin'] ) {
 			add_action( 'admin_head', array( $this, 'admin_init' ) );
 			add_action( 'admin_head', array( $this, 'admin_head_variables' ) );
-			add_action( 'admin_enqueue_scripts', array( $this, 'custom_admin_css' ), 11 );
+			add_action( 'admin_enqueue_scripts', array( $this, 'custom_admin_css' ), 15 );
 		}
 	}
 
