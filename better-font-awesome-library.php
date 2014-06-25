@@ -310,7 +310,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	 */
 	function admin_head_variables() {
 		$icon_list = implode( ",", $this->icons );
-?>
+		?>
 		<!-- Better Font Awesome PHP variables for use by TinyMCE JavaScript -->
 		<script type='text/javascript'>
 		var bfa_vars = {
@@ -318,7 +318,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 		    'fa_icons': '<?php echo $icon_list; ?>',
 		};
 		</script>
-		<!-- TinyMCE Better Font Awesome Plugin -->
+		<!-- End Better Font Awesome PHP variables for use by TinyMCE JavaScript -->
 	    <?php
 	}
 
