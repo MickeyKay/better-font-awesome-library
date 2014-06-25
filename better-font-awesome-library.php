@@ -73,7 +73,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 		$this->setup_cdn_data();
 
 		// Initialize functionality
-		$this->init();
+		add_action( 'init', array( $this, 'init' ) );
 
 		// Do scripts and styles - priority 15 to make sure styles/scripts load after other plugins
 		if ( $this->args['load_styles'] || $this->args['remove_existing_fa'] ) {
@@ -111,6 +111,15 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	}
 
 	/**
+	 * Get CDN data and prefix based on selected version
+	 */
+	function setup_cdn_data() {
+		$remote_data = wp_remote_get( 'http://api.jsdelivr.com/v1/jsdelivr/libraries/fontawesome/?fields=versions,lastversion' );
+		$decoded_data = json_decode( wp_remote_retrieve_body( $remote_data ) );
+		$this->cdn_data = $decoded_data[0];
+	}
+
+	/**
 	 * Runs when the plugin is initialized
 	 */
 	function init() {
@@ -129,15 +138,6 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 		if ( $this->args['load_shortcode'] ) {
 			add_shortcode( 'icon', array( $this, 'render_shortcode' ) );
 		}
-	}
-
-	/**
-	 * Get CDN data and prefix based on selected version
-	 */
-	function setup_cdn_data() {
-		$remote_data = wp_remote_get( 'http://api.jsdelivr.com/v1/jsdelivr/libraries/fontawesome/?fields=versions,lastversion' );
-		$decoded_data = json_decode( wp_remote_retrieve_body( $remote_data ) );
-		$this->cdn_data = $decoded_data[0];
 	}
 
 	/*
