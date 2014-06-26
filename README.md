@@ -21,7 +21,7 @@ The Better Font Awesome Library allows you to integrate any version of Font Awes
 	require_once ( dirname( __FILE__ ) . '/better-font-awesome-library/better-font-awesome-library.php' );	
 
 	// Intialize Font Awesome once plugins are loaded
-	add_action( 'init', 'my_slug_load_bfa' );
+	add_action( 'plugins_loaded', 'my_slug_load_bfa' );
 	function my_slug_load_bfa() {
 		// Settings to load Font Awesome (defaults shown)
 		$args = array(
@@ -38,7 +38,7 @@ The Better Font Awesome Library allows you to integrate any version of Font Awes
 	}
 ```
 
-3. If desired, use the [Better Font Awesome object](#using-the-better-font-awesome-object) to manually include Font Awesome CSS, output lists of available icons, create your own shortcodes, and much more.
+3. If desired, use the [Better Font Awesome object](#the-better-font-awesome-object) to manually include Font Awesome CSS, output lists of available icons, create your own shortcodes, and much more.
 
 ## The Better Font Awesome Object ##
 The Better Font Awesome object can be accessed with the following code:  
