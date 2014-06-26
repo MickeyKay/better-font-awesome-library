@@ -7,7 +7,7 @@ The Better Font Awesome Library allows you to integrate any version of Font Awes
 
 ## Features ##
 * Integrates any version of Font Awesome, including the option to always use most recent version (no more manual updates!).
-* Generates easy-to-use [PHP object](#using-the-better-font-awesome-object) that contains all relevant info including: version, CSS URL, icons available in this version, prefix used (`icon` or `fa`).
+* Generates an easy-to-use [PHP object](#the-better-font-awesome-library-object) that contains all relevant info including: version, CSS URL, icons available in this version, prefix used (`icon` or `fa`).
 * CDN speeds - Font Awesome CSS is pulled from [Bootstrap CDN](http://www.bootstrapcdn.com/#fontawesome_tab).
 * Includes optional TinyMCE plugin with drop-down shortcode generator.
 * Ability to choose between minified or unminified CSS.
@@ -34,15 +34,15 @@ The Better Font Awesome Library allows you to integrate any version of Font Awes
 		);
 		
 		// Initialize Font Awesome, or get the existing instance
-		Better_Font_Awesome_Object::get_instance( $args );
+		Better_Font_Awesome_Library::get_instance( $args );
 	}
 ```
 
-3. If desired, use the [Better Font Awesome object](#the-better-font-awesome-object) to manually include Font Awesome CSS, output lists of available icons, create your own shortcodes, and much more.
+3. If desired, use the [Better Font Awesome Library object](#the-better-font-awesome-library-object) to manually include Font Awesome CSS, output lists of available icons, create your own shortcodes, and much more.
 
-## The Better Font Awesome Object ##
-The Better Font Awesome object can be accessed with the following code:  
-`$my_bfa = Better_Font_Awesome_Object::get_instance();`
+## The Better Font Awesome Library Object ##
+The Better Font Awesome Library object can be accessed with the following code:  
+`$my_bfa = Better_Font_Awesome_Library::get_instance();`
 
 The object has the following properties:
 ### $stylesheet_url ###
@@ -57,7 +57,7 @@ The object has the following properties:
 ### Example: ###
 ```
 // Get the Better Font Awesome instance
-$my_bfa = Better_Font_Awesome_Object::get_instance( $args );
+$my_bfa = Better_Font_Awesome_Library::get_instance( $args );
 
 // Get the URL for the Font Awesome stylesheet
 $url = $my_bfa->stylesheet_url;
