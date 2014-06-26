@@ -8,7 +8,7 @@ The Better Font Awesome Library allows you to integrate any version of Font Awes
 ## Features ##
 * Integrates any version of Font Awesome, including the option to always use most recent version (no more manual updates!).
 * Generates an easy-to-use [PHP object](#the-better-font-awesome-library-object) that contains all relevant info including: version, CSS URL, icons available in this version, prefix used (`icon` or `fa`).
-* CDN speeds - Font Awesome CSS is pulled from [Bootstrap CDN](http://www.bootstrapcdn.com/#fontawesome_tab).
+* CDN speeds - Font Awesome CSS is pulled from [jsDelivr CDN](http://www.jsdelivr.com/#!fontawesome).
 * Includes optional TinyMCE plugin with drop-down shortcode generator.
 * Ability to choose between minified or unminified CSS.
 
@@ -46,7 +46,7 @@ The Better Font Awesome Library object can be accessed with the following code:
 
 The object has the following properties:
 ### $stylesheet_url ###
-(string) The Bootstrap CDN URL of the stylesheet for the selected version of Font Awesome.
+(string) The URL of the jsDelivr CDN hosted stylesheet for the selected version of Font Awesome.
 
 ### $prefix ###
 (string) The version-dependent prefix ('fa' or 'icon`) for use in CSS classes.
