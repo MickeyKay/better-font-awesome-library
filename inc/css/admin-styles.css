@@ -1,19 +1,18 @@
-/* Options page */
-.settings_page_options-general-better-font-awesome .titan-framework-panel-wrap [class*="icon-"],
-.settings_page_options-general-better-font-awesome .titan-framework-panel-wrap [class*="fa-"] {
-	display: inline-block;
-	width: 44px;
-	margin-right: 10px;
-	text-align: center;
-	vertical-align: middle;
-	-webkit-box-sizing: border-box;
-	   -moz-box-sizing: border-box;
-	        box-sizing: border-box;
-}
+/**
+ * Better Font Awesome admin styles
+ *
+ * @package   Better Font Awesome Library
+ * @author    MIGHTYminnow & Mickey Kay <mickey@mickeykaycreative.com>
+ * @license   GPL-2.0+
+ * @link      https://github.com/MickeyKay/better-font-awesome-library
+ * @copyright 2014 MIGHTYminnow & Mickey Kay
+ */
 
-/* TinyMCE */
+/**	
+ * TinyMCE
+ */
 
-/* Override editor rules blocking these native Font Awesome styles */
+/* Override TinyMCE rules blocking these native Font Awesome styles */
 #menu_content_content_bfaSelect_menu .icon-fw,
 #menu_content_content_bfaSelect_menu .fa-fw,
 .mce-stack-layout-item .icon-fw,
@@ -23,7 +22,7 @@
 	text-align: center;
 }
 
-/* Override editor icon font family */
+/* Override TinyMCE icon font family */
 .fa {
 	font-family: FontAwesome !important;
 }
@@ -33,4 +32,25 @@
 	content: "\f024";
 	margin-right: .5em;
 	font-family: FontAwesome;
+}
+
+/**
+ * Settings page
+ */
+
+.bfa-usage-text {
+	padding: 20px;
+	background-color: #fff;
+	border: 1px solid #efefef;
+}
+
+.bfa-usage-text h3 {
+	margin-top: 0;
+}
+
+.bfa-usage-text .fa,
+.bfa-usage-text .icon {
+	width: 40px;
+	text-align: center;
+	box-sizing: border-box;
 }
