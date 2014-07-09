@@ -41,6 +41,15 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	);
 
 	/**
+	 * Instance of this class.
+	 *
+	 * @since    1.0.0
+	 *
+	 * @var      object
+	 */
+	protected static $instance = null;
+
+	/**
 	 * Returns the instance of this class, and initializes
 	 * the instance if it doesn't already exist
 	 *
@@ -61,7 +70,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	protected function __construct( $args = '' ) {
 
 		// Initialize jsDelivr Fercher class_alias()
-		$this->jsdelivr_fetcher = new jsDeliver_Fetcher();
+		$this->jsdelivr_fetcher = jsDeliver_Fetcher::get_instance();
 
 		// Initialize with specific args if passed
 		$this->args = wp_parse_args( $args, $this->default_args );
