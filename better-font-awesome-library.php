@@ -28,16 +28,17 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	/*--------------------------------------------*
 	 * Properties
 	 *--------------------------------------------*/
-	public $args, $stylesheet_url, $prefix, $icons, $version;
+	public $args, $stylesheet_url, $prefix, $css, $icons, $version;
 	protected $jsdelivr_fetcher, $cdn_data, $titan;
 	protected $default_args = array(
-		'version' => 'latest',
-		'minified' => true,
-		'remove_existing_fa' => false,
-		'load_styles' => true,
-		'load_admin_styles' => true,
-		'load_shortcode' => false,
-		'load_tinymce_plugin' => false,
+		'version'                 => 'latest',
+		'minified'                => true,
+		'remove_existing_fa'      => false,
+		'load_styles'             => true,
+		'load_admin_styles'       => true,
+		'load_shortcode'          => false,
+		'load_tinymce_plugin'     => false,
+		'fallback_stylesheet_url' => '',
 	);
 
 	/**
@@ -48,6 +49,15 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	 * @var      object
 	 */
 	protected static $instance = null;
+
+	/**
+	 * Whether or not the wp_remote_get() call for the Font Awesome stylesheet succeeded.
+	 *
+	 * @since    1.0.0
+	 *
+	 * @var      boolean
+	 */
+	private $css_fetch_succeeded = false;
 
 	/**
 	 * Returns the instance of this class, and initializes
@@ -77,9 +87,6 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 
 		// Filter args
 		$this->args = apply_filters( 'bfa_args', $this->args );
-
-		// Get CDN data
-		$this->setup_cdn_data();
 
 		// Initialize functionality
 		add_action( 'init', array( $this, 'init' ) );
@@ -120,15 +127,6 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	}
 
 	/**
-	 * Get CDN data and prefix based on selected version
-	 */
-	function setup_cdn_data() {
-		$remote_data = wp_remote_get( 'http://api.jsdelivr.com/v1/jsdelivr/libraries/fontawesome/?fields=versions,lastversion' );
-		$decoded_data = json_decode( wp_remote_retrieve_body( $remote_data ) );
-		$this->cdn_data = $decoded_data[0];
-	}
-
-	/**
 	 * Runs when the plugin is initialized
 	 */
 	function init() {
@@ -154,8 +152,9 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	 */
 	function setup_global_variables() {
 		// Get latest version if need be
-		if ( 'latest' == $this->args['version'] )
-			$this->args['version'] = $this->cdn_data->lastversion;
+		if ( 'latest' == $this->args['version'] ) {
+			$this->args['version'] = jsDeliver_Fetcher::get_instance()->lastversion;
+		}
 
 		// Set stylesheet URL
 		$stylesheet = $this->args['minified'] ? '/css/font-awesome.min.css' : '/css/font-awesome.css';
@@ -167,25 +166,43 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 		elseif ( 0 <= version_compare( $this->args['version'], '3' ) )
 			$this->prefix = 'icon';
 
+		$this->css = $this->fetch_css();
+
 		// Setup icons for selected version of Font Awesome
 		$this->get_icons();
+	}
+
+	function fetch_css() {
+
+		if ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] == "on" ) {
+			$protocil = 'https:';
+		} else {
+			$protocol = 'http:';
+		}
+
+		$response = wp_remote_get( $protocol . $this->stylesheet_url );
+		if ( is_wp_error( $response ) ) {
+			$response = $response->get_error_message();
+			$this->do_css_fallback();
+		} else {
+			$response = wp_remote_retrieve_body( $response );
+			$this->css_fetch_succeeded = true;
+		}
+
+		return $response;
+	}
+
+	function do_css_fallback() {
+		add_action( 'admin_notices', array( $this, 'wp_remote_get_error_notice' ) );
 	}
 
 	/*
      * Create list of available icons based on selected version of Font Awesome
      */
 	function get_icons() {
-		// Get Font Awesome CSS
-		if ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] == "on" )
-			$prefix = 'https:';
-		else
-			$prefix = 'http:';
-
-		$remote_data = wp_remote_get( $prefix . $this->stylesheet_url );
-		$css = wp_remote_retrieve_body( $remote_data );
 
 		// Get all CSS selectors that have a content: pseudo-element rule
-		preg_match_all( '/(\.[^}]*)\s*{\s*(content:)/s', $css, $matches );
+		preg_match_all( '/(\.[^}]*)\s*{\s*(content:)/s', $this->css, $matches );
 		$selectors = $matches[1];
 
 		// Select all icon- and fa- selectors from and split where there are commas
@@ -331,15 +348,29 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	    <?php
 	}
 
+	public function wp_remote_get_error_notice() {
+		?>
+	    <div class="updated error">
+	        <p>
+	        	<?php echo __( 'The attempt to connect to the jsDelivr Font Awesome CDN failed with the following error: ', 'bfa' ) . "<code>$this->css</code>"; ?>
+	        </p>
+	    </div>
+	    <?php
+	}
+
 	/*
 	 * Load admin CSS to style TinyMCE dropdown
 	 */
-	function custom_admin_css() {
+	public function custom_admin_css() {
 		wp_enqueue_style( self::SLUG . '-admin-styles', plugins_url( 'inc/css/admin-styles.css', __FILE__ ) );
 	}
 
-	function get_cdn_value( $value ) {
+	public function get_value( $value ) {
 		return $this->jsdelivr_fetcher->get_value( $value );
+	}
+
+	public function fetch_succeeded() {
+		return $this->api_fetch_succeeded;
 	}
 
 }

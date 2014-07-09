@@ -10,18 +10,19 @@
  * @package Better Font Awesome Library
  */
 
-if ( ! class_exists( 'jsDeliver_Fetcher' ) ):
+if ( ! class_exists( 'jsDeliver_Fetcher' ) ) :
 class jsDeliver_Fetcher {
 
 	/**
 	 * Constants
 	 */
-	const CDN_URL = 'http://api.jsdelivr.com/v1/jsdelivr/libraries/fontawesome/?fields=versions,lastversion';
+	const API_URL = 'http://api.jsdelivr.com/v1/jsdelivr/libraries/fontawesome/?fields=versions,lastversion';
 
 	/**
 	 * Properties
 	 */
-	private $cdn_data;
+	private $api_data;
+	private $api_fetch_succeeded = false;
 
 	/**
 	 * Instance of this class.
@@ -33,7 +34,7 @@ class jsDeliver_Fetcher {
 	protected static $instance = null;
 
 	function __construct() {
-		$this->get_cdn_data();
+		$this->api_data = $this->fetch_api_data( self::API_URL );
 	}
 
 	/**
@@ -51,11 +52,8 @@ class jsDeliver_Fetcher {
 		return $instance;
 	}
 
-	private function get_cdn_data() {
-		$this->cdn_data = $this->fetch_cdn_data( self::CDN_URL );
-	}
+	private function fetch_api_data( $url ) {
 
-	private function fetch_cdn_data( $url ) {
 		$response = wp_remote_get( $url );
 
 		if ( is_wp_error( $response ) ) {
@@ -63,23 +61,30 @@ class jsDeliver_Fetcher {
 			add_action( 'admin_notices', array( $this, 'wp_remote_get_error_notice' ) );
 		} else {
 			$response = json_decode( wp_remote_retrieve_body( $response ) )[0];
+			$this->api_fetch_succeeded = true;
 		}
 
 		return $response;
 	}
 
-	function get_value( $value ) {
-		return $this->cdn_data->$value;
-	}
-
-	function wp_remote_get_error_notice() {
+	public function wp_remote_get_error_notice() {
 		?>
 	    <div class="updated error">
 	        <p>
-	        	<?php echo __( 'wp_remote_get() failed with the following error: ', 'bfa' ) . "<code>$this->cdn_data</code>"; ?>
+	        	<?php echo __( 'The attempt to connect to the jsDelivr Font Awesome API failed with the following error: ', 'bfa' ) . "<code>$this->api_data</code>"; ?>
 	        </p>
 	    </div>
 	    <?php
 	}
+
+	public function get_value( $value ) {
+		return $this->api_data->$value;
+	}
+
+	public function fetch_succeeded() {
+		return $this->api_fetch_succeeded;
+	}
+
+
 }
 endif;
