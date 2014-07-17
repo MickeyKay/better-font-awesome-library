@@ -59,7 +59,8 @@ class jsDeliver_Fetcher {
 		if ( is_wp_error( $response ) ) {
 			$response = $response->get_error_message();
 		} else {
-			$response = json_decode( wp_remote_retrieve_body( $response ) )[0];
+			$response = json_decode( wp_remote_retrieve_body( $response ) );
+			$response = $response[0];
 			$this->api_fetch_succeeded = true;
 		}
 
