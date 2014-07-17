@@ -12,7 +12,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 // Includes
-require_once dirname( __FILE__ ) . '/inc/class-jsdelivr-fetcher.php';
+require_once plugin_dir_path( __FILE__ ) . 'inc/class-jsdelivr-fetcher.php';
 
 if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	class Better_Font_Awesome_Library {
@@ -38,7 +38,8 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 		'load_admin_styles'       => true,
 		'load_shortcode'          => false,
 		'load_tinymce_plugin'     => false,
-		'fallback_css_file'       => '' ,
+		'fallback_css_url'        => 'lib/fallback-font-awesome/css/font-awesome.min.css',
+		'fallback_css_file'       => '',
 	);
 
 	/**
@@ -87,8 +88,10 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 			$this->api_fetch_failure_actions();
 		}
 
+		// Set default fallback CSS file path
+		$this->default_args['fallback_css_file'] = plugin_dir_path( __FILE__ ) . $this->default_args['fallback_css_url'];
+
 		// Initialize with specific args if passed
-		$this->default_args['fallback_css_file'] = dirname( __FILE__ ) . '/lib/fallback-font-awesome/css/font-awesome.min.css';
 		$this->args = wp_parse_args( $args, $this->default_args );
 
 		// Filter args
@@ -179,7 +182,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 		$this->css = $this->fetch_css();
 
 		// Setup icons for selected version of Font Awesome
-		if ( $this->css_fetch_succeeded ) {
+		if ( $this->css ) {
 			$this->get_icons();
 		}
 	}
@@ -190,24 +193,29 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 		$transient_css_array = get_transient( self::SLUG . '-css' );
 		$transient_css = isset( $transient_css_array[ $this->args['version'] ] ) ? $transient_css_array[ $this->args['version'] ] : '';
 
+		// If the CSS transient doesn't exist, try to fetch the jsDelivr CDN CSS
 		if ( ! $transient_css ) {
 
+			// Set the correct URL protocol
 			if ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] == "on" ) {
 				$protocol = 'https:';
 			} else {
 				$protocol = 'http:';
 			}
 
-			//$response = wp_remote_get( $protocol . $this->stylesheet_url );
-			$response = wp_remote_get( 'asdf' );
+			$response = wp_remote_get( $protocol . $this->stylesheet_url );
 			if ( is_wp_error( $response ) ) {
 
 				if ( $this->get_fallback_css() ) {
 					$response = $this->get_fallback_css();
+
+					// Set stylesheet to fallback URL
+					$this->stylesheet_url = plugin_dir_url( __FILE__ ) . $this->args['fallback_css_url'];
 				} else {
 					$response = $response->get_error_message();
 					$this->css_fetch_failure_actions();
 				}
+
 			} else {
 				$response = wp_remote_retrieve_body( $response );
 				$this->css_fetch_succeeded = true;
@@ -230,15 +238,19 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	 *
 	 * @since  0.9.8
 	 *
-	 * @return string Fallback Font Awesome CSS.
+	 * @return string $css Fallback Font Awesome CSS.
 	 */
 	private function get_fallback_css() {
 
 		if ( is_readable ( $this->default_args['fallback_css_file'] ) ) {
-			return include $this->default_args['fallback_css_file'];
+			ob_start();
+			include plugin_dir_path( __FILE__ ) . $this->default_args['fallback_css_url'];
+	        $css = ob_get_clean();
 		} else {
-			return false;
+			$css = false;
 		}
+
+		return $css;
 
 	}
 
@@ -390,7 +402,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	 * Add PHP variables in head for use by TinyMCE JavaScript
 	 */
 	function admin_head_variables() {
-		if ( $this->css_fetch_succeeded ) {
+		if ( $this->css ) {
 			$icon_list = implode( ",", $this->icons );
 			?>
 			<!-- Better Font Awesome PHP variables for use by TinyMCE JavaScript -->
