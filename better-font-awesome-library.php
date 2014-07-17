@@ -172,8 +172,10 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 			 * Fallback in case the API fetch failed and 'lastversion' isn't available.
 			 * Defaults to the highest available version (key) in $transient_css_array.
 			 */
-			$transient_css_array = get_transient( self::SLUG . '-css' );
-			$this->args['version'] = max( array_keys( $transient_css_array ) );
+			if ( ! $this->args['version'] ) {
+				$transient_css_array = get_transient( self::SLUG . '-css' );
+				$this->args['version'] = max( array_keys( $transient_css_array ) );
+			}
 		}
 
 		// Set stylesheet URL
