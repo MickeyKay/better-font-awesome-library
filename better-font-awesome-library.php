@@ -38,7 +38,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 		'load_admin_styles'       => true,
 		'load_shortcode'          => false,
 		'load_tinymce_plugin'     => false,
-		'fallback_stylesheet_url' => '',
+		'fallback_css_file'       => '' ,
 	);
 
 	/**
@@ -82,7 +82,13 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 		// Initialize jsDelivr Fercher class_alias()
 		$this->jsdelivr_fetcher = jsDeliver_Fetcher::get_instance();
 
+		// Do API failure actions
+		if ( ! $this->api_fetch_succeeded() ) {
+			$this->api_fetch_failure_actions();
+		}
+
 		// Initialize with specific args if passed
+		$this->default_args['fallback_css_file'] = dirname( __FILE__ ) . '/lib/fallback-font-awesome/css/font-awesome.min.css';
 		$this->args = wp_parse_args( $args, $this->default_args );
 
 		// Filter args
@@ -126,6 +132,10 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	private function __wakeup() {
 	}
 
+	public function api_fetch_failure_actions() {
+		add_action( 'admin_notices', array( $this, 'api_error_notice' ) );
+	}
+
 	/**
 	 * Runs when the plugin is initialized
 	 */
@@ -153,7 +163,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	function setup_global_variables() {
 		// Get latest version if need be
 		if ( 'latest' == $this->args['version'] ) {
-			$this->args['version'] = jsDeliver_Fetcher::get_instance()->lastversion;
+			$this->args['version'] = $this->jsdelivr_fetcher->lastversion;
 		}
 
 		// Set stylesheet URL
@@ -169,31 +179,76 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 		$this->css = $this->fetch_css();
 
 		// Setup icons for selected version of Font Awesome
-		$this->get_icons();
+		if ( $this->css_fetch_succeeded ) {
+			$this->get_icons();
+		}
 	}
 
 	function fetch_css() {
 
-		if ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] == "on" ) {
-			$protocil = 'https:';
-		} else {
-			$protocol = 'http:';
-		}
+		// Get transient CSS
+		$transient_css_array = get_transient( self::SLUG . '-css' );
+		$transient_css = isset( $transient_css_array[ $this->args['version'] ] ) ? $transient_css_array[ $this->args['version'] ] : '';
 
-		$response = wp_remote_get( $protocol . $this->stylesheet_url );
-		if ( is_wp_error( $response ) ) {
-			$response = $response->get_error_message();
-			$this->do_css_fallback();
-		} else {
-			$response = wp_remote_retrieve_body( $response );
-			$this->css_fetch_succeeded = true;
+		if ( ! $transient_css ) {
+
+			if ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] == "on" ) {
+				$protocol = 'https:';
+			} else {
+				$protocol = 'http:';
+			}
+
+			//$response = wp_remote_get( $protocol . $this->stylesheet_url );
+			$response = wp_remote_get( 'asdf' );
+			if ( is_wp_error( $response ) ) {
+
+				if ( $this->get_fallback_css() ) {
+					$response = $this->get_fallback_css();
+				} else {
+					$response = $response->get_error_message();
+					$this->css_fetch_failure_actions();
+				}
+			} else {
+				$response = wp_remote_retrieve_body( $response );
+				$this->css_fetch_succeeded = true;
+
+				// Set CSS transient
+				$transient_css_array[ $this->args['version'] ] = $response;
+				set_transient( self::SLUG . '-css', $transient_css_array, 12 * HOUR_IN_SECONDS );
+			}
+
+		}
+		else {
+			$response = $transient_css;
 		}
 
 		return $response;
 	}
 
-	function do_css_fallback() {
-		add_action( 'admin_notices', array( $this, 'wp_remote_get_error_notice' ) );
+	/**
+	 * Get local version of Font Awesome if all else fails.
+	 *
+	 * @since  0.9.8
+	 *
+	 * @return string Fallback Font Awesome CSS.
+	 */
+	private function get_fallback_css() {
+
+		if ( is_readable ( $this->default_args['fallback_css_file'] ) ) {
+			return include $this->default_args['fallback_css_file'];
+		} else {
+			return false;
+		}
+
+	}
+
+	/**
+	 * What to do if no CSS transient is set AND the CDN fetch fails.
+	 *
+	 * @since  0.9.8
+	 */
+	function css_fetch_failure_actions() {
+		add_action( 'admin_notices', array( $this, 'css_error_notice' ) );
 	}
 
 	/*
@@ -335,27 +390,19 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	 * Add PHP variables in head for use by TinyMCE JavaScript
 	 */
 	function admin_head_variables() {
-		$icon_list = implode( ",", $this->icons );
-		?>
-		<!-- Better Font Awesome PHP variables for use by TinyMCE JavaScript -->
-		<script type='text/javascript'>
-		var bfa_vars = {
-		    'fa_prefix': '<?php echo $this->prefix; ?>',
-		    'fa_icons': '<?php echo $icon_list; ?>',
-		};
-		</script>
-		<!-- End Better Font Awesome PHP variables for use by TinyMCE JavaScript -->
-	    <?php
-	}
-
-	public function wp_remote_get_error_notice() {
-		?>
-	    <div class="updated error">
-	        <p>
-	        	<?php echo __( 'The attempt to connect to the jsDelivr Font Awesome CDN failed with the following error: ', 'bfa' ) . "<code>$this->css</code>"; ?>
-	        </p>
-	    </div>
-	    <?php
+		if ( $this->css_fetch_succeeded ) {
+			$icon_list = implode( ",", $this->icons );
+			?>
+			<!-- Better Font Awesome PHP variables for use by TinyMCE JavaScript -->
+			<script type='text/javascript'>
+			var bfa_vars = {
+			    'fa_prefix': '<?php echo $this->prefix; ?>',
+			    'fa_icons': '<?php echo $icon_list; ?>',
+			};
+			</script>
+			<!-- End Better Font Awesome PHP variables for use by TinyMCE JavaScript -->
+		    <?php
+		}
 	}
 
 	/*
@@ -365,12 +412,36 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 		wp_enqueue_style( self::SLUG . '-admin-styles', plugins_url( 'inc/css/admin-styles.css', __FILE__ ) );
 	}
 
-	public function get_value( $value ) {
-		return $this->jsdelivr_fetcher->get_value( $value );
+	public function api_error_notice() {
+		?>
+	    <div class="updated error">
+	        <p>
+	        	<?php echo __( 'The attempt to connect to the jsDelivr Font Awesome API failed with the following error: ', 'bfa' ) . '<code>' . $this->get_api_data() . '</code>'; ?>
+	        </p>
+	    </div>
+	    <?php
 	}
 
-	public function fetch_succeeded() {
-		return $this->api_fetch_succeeded;
+	public function css_error_notice() {
+		?>
+	    <div class="updated error">
+	        <p>
+	        	<?php echo __( 'The attempt to connect to the jsDelivr Font Awesome CDN failed with the following error: %s. Additionally the ', 'bfa' ) . "<code>$this->css</code>"; ?>
+	        </p>
+	    </div>
+	    <?php
+	}
+
+	public function get_api_data() {
+		return $this->jsdelivr_fetcher->get_api_data();
+	}
+
+	public function get_api_value( $value ) {
+		return $this->jsdelivr_fetcher->get_api_value( $value );
+	}
+
+	public function api_fetch_succeeded() {
+		return $this->jsdelivr_fetcher->api_fetch_succeeded();
 	}
 
 }

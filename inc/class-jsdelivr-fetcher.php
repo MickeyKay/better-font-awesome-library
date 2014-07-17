@@ -58,7 +58,6 @@ class jsDeliver_Fetcher {
 
 		if ( is_wp_error( $response ) ) {
 			$response = $response->get_error_message();
-			add_action( 'admin_notices', array( $this, 'wp_remote_get_error_notice' ) );
 		} else {
 			$response = json_decode( wp_remote_retrieve_body( $response ) )[0];
 			$this->api_fetch_succeeded = true;
@@ -67,24 +66,17 @@ class jsDeliver_Fetcher {
 		return $response;
 	}
 
-	public function wp_remote_get_error_notice() {
-		?>
-	    <div class="updated error">
-	        <p>
-	        	<?php echo __( 'The attempt to connect to the jsDelivr Font Awesome API failed with the following error: ', 'bfa' ) . "<code>$this->api_data</code>"; ?>
-	        </p>
-	    </div>
-	    <?php
+	public function get_api_data() {
+		return $this->api_data;
 	}
 
-	public function get_value( $value ) {
-		return $this->api_data->$value;
+	public function get_api_value( $value ) {
+		return $this->api_fetch_succeeded() ? $this->api_data->$value : false;
 	}
 
-	public function fetch_succeeded() {
+	public function api_fetch_succeeded() {
 		return $this->api_fetch_succeeded;
 	}
-
 
 }
 endif;
