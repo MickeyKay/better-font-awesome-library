@@ -167,6 +167,13 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 		// Get latest version if need be
 		if ( 'latest' == $this->args['version'] ) {
 			$this->args['version'] = $this->get_api_value( 'lastversion' );
+
+			/**
+			 * Fallback in case the API fetch failed and 'lastversion' isn't available.
+			 * Defaults to the highest available version (key) in $transient_css_array.
+			 */
+			$transient_css_array = get_transient( self::SLUG . '-css' );
+			$this->args['version'] = max( array_keys( $transient_css_array ) );
 		}
 
 		// Set stylesheet URL
@@ -180,7 +187,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 			$this->prefix = 'icon';
 
 		$this->css = $this->fetch_css();
-
+				
 		// Setup icons for selected version of Font Awesome
 		if ( $this->css ) {
 			$this->get_icons();
@@ -191,8 +198,10 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 
 		// Get transient CSS
 		$transient_css_array = get_transient( self::SLUG . '-css' );
-		$transient_css = isset( $transient_css_array[ $this->args['version'] ] ) ? $transient_css_array[ $this->args['version'] ] : '';
+				
 
+		$transient_css = isset( $transient_css_array[ $this->args['version'] ] ) ? $transient_css_array[ $this->args['version'] ] : '';
+				
 		// If the CSS transient doesn't exist, try to fetch the jsDelivr CDN CSS
 		if ( ! $transient_css ) {
 
@@ -206,14 +215,23 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 			$response = wp_remote_get( $protocol . $this->stylesheet_url );
 			if ( is_wp_error( $response ) ) {
 
+				// Log error for admin notice
+				$this->css_fetch_error = $response->get_error_message();
+
+				// Trigger CSS fetch failure actions
+				$this->css_fetch_failure_actions();
+
 				if ( $this->get_fallback_css() ) {
+
+					// Get fallback CSS
 					$response = $this->get_fallback_css();
 
 					// Set stylesheet to fallback URL
 					$this->stylesheet_url = plugin_dir_url( __FILE__ ) . $this->args['fallback_css_url'];
+
 				} else {
 					$response = $response->get_error_message();
-					$this->css_fetch_failure_actions();
+					$this->css_fallback_failure_actions();
 				}
 
 			} else {
@@ -438,7 +456,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 		?>
 	    <div class="updated error">
 	        <p>
-	        	<?php echo __( 'The attempt to connect to the jsDelivr Font Awesome CDN failed with the following error: %s. Additionally the ', 'bfa' ) . "<code>$this->css</code>"; ?>
+	        	<?php printf( __( 'The attempt to connect to the jsDelivr Font Awesome CDN failed with the following error: %s.', 'bfa' ), "<code>$this->css_fetch_error</code>" ); ?>
 	        </p>
 	    </div>
 	    <?php
