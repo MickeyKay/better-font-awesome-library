@@ -166,7 +166,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	function setup_global_variables() {
 		// Get latest version if need be
 		if ( 'latest' == $this->args['version'] ) {
-			$this->args['version'] = $this->jsdelivr_fetcher->lastversion;
+			$this->args['version'] = $this->get_api_value( 'lastversion' );
 		}
 
 		// Set stylesheet URL
