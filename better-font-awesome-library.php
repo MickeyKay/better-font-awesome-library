@@ -9,6 +9,21 @@
  * @package Better Font Awesome Library
  */
 
+/**
+ * @todo ensure defaults are working for new manual options
+ * @todo add a reset defaults button
+ * @todo test to ensure that BFA trumps any BFA Library inclusions in plugins/themes
+ * @todo add filters in all necessary locations
+ * @todo check all comments for formatting and thoroughness
+ * @todo test in both pre and post TinyMCE V4 (make sure icons all appear in editor and front end)
+ * @todo check visibility of all class methods (private, protected, public)
+ * @todo add timeout functionality, and possibly other wp_remote_get args
+ * @todo add trailingslashit and make sure all paths are consistent on requires
+ * @todo make sure fallback url/file work okay if a user filters them, not just if the string combining happens before or after filter
+ * @todo fix error on bfal CDN notice
+ * @todo switch jsdelivr_fetcher to 200 response code conditional
+ */
+
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 // Includes
@@ -170,12 +185,13 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 
 			/**
 			 * Fallback in case the API fetch failed and 'lastversion' isn't available.
-			 * Defaults to the highest available version (key) in $transient_css_array.
+			 *  1. Defaults to the highest available version (key) in $transient_css_array.
 			 */
-			if ( ! $this->args['version'] ) {
+			if ( ! $this->args['version'] && 0 < count( $transient_css_array )) {
 				$transient_css_array = get_transient( self::SLUG . '-css' );
 				$this->args['version'] = max( array_keys( $transient_css_array ) );
 			}
+					
 		}
 
 		// Set stylesheet URL
@@ -200,8 +216,6 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 
 		// Get transient CSS
 		$transient_css_array = get_transient( self::SLUG . '-css' );
-				
-
 		$transient_css = isset( $transient_css_array[ $this->args['version'] ] ) ? $transient_css_array[ $this->args['version'] ] : '';
 				
 		// If the CSS transient doesn't exist, try to fetch the jsDelivr CDN CSS
@@ -213,18 +227,25 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 			} else {
 				$protocol = 'http:';
 			}
-
+					
 			$response = wp_remote_get( $protocol . $this->stylesheet_url );
-			if ( is_wp_error( $response ) ) {
+					
+			if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
+				$response = wp_remote_retrieve_body( $response );
+				$this->css_fetch_succeeded = true;
 
-				// Log error for admin notice
-				$this->css_fetch_error = $response->get_error_message();
+				// Set CSS transient
+				$transient_css_array[ $this->args['version'] ] = $response;
+				set_transient( self::SLUG . '-css', $transient_css_array, 14 * DAY_IN_SECONDS );
+			} else {
+
+				// Log error for admin notice						
+				$this->css_fetch_error = wp_remote_retrieve_response_message( $response );
 
 				// Trigger CSS fetch failure actions
 				$this->css_fetch_failure_actions();
 
 				if ( $this->get_fallback_css() ) {
-
 					// Get fallback CSS
 					$response = $this->get_fallback_css();
 
@@ -236,13 +257,6 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 					$this->css_fallback_failure_actions();
 				}
 
-			} else {
-				$response = wp_remote_retrieve_body( $response );
-				$this->css_fetch_succeeded = true;
-
-				// Set CSS transient
-				$transient_css_array[ $this->args['version'] ] = $response;
-				set_transient( self::SLUG . '-css', $transient_css_array, 12 * HOUR_IN_SECONDS );
 			}
 
 		}
