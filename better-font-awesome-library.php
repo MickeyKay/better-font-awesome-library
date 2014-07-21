@@ -389,7 +389,8 @@ class Better_Font_Awesome_Library {
 
 			if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
 				
-				$response = json_decode( wp_remote_retrieve_body( $response ) )[0];
+				$json_data = json_decode( wp_remote_retrieve_body( $response ) );
+				$response = $json_data[0];
 
 				/**
 				 * Filter the API transient expiration.
