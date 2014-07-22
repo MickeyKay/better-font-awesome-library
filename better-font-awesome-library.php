@@ -213,7 +213,7 @@ class Better_Font_Awesome_Library {
 	protected function __construct( $args = array() ) {
 
 		// Initialization actions (set up properties).
-		$this->initialize();
+		$this->initialize( $this->args );
 
 		// Use the jsDelivr API to fetch info on the jsDelivr Font Awesome CDN.
 		$this->get_available_cdn_versions();
@@ -286,7 +286,7 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @since  1.0.0
 	 */
-	private function initialize() {
+	private function initialize( $args ) {
 
 		// Parse the initialization args with the defaults.
 		$this->parse_args( $args );
