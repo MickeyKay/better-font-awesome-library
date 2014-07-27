@@ -211,6 +211,10 @@ class Better_Font_Awesome_Library {
 	 * @param  array  $args  Initialization arguments.
 	 */
 	protected function __construct( $args = array() ) {
+		add_action( 'plugins_loaded', array( $this, 'load' ) );
+	}
+
+	public function load() {
 
 		// Initialization actions (set up properties).
 		$this->initialize( $this->args );
