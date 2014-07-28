@@ -18,6 +18,9 @@
  * @todo There may be a better way to do get_local_file_contents(), refer to:
  *       https://github.com/markjaquith/feedback/issues/33
  * @todo Doublecheck error messages
+ * @todo  Add filters section to readme
+ * @todo  Update BFAL Object section in readme to reflect public methods
+ * @todo  Add public methods to get version, icons, prefix
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
@@ -289,7 +292,7 @@ class Better_Font_Awesome_Library {
 
 		// Output any necessary admin notices.
 		add_action( 'admin_notices', array( $this, 'do_admin_notice' ) );
-
+		
 	}
 
 	/**
