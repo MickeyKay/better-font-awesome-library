@@ -11,16 +11,11 @@
 
 /**
  * @todo ensure defaults are working for new manual options
- * @todo add a reset defaults button
  * @todo test to ensure that BFA trumps any BFA Library inclusions in
  *       plugins/themes
- * @todo add filters in all necessary locations
  * @todo check all comments for formatting and thoroughness
  * @todo test in both pre and post TinyMCE V4 (make sure icons all appear in
  *       editor and front end)
- * @todo check visibility of all class methods (private, protected, public)
- * @todo maybe move everything out of constructor into plugins_loaded or
- *       something like that.
  * @todo update README.md
  * @todo There may be a better way to do get_local_file_contents(), refer to:
  *       https://github.com/markjaquith/feedback/issues/33
@@ -185,7 +180,7 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @var    Better_Font_Awesome_Library object
 	 */
-	protected static $instance = null;
+	private static $instance = null;
 
 	/**
 	 * Returns the instance of this class, and initializes
@@ -213,7 +208,7 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @param  array  $args  Initialization arguments.
 	 */
-	protected function __construct( $args = array() ) {
+	private function __construct( $args = array() ) {
 
 		// Get initialization args.
 		$this->args = $args;
