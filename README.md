@@ -17,20 +17,22 @@ The Better Font Awesome Library allows you to integrate any version of Font Awes
 
 2. Add the following code to your main plugin file or your theme's function.php file.
    ```
-	// Include the library - modify the require_once path to match your directory structure
-	require_once ( dirname( __FILE__ ) . '/better-font-awesome-library/better-font-awesome-library.php' );	
-
 	// Intialize Font Awesome once plugins are loaded
 	add_action( 'plugins_loaded', 'my_slug_load_bfa' );
 	function my_slug_load_bfa() {
+
+		// Include the library - modify the require_once path to match your directory structure
+		require_once ( dirname( __FILE__ ) . '/better-font-awesome-library/better-font-awesome-library.php' );
+
 		// Settings to load Font Awesome (defaults shown)
 		$args = array(
 				'version' => 'latest',
 				'minified' => true,
 				'remove_existing_fa' => false,
-				'load_styles' => true,
-				'load_admin_styles' => true,
-				'load_tinymce_plugin' => false,
+				'load_styles'             => true,
+				'load_admin_styles'       => true,
+				'load_shortcode'          => true,
+				'load_tinymce_plugin'     => true,
 		);
 		
 		// Initialize Font Awesome, or get the existing instance
@@ -104,7 +106,7 @@ The following parameters can be passed to `Better_Font_Awesome_Library::get_inst
 * `false` (default)
 * `true`
 
-The shortcode has the following attributes:
+The shortcode looks like:
 ```
 [icon name="" class="" unprefixed_class=""]
 ```
@@ -118,7 +120,7 @@ Unprefixed [Font Awesome icon classes](http://fortawesome.github.io/Font-Awesome
 **unprefixed_class**  
 Classes that you wish to remain unprefixed (e.g. my-custom-class)
 
-### load_tiny_mce_plugin ###
+### load_tinymce_plugin ###
 (boolean) Loads a TinyMCE drop-down list of available icons (based on `version`), which generates a `[icon]` shortcode.
 * `false` (default)
 * `true`
