@@ -6,6 +6,10 @@ Better Font Awesome Library for WordPress
 ## Table of contents ##
 1. [Introduction](https://github.com/MickeyKay/better-font-awesome-library#introduction)
 1. [Features](https://github.com/MickeyKay/better-font-awesome-library#features)
+1. [Usage](https://github.com/MickeyKay/better-font-awesome-library#usage)
+1. [The Better Font Awesome Library Object](https://github.com/MickeyKay/better-font-awesome-library#the-better-font-awesome-library-object)
+1. [Initialization Parameteres](https://github.com/MickeyKay/better-font-awesome-library#initialization-parameters)
+1. [To Do](https://github.com/MickeyKay/better-font-awesome-library#to-do)
 
 ## Introduction ##
 The Better Font Awesome Library allows you to integrate any version of Font Awesome into your project (including the latest), along with accompanying CSS, a list of available icons, and a TinyMCE drop-down and shortcode generator.
@@ -78,7 +82,7 @@ foreach ( $icons as $icon)
 	echo $icon . '<br />';
 ```
 
-## Parameters ($args) ##
+## Initialization Parameters ($args) ##
 The following parameters can be passed to `Better_Font_Awesome_Library::get_instance( $args )` in the `$args` array.
 
 ### version ###
