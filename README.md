@@ -7,8 +7,8 @@ Better Font Awesome Library for WordPress
 1. [Introduction](https://github.com/MickeyKay/better-font-awesome-library#introduction)
 1. [Features](https://github.com/MickeyKay/better-font-awesome-library#features)
 1. [Usage](https://github.com/MickeyKay/better-font-awesome-library#usage)
+1. [Initialization Parameters](https://github.com/MickeyKay/better-font-awesome-library#initialization-parameters)
 1. [The Better Font Awesome Library Object](https://github.com/MickeyKay/better-font-awesome-library#the-better-font-awesome-library-object)
-1. [Initialization Parameteres](https://github.com/MickeyKay/better-font-awesome-library#initialization-parameters)
 1. [To Do](https://github.com/MickeyKay/better-font-awesome-library#to-do)
 
 ## Introduction ##
@@ -50,37 +50,6 @@ The Better Font Awesome Library allows you to integrate any version of Font Awes
 ```
 
 3. If desired, use the [Better Font Awesome Library object](#the-better-font-awesome-library-object) to manually include Font Awesome CSS, output lists of available icons, create your own shortcodes, and much more.
-
-## The Better Font Awesome Library Object ##
-The Better Font Awesome Library object can be accessed with the following code:  
-`$my_bfa = Better_Font_Awesome_Library::get_instance();`
-
-The object has the following properties:
-### $stylesheet_url ###
-(string) The URL of the jsDelivr CDN hosted stylesheet for the selected version of Font Awesome.
-
-### $prefix ###
-(string) The version-dependent prefix ('fa' or 'icon`) for use in CSS classes.
-
-### $icons ###
-(array) An alphabetical array of unprefixed icon names for all available icons in the selected version of Font Awesome.
-
-### Example: ###
-```
-// Get the Better Font Awesome instance
-$my_bfa = Better_Font_Awesome_Library::get_instance( $args );
-
-// Get the URL for the Font Awesome stylesheet
-$url = $my_bfa->stylesheet_url;
-
-// Get the prefix for the version of Font Awesome you are using
-$prefix = $my_bfa->prefix;
-
-// Output a list of all available icons (unprefixed name, e.g. 'star')
-$icons = $my_bfa->icons;
-foreach ( $icons as $icon)
-	echo $icon . '<br />';
-```
 
 ## Initialization Parameters ($args) ##
 The following parameters can be passed to `Better_Font_Awesome_Library::get_instance( $args )` in the `$args` array.
@@ -133,6 +102,37 @@ Classes that you wish to remain unprefixed (e.g. my-custom-class)
 (boolean) Loads a TinyMCE drop-down list of available icons (based on `version`), which generates a `[icon]` shortcode.
 * `false` (default)
 * `true`
+
+## The Better Font Awesome Library Object ##
+The Better Font Awesome Library object can be accessed with the following code:  
+`$my_bfa = Better_Font_Awesome_Library::get_instance();`
+
+The object has the following properties:
+### $stylesheet_url ###
+(string) The URL of the jsDelivr CDN hosted stylesheet for the selected version of Font Awesome.
+
+### $prefix ###
+(string) The version-dependent prefix ('fa' or 'icon`) for use in CSS classes.
+
+### $icons ###
+(array) An alphabetical array of unprefixed icon names for all available icons in the selected version of Font Awesome.
+
+### Example: ###
+```
+// Get the Better Font Awesome instance
+$my_bfa = Better_Font_Awesome_Library::get_instance( $args );
+
+// Get the URL for the Font Awesome stylesheet
+$url = $my_bfa->stylesheet_url;
+
+// Get the prefix for the version of Font Awesome you are using
+$prefix = $my_bfa->prefix;
+
+// Output a list of all available icons (unprefixed name, e.g. 'star')
+$icons = $my_bfa->icons;
+foreach ( $icons as $icon)
+	echo $icon . '<br />';
+```
 
 ## To Do ##
 * Support for transients to prevent loading CDN info every time
