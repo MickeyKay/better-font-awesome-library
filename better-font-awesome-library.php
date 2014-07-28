@@ -11,8 +11,6 @@
 
 /**
  * @todo ensure defaults are working for new manual options
- * @todo test to ensure that BFA trumps any BFA Library inclusions in
- *       plugins/themes
  * @todo check all comments for formatting and thoroughness
  * @todo test in both pre and post TinyMCE V4 (make sure icons all appear in
  *       editor and front end)
@@ -28,7 +26,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 class Better_Font_Awesome_Library {
 
 	/**
-	 * Library slug.
+	 * Better Font Awesome Library slug.
 	 *
 	 * @since  1.0.0 
 	 * 
@@ -37,7 +35,7 @@ class Better_Font_Awesome_Library {
 	const SLUG = 'bfa';
 
 	/**
-	 * Library version slug.
+	 * Better Font Awesome Library version slug.
 	 *
 	 * @since  1.0.0
 	 * 
@@ -46,7 +44,7 @@ class Better_Font_Awesome_Library {
 	const VERSION = '1.0.0';
 
 	/**
-	 * jsDelivr API URL.
+	 * jsDelivr API URL for Font Awesome.
 	 *
 	 * Used to fetch information on the jsDelivr Font Awesome CDN.
 	 *
