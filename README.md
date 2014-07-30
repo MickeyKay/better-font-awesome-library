@@ -19,12 +19,12 @@ The Better Font Awesome Library allows you to automatically integrate the latest
 * Automatically fetches the most recent available version of Font Awesome, meaning you no longer need to manually update the version included in your theme/plugin.
 * Generates an easy-to-use [PHP object](#the-better-font-awesome-library-object) that contains all relevant info for the version of Font Awesome you're using, including: version, stylesheet URL, array of available icons, and prefix used (`icon` or `fa`).
 * CDN speeds - Font Awesome CSS is pulled from the super-fast and reliable [jsDelivr CDN](http://www.jsdelivr.com/#!fontawesome).
-* Includes optional TinyMCE plugin with drop-down shortcode generator.
+* Includes a TinyMCE drop-down shortcode generator.
 * Includes a local copy of Font Awesome to use as a fallback in case the remote fetch fails (or you can specify your own with the [`bfa_fallback_directory_path`](https://github.com/MickeyKay/better-font-awesome-library#bfa_fallback_directory_path) filter).
 * Utilizes transients to optimize for speed and performance.
 
 ## Usage ##
-1. Copy the better-font-awesome-library folder into your project.
+1. Copy the /better-font-awesome-library folder into your project.
 
 2. Add the following code to your main plugin file or your theme's function.php file.
    ```
