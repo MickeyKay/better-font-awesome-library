@@ -71,21 +71,21 @@ The following arguments can be used to initialize the library using `Better_Font
 
 #### $args['minified'] ####
 (boolean) Use minified Font Awesome CSS.
-* `true` (default)
+* `true` (default) - uses minifed CSS.
 * `false` - uses unminified CSS.
 
 #### $args['remove_existing_fa'] ####
-(boolean) Attempts to remove existing Font Awesome styles and shortcodes. This can be useful to prevent conflicts with other themes/plugins, but is no guarantee..
+(boolean) Attempts to remove existing Font Awesome styles and shortcodes. This can be useful to prevent conflicts with other themes/plugins, but is no guarantee.
 * `false` (default)
 * `true`
 
 #### $args['load_styles'] ####
-(boolean) Automatically loads Font Awesome CSS in the **front-end** of your site using `wp_enqueue_sripts()`.
+(boolean) Automatically loads Font Awesome CSS on the **front-end** of your site using `wp_enqueue_scripts()`.
 * `true` (default)
-* `false` - use this if you don't want to load the Font Awesome CSS in the front-end, or wish to do it yourself.
+* `false` - use this if you don't want to load the Font Awesome CSS on the front-end, or wish to do it yourself.
 
 #### $args['load_admin_styles'] ####
-(boolean) Automatically loads Font Awesome CSS in the **admin** of your site using `admin_enqueue_scripts()`.
+(boolean) Automatically loads Font Awesome CSS on the **admin** of your site using `admin_enqueue_scripts()`.
 * `true` (default)
 * `false` - use this if you don't want to load the Font Awesome CSS in the admin, or wish to do it yourself.
 
@@ -93,20 +93,6 @@ The following arguments can be used to initialize the library using `Better_Font
 (boolean) Loads the included `[icon]` shortcode.
 * `false` (default)
 * `true`
-
-The shortcode looks like:
-```
-[icon name="" class="" unprefixed_class=""]
-```
-
-**name**  
-Unprefixed icon name (e.g. star)
-
-**class**  
-Unprefixed [Font Awesome icon classes](http://fortawesome.github.io/Font-Awesome/examples/), to which the appropriate prefix will automatically be added (e.g. 2x spin)
-
-**unprefixed_class**  
-Classes that you wish to remain unprefixed (e.g. my-custom-class)
 
 #### load_tinymce_plugin ####
 (boolean) Loads a TinyMCE drop-down list of available icons (based on `version`), which generates a `[icon]` shortcode.
