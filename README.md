@@ -122,6 +122,9 @@ The object has the following public methods:
 
 #### Example: ####
 ```
+// Initialize the library with custom args.
+Better_Font_Awesome_Library::get_instance( $args );
+
 // Get the active Better Font Awesome Library Object.
 $my_bfa = Better_Font_Awesome_Library::get_instance();
 
