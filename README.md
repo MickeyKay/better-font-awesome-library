@@ -140,17 +140,17 @@ foreach ( $icons as $icon ) {
 ## Shortcode ##
 If the `$args['load_shortcode']` initialization arg is set to `true`, then the Better Font Awesome Library will include an icon shortcode that can be used as follows:
 ```
-[icon name="" class="" unprefixed_class=""]
+[icon name="star" class="2x spin" unprefixed_class="my-custom-class"]
 ```
 
 **name**  
-Unprefixed icon name (e.g. star)
+The unprefixed icon name (e.g. star). The prefix will automatically be prepended.
 
 **class**  
-Unprefixed [Font Awesome icon classes](http://fortawesome.github.io/Font-Awesome/examples/), to which the appropriate prefix will automatically be added (e.g. 2x spin)
+Unprefixed [Font Awesome icon classes](http://fortawesome.github.io/Font-Awesome/examples/), to which the appropriate prefix will automatically be added.
 
 **unprefixed_class**  
-Classes that you wish to remain unprefixed (e.g. my-custom-class)
+Any additional classes that you wish to remain unprefixed (e.g. my-custom-class).
 
 ## Filters ##
 The Better Font Awesome Library applies the following filters:
