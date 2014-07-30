@@ -141,7 +141,7 @@ foreach ( $icons as $icon ) {
 ```
 
 ## Shortcode ##
-If the `$args['load_shortcode']` initialization arg is set to `true`, then the Better Font Awesome Library will include an icon shortcode that can be used as follows:
+If either the `$args['load_shortcode']` or `$args['load_tinymce_plugin']` initialization args is set to `true`, then the Better Font Awesome Library will include an icon shortcode that can be used as follows:
 ```
 [icon name="star" class="2x spin" unprefixed_class="my-custom-class"]
 ```
