@@ -9,6 +9,7 @@ Better Font Awesome Library
 1. [Usage](https://github.com/MickeyKay/better-font-awesome-library#usage)
 1. [Initialization Parameters](https://github.com/MickeyKay/better-font-awesome-library#initialization-parameters-args)
 1. [The Better Font Awesome Library Object](https://github.com/MickeyKay/better-font-awesome-library#the-better-font-awesome-library-object)
+1. [Shortcode](https://github.com/MickeyKay/better-font-awesome-library#shortcode)
 1. [Filters](https://github.com/MickeyKay/better-font-awesome-library#filters)
 1. [To Do](https://github.com/MickeyKay/better-font-awesome-library#to-do)
 
@@ -76,8 +77,8 @@ The following arguments can be used to initialize the library using `Better_Font
 
 #### $args['remove_existing_fa'] ####
 (boolean) Attempts to remove existing Font Awesome styles and shortcodes. This can be useful to prevent conflicts with other themes/plugins, but is no guarantee.
-* `false` (default)
 * `true`
+* `false` (default)
 
 #### $args['load_styles'] ####
 (boolean) Automatically loads Font Awesome CSS on the **front-end** of your site using `wp_enqueue_scripts()`.
@@ -91,13 +92,13 @@ The following arguments can be used to initialize the library using `Better_Font
 
 #### $args['load_shortcode'] ####
 (boolean) Loads the included `[icon]` shortcode.
-* `false` (default)
-* `true`
+* `true` (default)
+* `false`
 
 #### load_tinymce_plugin ####
 (boolean) Loads a TinyMCE drop-down list of available icons (based on `version`), which generates a `[icon]` shortcode.
-* `false` (default)
-* `true`
+* `true` (default)
+* `false`
 
 ## The Better Font Awesome Library Object ##
 The Better Font Awesome Library object can be accessed with the following code:  
@@ -135,6 +136,21 @@ foreach ( $icons as $icon ) {
 	echo $icon . '<br />';
 }
 ```
+
+## Shortcode ##
+If the `$args['load_shortcode']` initialization arg is set to `true`, then the Better Font Awesome Library will include an icon shortcode that can be used as follows:
+```
+[icon name="" class="" unprefixed_class=""]
+```
+
+**name**  
+Unprefixed icon name (e.g. star)
+
+**class**  
+Unprefixed [Font Awesome icon classes](http://fortawesome.github.io/Font-Awesome/examples/), to which the appropriate prefix will automatically be added (e.g. 2x spin)
+
+**unprefixed_class**  
+Classes that you wish to remain unprefixed (e.g. my-custom-class)
 
 ## Filters ##
 The Better Font Awesome Library applies the following filters:
