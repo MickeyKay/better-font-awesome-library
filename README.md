@@ -109,16 +109,16 @@ The object has the following public methods:
 (string) Returns the active version of Font Awesome being used.
 
 #### get_stylesheet_url() ####
-(string) Returns the Font Awesome stylesheet URL.
+(string) Returns the active Font Awesome stylesheet URL.
 
 #### get_icons() ####
-(array) Returns an alphabetical array of unprefixed icon names in the active version of Font Awesome.
+(array) Returns an alphabetical array of unprefixed icon names for all available icons in the active Font Awesome version.
 
 #### get_prefix() ####
 (string) Returns the version-dependent prefix ('fa' or 'icon') that is used in the icons' CSS classes.
 
 #### get_api_data() ####
-(object) Returns version data for the remote jsDelivr CDN (uses jsDelivr API). Includes all available versions and latest version.
+(object) Returns version data for the remote jsDelivr CDN (uses [jsDelivr API](http://api.jsdelivr.net)). Includes all available versions and latest version.
 
 #### Example: ####
 ```
