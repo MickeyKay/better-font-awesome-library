@@ -185,23 +185,23 @@ Applied to arguments passed to all `wp_remote_get()` calls (useful for adjusting
 * `$wp_remote_get_args` (array)
 
 #### bfa_fallback_directory_path ####
-Applied to the fallback directory path before setting up any fallback CSS info. Can be used to specify an alternate fallback directory to replace the default fallback directory path.
+Applied to the fallback directory path before setting up any fallback CSS info. Can be used to specify an alternate fallback directory to replace the default fallback directory.
 
-*The path must be to a local, not remote, directory.*
+*The path must be to a local, non-remote, directory.*
 
 **Parameters**
 
 * `$path` (string)
 
 #### bfa_api_transient_expiration ####
-Applied to the API (version information) [transient expiration](http://codex.wordpress.org/Transients_API#Using_Transients). Can be used to increase/decrease the expiration as desired.
+Applied to the API (version information) transient [expiration](http://codex.wordpress.org/Transients_API#Using_Transients). Can be used to increase/decrease the expiration as desired.
 
 **Parameters**
 
 * `$api_expiration` (int)
 
 #### bfa_css_transient_expiration ####
-Applied to the CSS stylsheet data [transient expiration](http://codex.wordpress.org/Transients_API#Using_Transients). Can be used to increase/decrease the expiration as desired.
+Applied to the CSS stylesheet data transient [expiration](http://codex.wordpress.org/Transients_API#Using_Transients). Can be used to increase/decrease the expiration as desired.
 
 **Parameters**
 
