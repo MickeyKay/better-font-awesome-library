@@ -178,7 +178,7 @@ Applied to the initialization arguments after they have been parsed with default
 * `$init_args` (array)
 
 #### bfa_wp_remote_get_args ####
-Applied to arguments passed to all wp_remote_get() calls (useful for adjusting the timeout if needed).
+Applied to arguments passed to all `wp_remote_get()` calls (useful for adjusting the timeout if needed).
 
 **Parameters**
 
