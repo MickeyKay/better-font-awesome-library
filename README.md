@@ -144,10 +144,10 @@ If the `$args['load_shortcode']` initialization arg is set to `true`, then the B
 ```
 
 **name**  
-The unprefixed icon name (e.g. star). The prefix will automatically be prepended.
+The unprefixed icon name (e.g. star). The version-specific prefix will be automatically prepended.
 
 **class**  
-Unprefixed [Font Awesome icon classes](http://fortawesome.github.io/Font-Awesome/examples/), to which the appropriate prefix will automatically be added.
+Unprefixed [Font Awesome icon classes](http://fortawesome.github.io/Font-Awesome/examples/). The version-specific prefix will be automatically prepended to each class.
 
 **unprefixed_class**  
 Any additional classes that you wish to remain unprefixed (e.g. my-custom-class).
