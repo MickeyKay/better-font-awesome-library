@@ -2,11 +2,15 @@
 /**
  * Better Font Awesome Library
  *
- * A class to implement Font Awesome via the jsDelivr CDN.
+ * A class to implement Font Awesome in WordPress.
  *
- * @since 1.0.0
+ * @see      jsDelivr CDN and API
+ * @link     cdn.jsdelivr.com
+ * @link     api.jsdelivr.net
  *
- * @package Better Font Awesome Library
+ * @since    1.0.0
+ *
+ * @package  Better Font Awesome Library
  */
 
 /**

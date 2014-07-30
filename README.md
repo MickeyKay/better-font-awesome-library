@@ -132,20 +132,34 @@ The object has the following public methods:
 
 #### Example: ####
 ```
-// Get the Better Font Awesome Library object.
-$my_bfa = Better_Font_Awesome_Library::get_instance( $args );
+// Get the active Better Font Awesome Library Object.
+$my_bfa = Better_Font_Awesome_Library::get_instance();
 
-// Get info on the Font Awesome version being used.
+// Get info on the Better Font Awesome Library object.
 $version = $my_bfa->get_version();
 $stylesheet_url = $my_bfa->get_stylesheet_url();
 $prefix = $my_bfa->get_prefix();
 $icons = $my_bfa->get_icons();
 
 // Output all available icons.
-foreach ( $icons as $icon) {
+foreach ( $icons as $icon ) {
 	echo $icon . '<br />';
 }
 ```
 
+## Filters ##
+The Better Font Awesome Library includes the following filters:
+
+#### bfa_init_args ####
+Applied to the initialization arguments before they are used to initialize the library.
+** Parameters **
+$args
+
+
+#### bfa_wp_remote_get_args ####
+
+#### bfa_fallback_directory_path ####
+
+#### bfa_api_transient_expiration ####
 ## To Do ##
-* Switch from `admin_head_variables` to `wp_localize_script
+Ideas? File an issue or add a pull request!
