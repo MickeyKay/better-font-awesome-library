@@ -96,7 +96,7 @@ The following arguments can be used to initialize the library using `Better_Font
 * `false`
 
 #### load_tinymce_plugin ####
-(boolean) Loads a TinyMCE drop-down list of available icons (based on `version`), which generates a `[icon]` shortcode.
+(boolean) Loads a TinyMCE drop-down list of available icons (based on the active Font Awesome version), which generates an `[icon]` shortcode.
 * `true` (default)
 * `false`
 
