@@ -155,6 +155,17 @@ Unprefixed [Font Awesome icon classes](http://fortawesome.github.io/Font-Awesome
 **unprefixed_class**  
 Any additional classes that you wish to remain unprefixed (e.g. my-custom-class).
 
+The example shortcode above would output the following depending on which version of Font Awesome you've selected:
+
+Version 4+
+```
+<i class="fa fa-star fa-2x fa-spin my-custom-class"></i>
+```
+Version 3
+```
+<i class="icon icon-star icon-2x icon-spin my-custom-class"></i>
+```
+
 ## Filters ##
 The Better Font Awesome Library applies the following filters:
 
