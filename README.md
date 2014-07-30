@@ -91,7 +91,7 @@ The following arguments can be used to initialize the library using `Better_Font
 * `false` - use this if you don't want to load the Font Awesome CSS in the admin, or wish to do it yourself.
 
 #### $args['load_shortcode'] ####
-(boolean) Loads the included `[icon]` shortcode.
+(boolean) Loads the included `[icon]` [shortcode](1. [Filters](https://github.com/MickeyKay/better-font-awesome-library#shortcode).
 * `true` (default)
 * `false`
 
