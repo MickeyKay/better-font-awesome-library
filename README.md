@@ -1,4 +1,4 @@
-Better Font Awesome Library for WordPress
+Better Font Awesome Library
 ===========================
 
 *The easiest way to integrate Font Awesome into your WordPress project.*
@@ -13,14 +13,15 @@ Better Font Awesome Library for WordPress
 1. [To Do](https://github.com/MickeyKay/better-font-awesome-library#to-do)
 
 ## Introduction ##
-The Better Font Awesome Library allows you to always integrate the latest available version of Font Awesome into your project, along with accompanying CSS, shortcode, and TinyMCE icon shortcode generator. Furthermore, it creates an [object](https://github.com/MickeyKay/better-font-awesome-library#the-better-font-awesome-library-object) that you can easily use to create your own functionality.
+The Better Font Awesome Library allows you to always integrate the latest available version of Font Awesome into your WordPress project, along with accompanying CSS, shortcode, and TinyMCE icon shortcode generator. Furthermore, it creates an [object](https://github.com/MickeyKay/better-font-awesome-library#the-better-font-awesome-library-object) that you can easily use to create your own functionality.
 
 ## Features ##
-* Integrates any version of Font Awesome, including the option to always use most recent version (no more manual updates!).
-* Generates an easy-to-use [PHP object](#the-better-font-awesome-library-object) that contains all relevant info including: version, CSS URL, icons available in this version, prefix used (`icon` or `fa`).
+* Automatically fetches the most recent available version of Font Awesome, meaning you no longer need to manually update the version included in your theme/plugin.
+* Generates an easy-to-use [PHP object](#the-better-font-awesome-library-object) that contains all relevant info for the version of Font Awesome you're using, including: version, stylesheet URL, array of available icons, and prefix used (`icon` or `fa`).
 * CDN speeds - Font Awesome CSS is pulled from [jsDelivr CDN](http://www.jsdelivr.com/#!fontawesome).
 * Includes optional TinyMCE plugin with drop-down shortcode generator.
-* Ability to choose between minified or unminified CSS.
+* Includes a local copy of Font Awesome to use as a fallback in case the remote fetch fails (or you can specify your own with the `[bfa_fallback_directory_path](https://github.com/MickeyKay/better-font-awesome-library#bfa_fallback_directory_path)` filter).
+* Utilizes transients to optimize for speed and performance.
 
 ## Usage ##
 1. Copy the better-font-awesome-library folder into your project.
