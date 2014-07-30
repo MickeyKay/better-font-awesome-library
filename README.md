@@ -26,7 +26,7 @@ The Better Font Awesome Library allows you to automatically integrate the latest
 ## Usage ##
 1. Copy the /better-font-awesome-library folder into your project.
 
-2. Add the following code to your main plugin file or your theme's function.php file.
+2. Add the following code to your main plugin file or your theme's functions.php file.
    ```
 	// Intialize Font Awesome once plugins are loaded
 	add_action( 'plugins_loaded', 'my_prefix_load_bfa' );
