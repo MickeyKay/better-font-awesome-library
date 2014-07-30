@@ -34,11 +34,7 @@ The Better Font Awesome Library allows you to automatically integrate the latest
 	 */
 	function my_prefix_load_bfa() {
 
-		/**
-		 * Include the library file.
-		 * 
-		 * Make sure to modify the path to match your directory structure.
-		 */
+		// Include the library file. Make sure to modify the path to match your directory structure.
 		require_once ( dirname( __FILE__ ) . '/better-font-awesome-library/better-font-awesome-library.php' );
 
 		// Set the library initialization args (defaults shown).
