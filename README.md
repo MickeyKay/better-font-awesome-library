@@ -28,14 +28,20 @@ The Better Font Awesome Library allows you to automatically integrate the latest
 
 2. Add the following code to your main plugin file or your theme's functions.php file.
    ```
-	// Intialize Font Awesome once plugins are loaded
 	add_action( 'plugins_loaded', 'my_prefix_load_bfa' );
+	/**	
+	 * Initialize the Better Font Awesome Library.
+	 */
 	function my_prefix_load_bfa() {
 
-		// Include the library file - modify the require_once path to match your directory structure
+		/**
+		 * Include the library file.
+		 * 
+		 * Make sure to modify the path to match your directory structure.
+		 */
 		require_once ( dirname( __FILE__ ) . '/better-font-awesome-library/better-font-awesome-library.php' );
 
-		// Settings to initialize the Better Font Awesome Library object (defaults shown)
+		// Set the library initialization args (defaults shown).
 		$args = array(
 				'version' => 'latest',
 				'minified' => true,
@@ -46,7 +52,7 @@ The Better Font Awesome Library allows you to automatically integrate the latest
 				'load_tinymce_plugin'     => true,
 		);
 		
-		// Initialize Font Awesome, or get the existing instance
+		// Initialize the Better Font Awesome Library.
 		Better_Font_Awesome_Library::get_instance( $args );
 	}
 ```
