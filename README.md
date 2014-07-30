@@ -62,34 +62,34 @@ The Better Font Awesome Library is designed to work in conjunction with the [Bet
 1. Initialize earlier, to "take over" and prevent Better Font Awesome settings from having an effect.
 
 ## Initialization Parameters ($args) ##
-The following parameters can be passed to `Better_Font_Awesome_Library::get_instance( $args )` in the `$args` array.
+The following arguments can be used to initialize libray using `Better_Font_Awesome_Library::get_instance( $args )`:
 
-#### version ####
+#### $args['version'] ####
 (string) Which version of Font Awesome you want to use.
 * `'latest'` (default) - always use the latest available version.
 * `'3.2.1'` - any existing Font Awesome version number.
 
-#### minified ####
+#### $args['minified'] ####
 (boolean) Use minified Font Awesome CSS.
 * `true` (default)
 * `false` - uses unminified CSS.
 
-#### remove_existing_fa ####
+#### $args['remove_existing_fa'] ####
 (boolean) Attempts to remove existing Font Awesome styles and shortcodes. This can be useful to prevent conflicts with other themes/plugins, but is no guarantee..
 * `false` (default)
 * `true`
 
-#### load_styles ####
+#### $args['load_styles'] ####
 (boolean) Automatically loads Font Awesome CSS in the **front-end** of your site using `wp_enqueue_sripts()`.
 * `true` (default)
 * `false` - use this if you don't want to load the Font Awesome CSS in the front-end, or wish to do it yourself.
 
-#### load_admin_styles ####
+#### $args['load_admin_styles'] ####
 (boolean) Automatically loads Font Awesome CSS in the **admin** of your site using `admin_enqueue_scripts()`.
 * `true` (default)
 * `false` - use this if you don't want to load the Font Awesome CSS in the admin, or wish to do it yourself.
 
-#### load_shortcode ####
+#### $args['load_shortcode'] ####
 (boolean) Loads the included `[icon]` shortcode.
 * `false` (default)
 * `true`
