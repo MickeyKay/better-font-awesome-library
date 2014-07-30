@@ -9,6 +9,7 @@ Better Font Awesome Library for WordPress
 1. [Usage](https://github.com/MickeyKay/better-font-awesome-library#usage)
 1. [Initialization Parameters](https://github.com/MickeyKay/better-font-awesome-library#initialization-parameters)
 1. [The Better Font Awesome Library Object](https://github.com/MickeyKay/better-font-awesome-library#the-better-font-awesome-library-object)
+1. [Filters](https://github.com/MickeyKay/better-font-awesome-library#filters)
 1. [To Do](https://github.com/MickeyKay/better-font-awesome-library#to-do)
 
 ## Introduction ##
@@ -54,7 +55,7 @@ The Better Font Awesome Library allows you to integrate any version of Font Awes
 ## Initialization Parameters ($args) ##
 The following parameters can be passed to `Better_Font_Awesome_Library::get_instance( $args )` in the `$args` array.
 
-### version ###
+#### version ####
 (string) Which version of Font Awesome you want to use.
 * `'latest'` (default) - always use the latest available version.
 * `'3.2.1'` - any existing Font Awesome version number.
@@ -105,46 +106,40 @@ Classes that you wish to remain unprefixed (e.g. my-custom-class)
 
 ## The Better Font Awesome Library Object ##
 The Better Font Awesome Library object can be accessed with the following code:  
-`$my_bfa = Better_Font_Awesome_Library::get_instance();`
+`Better_Font_Awesome_Library::get_instance();`
 
-The object has the following properties:
-### $stylesheet_url ###
-(string) The URL of the jsDelivr CDN hosted stylesheet for the selected version of Font Awesome.
+The object has the following public methods:
+### get_version() ###
+(string) Returns the active version of Font Awesome being used.
 
-### $prefix ###
-(string) The version-dependent prefix ('fa' or 'icon`) for use in CSS classes.
+### get_stylesheet_url() ###
+(string) Returns the Font Awesome stylesheet URL.
 
-### $icons ###
-(array) An alphabetical array of unprefixed icon names for all available icons in the selected version of Font Awesome.
+### get_icons() ###
+(array) Returns an alphabetical array of unprefixed icon names in the active version of Font Awesome.
+
+### get_prefix() ###
+(string) Returns the version-dependent prefix ('fa' or 'icon') that is used in the icons' CSS classes.
+
+### get_api_data() ###
+(object) Returns version data for the remote jsDelivr CDN (uses jsDelivr API). Includes all available versions and latest version.
 
 ### Example: ###
 ```
-// Get the Better Font Awesome instance
+// Get the Better Font Awesome Library object.
 $my_bfa = Better_Font_Awesome_Library::get_instance( $args );
 
-// Get the URL for the Font Awesome stylesheet
-$url = $my_bfa->stylesheet_url;
+// Get info on the Font Awesome version being used.
+$version = $my_bfa->get_version();
+$stylesheet_url = $my_bfa->get_stylesheet_url();
+$prefix = $my_bfa->get_prefix();
+$icons = $my_bfa->get_icons();
 
-// Get the prefix for the version of Font Awesome you are using
-$prefix = $my_bfa->prefix;
-
-// Output a list of all available icons (unprefixed name, e.g. 'star')
-$icons = $my_bfa->icons;
-foreach ( $icons as $icon)
+// Output all available icons.
+foreach ( $icons as $icon) {
 	echo $icon . '<br />';
+}
 ```
 
 ## To Do ##
-* Support for transients to prevent loading CDN info every time
-* Clean up indenting
-* Switch BFAL calls to use jsdelivr-fetcher class
-* Remove & in class funtion calls
-* Add version to public properties
-* Switch from `admin_head_variables` to `wp_localize_script`
-* Remove dash (-) from prefixes and add programatically when needed.
-* Change `prefix` to `protocol` in get_icons
-* De-activating on update (perhaps need to remove install functionality)
-* Add fallbacks to wp_remote_get() - http://tommcfarlin.com/wp_remote_get/
-* Add hard copy CSS file as final fallback.
-* Add MIGHTYminnow to credit
-* Icon menu icon not showing up in black studio widget - add attribute selector for admin CSS instead of exact ID selector.
+* Switch from `admin_head_variables` to `wp_localize_script

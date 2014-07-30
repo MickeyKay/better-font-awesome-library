@@ -10,17 +10,18 @@
  */
 
 /**
- * @todo ensure defaults are working for new manual options
  * @todo check all comments for formatting and thoroughness
  * @todo test in both pre and post TinyMCE V4 (make sure icons all appear in
  *       editor and front end)
  * @todo update README.md
  * @todo There may be a better way to do get_local_file_contents(), refer to:
  *       https://github.com/markjaquith/feedback/issues/33
- * @todo Doublecheck error messages
+ * @todo  Doublecheck error messages
  * @todo  Add filters section to readme
  * @todo  Update BFAL Object section in readme to reflect public methods
- * @todo  Add public methods to get version, icons, prefix
+ * @todo Icon menu icon not showing up in black studio widget - add attribute
+ *       selector for admin CSS instead of exact ID selector. Not sure if this
+ *       is still an issue?
  */
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
@@ -113,13 +114,13 @@ class Better_Font_Awesome_Library {
 	private $font_awesome_version;
 
 	/**
-	 * Remote Font Awesome stylesheet URL.
+	 * Font Awesome stylesheet URL.
 	 *
 	 * @since  1.0.0
 	 * 
 	 * @var    string
 	 */
-	private $remote_stylesheet_url;
+	private $stylesheet_url;
 
 	/**
 	 * Font Awesome CSS.
@@ -292,7 +293,7 @@ class Better_Font_Awesome_Library {
 
 		// Output any necessary admin notices.
 		add_action( 'admin_notices', array( $this, 'do_admin_notice' ) );
-		
+
 	}
 
 	/**
@@ -514,7 +515,7 @@ class Better_Font_Awesome_Library {
 	 * @param  string  $version  Version of Font Awesome to use.
 	 */
 	private function set_stylesheet_url( $version ) {
-		$this->remote_stylesheet_url = '//cdn.jsdelivr.net/fontawesome/' . $version . '/css/font-awesome' . $this->get_min_suffix() . '.css';
+		$this->stylesheet_url = '//cdn.jsdelivr.net/fontawesome/' . $version . '/css/font-awesome' . $this->get_min_suffix() . '.css';
 	}
 
 	/**
@@ -525,13 +526,13 @@ class Better_Font_Awesome_Library {
 	private function setup_stylesheet_data() {
 
 		// Get the Font Awesome CSS.
-		$this->css = $this->get_css( $this->remote_stylesheet_url, $this->font_awesome_version );
+		$this->css = $this->get_css( $this->stylesheet_url, $this->font_awesome_version );
 
 		// Get the list of available icons from the Font Awesome CSS.
-		$this->icons = $this->get_icons( $this->css );
+		$this->icons = $this->setup_icon_array( $this->css );
 
 		// Set up prefix based on version (fa- or icon-).
-		$this->prefix = $this->get_prefix( $this->font_awesome_version );
+		$this->prefix = $this->setup_prefix( $this->font_awesome_version );
 
 	}
 
@@ -540,11 +541,11 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @since   1.0.0
 	 *
-	 * @param   string  $remote_stylesheet_url  URL of the remote stylesheet.
-	 * @param   string  $version        		   Version of Font Awesome.
+	 * @param   string  $url       URL of the remote stylesheet.
+	 * @param   string  $version   Version of Font Awesome.
 	 *
-	 * @return  string  Font Awesome CSS, from either 1. transient, 2.
-	 *                  wp_remote_get(), or 3. fallback CSS.
+	 * @return  string  $repsonse  Font Awesome CSS, from either 1. transient, 2.
+	 *                             wp_remote_get(), or 3. fallback CSS.
 	 */
 	private function get_css( $url, $version ) {
 		
@@ -557,15 +558,22 @@ class Better_Font_Awesome_Library {
 		}
 
 		/**
-		 * If both attempts fail:
-		 * 	1. log the error
-		 * 	2. use the locally-hosted fallback CSS
-		 * 	3. update version being used to match fallback
+		 * Use the local fallback if both the transient and wp_remote_get()
+		 * methods fail.
 		 */
 		if ( is_wp_error( $response ) ) {
+
+			// Log the error.
 			$this->set_error( 'css', $response->get_error_code(), $response->get_error_message() );
+			
+			// Use the local fallback CSS.
 			$response = $this->fallback_data['css'];
+
+			// Update version to match fallback version.
 			$this->font_awesome_version = $this->fallback_data['version'];
+
+			// Update stylesheet URL to match fallback.
+			$this->stylesheet_url = $this->fallback_data['url'];
 		}
 
 		return $response;
@@ -579,7 +587,7 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @param   string  $version  Version number.
 	 *
-	 * @return  string  Transient CSS if it exists, otherwise null.
+	 * @return  string  		  Transient CSS if it exists, otherwise null.
 	 */
 	private function get_transient_css( $version ) {
 		
@@ -607,13 +615,19 @@ class Better_Font_Awesome_Library {
 		
 		/**
 		 * If fetch was successful, return the remote CSS, and set the CSS
-		 * transient for this version.
+		 * transient for this version. Otherwise, return a WP_Error object.
 		 */
 		if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
 			
 			$response = wp_remote_retrieve_body( $response );
 			$this->set_css_transient( $version, $response );
 
+		} elseif ( is_wp_error( $response ) ) {
+			$response = $response;
+		} elseif ( isset( $response['response'] ) ) {
+			$response = new WP_Error( $response['response']['code'], $response['response']['message'] );
+		} else {
+			$response = '';
 		}
 
 		return $response;
@@ -663,9 +677,9 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @param   string  $css  The Font Awesome CSS.
 	 *
-	 * @return  array  All available icon names (e.g. adjust, car, pencil).
+	 * @return  array   All available icon names (e.g. adjust, car, pencil).
 	 */
-	private function get_icons( $css ) {
+	private function setup_icon_array( $css ) {
 		
 		$icons = array();
 
@@ -708,7 +722,7 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @return  string  $prefix  'fa' or 'icon, depending on the version.
 	 */
-	private function get_prefix( $version ) {
+	private function setup_prefix( $version ) {
 
 		if ( 0 <= version_compare( $version, '4' ) ) {
 			$prefix = 'fa';
@@ -854,7 +868,7 @@ class Better_Font_Awesome_Library {
 	 */
 	public function register_font_awesome_css() {
 
-		wp_register_style( self::SLUG . '-font-awesome', $this->remote_stylesheet_url, '', $this->font_awesome_version );
+		wp_register_style( self::SLUG . '-font-awesome', $this->stylesheet_url, '', $this->font_awesome_version );
 		wp_enqueue_style( self::SLUG . '-font-awesome' );
 
 	}
@@ -865,7 +879,7 @@ class Better_Font_Awesome_Library {
 	 * @since  1.0.0
 	 */
 	public function add_editor_styles() {
-		add_editor_style( $this->remote_stylesheet_url );
+		add_editor_style( $this->stylesheet_url );
 	}
 
 	/**
@@ -1061,7 +1075,7 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @return  WP_ERROR          The error for the specified process.
 	 */
-	public function get_error( $process ) {
+	private function get_error( $process ) {
 		return isset( $this->errors[ $process ] ) ? $this->errors[ $process ] : '';
 	}
 
@@ -1103,15 +1117,63 @@ class Better_Font_Awesome_Library {
 
 	}
 
+	/*----------------------------------------------------------------------------*
+	 * User funtions
+	 *----------------------------------------------------------------------------*/
+
 	/**
-	 * Retrive the version of Font Awesome currently in use.
+	 * Get the version of Font Awesome currently in use.
 	 *
 	 * @since   1.0.0
 	 *
 	 * @return  string  Font Awesome version.
 	 */
-	public function get_active_version() {
+	public function get_version() {
 		return $this->font_awesome_version;
+	}
+
+	/**
+	 * Get the stylesheet URL.
+	 *
+	 * @since   1.0.0
+	 *
+	 * @return  string  Stylesheet URL.
+	 */
+	public function get_stylesheet_url() {
+		return $this->stylesheet_url;
+	}
+
+	/**
+	 * Get an array of available icons.
+	 *
+	 * @since   1.0.0
+	 *
+	 * @return  array  Available Font Awesome icons.
+	 */
+	public function get_icons() {
+		return $this->icons;
+	}
+
+	/**
+	 * Get the icon prefix ('fa' or 'icon').
+	 *
+	 * @since   1.0.0
+	 *
+	 * @return  string  Font Awesome prefix.
+	 */
+	public function get_prefix() {
+		return $this->prefix;
+	}
+
+	/**
+	 * Get version data for the remote jsDelivr CDN.
+	 *
+	 * @since   1.0.0
+	 *
+	 * @return  object  jsDelivr API data.
+	 */
+	public function get_api_data() {
+		return $this->api_data;
 	}
 
 }
