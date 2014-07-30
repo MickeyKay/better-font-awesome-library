@@ -5,8 +5,8 @@
  * A class to implement Font Awesome in WordPress.
  *
  * @see      jsDelivr CDN and API
- * @link     cdn.jsdelivr.com
- * @link     api.jsdelivr.net
+ * @link     http://www.jsdelivr.com/
+ * @link     https://github.com/jsdelivr/api
  *
  * @since    1.0.0
  *

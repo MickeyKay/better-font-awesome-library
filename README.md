@@ -118,7 +118,7 @@ The object has the following public methods:
 (string) Returns the version-dependent prefix ('fa' or 'icon') that is used in the icons' CSS classes.
 
 #### get_api_data() ####
-(object) Returns version data for the remote jsDelivr CDN (uses [jsDelivr API](http://api.jsdelivr.net)). Includes all available versions and latest version.
+(object) Returns version data for the remote jsDelivr CDN (uses [jsDelivr API](https://github.com/jsdelivr/api)). Includes all available versions and latest version.
 
 #### Example: ####
 ```
