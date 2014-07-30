@@ -62,7 +62,7 @@ The Better Font Awesome Library is designed to work in conjunction with the [Bet
 1. Initialize earlier, to "take over" and prevent Better Font Awesome settings from having an effect.
 
 ## Initialization Parameters ($args) ##
-The following arguments can be used to initialize libray using `Better_Font_Awesome_Library::get_instance( $args )`:
+The following arguments can be used to initialize the library using `Better_Font_Awesome_Library::get_instance( $args )`:
 
 #### $args['version'] ####
 (string) Which version of Font Awesome you want to use.
