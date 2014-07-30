@@ -53,9 +53,10 @@ The Better Font Awesome Library allows you to integrate any version of Font Awes
 3. If desired, use the [Better Font Awesome Library object](#the-better-font-awesome-library-object) to manually include Font Awesome CSS, output lists of available icons, create your own shortcodes, and much more.
 
 #### Usage Notes ####
-The Better Font Awesome Library is designed to work in conjunction with the [Better Font Awesome](https://wordpress.org/plugins/better-font-awesome/) WordPress plugin. The plugin initializes the library with its initialization args on the `plugins_loaded` hook, priority `5`. When using the Better Font Awesome Library in your project, you have two options:
+The Better Font Awesome Library is designed to work in conjunction with the [Better Font Awesome](https://wordpress.org/plugins/better-font-awesome/) WordPress plugin. The plugin initializes this library (with its initialization args) on the `plugins_loaded` hook, priority `5`. When using the Better Font Awesome Library in your project, you have two options:
+
 1. Initialize later, to ensure that any Better Font Awesome plugin settings override yours.
-2. Initialize earlier, to "take over" and prevent Better Font Awesome settings from having an effect.
+1. Initialize earlier, to "take over" and prevent Better Font Awesome settings from having an effect.
 
 ## Initialization Parameters ($args) ##
 The following parameters can be passed to `Better_Font_Awesome_Library::get_instance( $args )` in the `$args` array.
