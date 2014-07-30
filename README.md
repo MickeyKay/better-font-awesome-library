@@ -13,7 +13,7 @@ Better Font Awesome Library for WordPress
 1. [To Do](https://github.com/MickeyKay/better-font-awesome-library#to-do)
 
 ## Introduction ##
-The Better Font Awesome Library allows you to integrate any version of Font Awesome into your project (including the latest), along with accompanying CSS, a list of available icons, and a TinyMCE drop-down and shortcode generator.
+The Better Font Awesome Library allows you to always integrate the latest available version of Font Awesome into your project, along with accompanying CSS, shortcode, and TinyMCE icon shortcode generator. Furthermore, it creates an [object](https://github.com/MickeyKay/better-font-awesome-library#the-better-font-awesome-library-object) that you can easily use to create your own functionality.
 
 ## Features ##
 * Integrates any version of Font Awesome, including the option to always use most recent version (no more manual updates!).
@@ -148,7 +148,7 @@ foreach ( $icons as $icon ) {
 ```
 
 ## Filters ##
-The Better Font Awesome Library includes the following filters:
+The Better Font Awesome Library applies the following filters:
 
 #### bfa_init_args ####
 Applied to the initialization arguments before they are used to initialize the library.
