@@ -13,7 +13,7 @@ Better Font Awesome Library
 1. [To Do](https://github.com/MickeyKay/better-font-awesome-library#to-do)
 
 ## Introduction ##
-The Better Font Awesome Library allows you to always integrate the latest available version of Font Awesome into your WordPress project, along with accompanying CSS, shortcode, and TinyMCE icon shortcode generator. Furthermore, it creates an [object](https://github.com/MickeyKay/better-font-awesome-library#the-better-font-awesome-library-object) that you can easily use to create your own functionality.
+The Better Font Awesome Library allows you to automatically integrate the latest available version of Font Awesome into your WordPress project, along with accompanying CSS, shortcode, and TinyMCE icon shortcode generator. Furthermore, it creates an [object](https://github.com/MickeyKay/better-font-awesome-library#the-better-font-awesome-library-object) that you can easily use to create your own functionality.
 
 ## Features ##
 * Automatically fetches the most recent available version of Font Awesome, meaning you no longer need to manually update the version included in your theme/plugin.
@@ -164,7 +164,7 @@ Applied to arguments passed to all wp_remote_get() calls (useful for adjusting t
 `$wp_remote_get_args` (array)
 
 #### bfa_fallback_directory_path ####
-Applied to the fallback directory path before setting up any fallback CSS info. Can be used to specify an alternate fallback directory to replace the default fallback directory path (`plugin_dir_path( __FILE__ ) . $this->fallback_data['directory']`).
+Applied to the fallback directory path before setting up any fallback CSS info. Can be used to specify an alternate fallback directory to replace the default fallback directory path.
 
 *The path must be to a local, not remote, directory.*
 
