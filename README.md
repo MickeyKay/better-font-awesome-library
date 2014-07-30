@@ -153,55 +153,55 @@ The Better Font Awesome Library includes the following filters:
 #### bfa_init_args ####
 Applied to the initialization arguments before they are used to initialize the library.
 
-**Parameters**
+**Parameters**  
 $init_args (array)
 
 #### bfa_wp_remote_get_args ####
 Applied to arguments passed to all wp_remote_get() calls (useful for adjusting the timeout if needed).
 
-**Parameters**
+**Parameters**  
 $wp_remote_get_args (array)
 
 #### bfa_fallback_directory_path ####
 Applied to the fallback directory path before setting up any fallback CSS info. Can be used to specify an alternate fallback directory to replace the default fallback directory path (plugin_dir_path( __FILE__ ) . $this->fallback_data['directory']). *The path must be to a local, not remote, directory.*
 
-**Parameters**
+**Parameters**  
 $path (string)
 
 #### bfa_api_transient_expiration ####
 Applied to the API (version information) [transient expiration](http://codex.wordpress.org/Transients_API#Using_Transients). Can be used to increase/decrease the expiration as desired.
 
-**Parameters**
+**Parameters**  
 $api_expiration (int)
 
 #### bfa_css_transient_expiration ####
 Applied to the CSS stylsheet data [transient expiration](http://codex.wordpress.org/Transients_API#Using_Transients). Can be used to increase/decrease the expiration as desired.
 
-**Parameters**
+**Parameters**  
 $css_expiration (int)
 
 #### bfa_icon_list ####
 Applied to the icon array after it has been generated from the Font Awesome stylesheet, and before it is assigned to the Better Font Awesome Library object's `$icons` property.
 
-**Parameters**
+**Parameters**  
 $icons (array)
 
 #### bfa_prefix ####
 Applied to the Font Awesome prefix ('fa' or 'icon') before it is assigned to the Better Font Awesome Library object's `$prefix` property.
 
-**Parameters**
+**Parameters**  
 $prefix (string)
 
 #### bfa_icon_class ####
 Applied to the classes that are output on each icon's `<i>` element.
 
-**Parameters**
+**Parameters**  
 $class (string)
 
 #### bfa_icon ####
 Applied to the entire `<i>` element that is output for each icon.
 
-**Parameters**
+**Parameters**  
 $output (string)
 
 
