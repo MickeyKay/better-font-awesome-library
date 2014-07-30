@@ -171,7 +171,7 @@ The example shortcode above would output the following depending on which versio
 The Better Font Awesome Library applies the following filters:
 
 #### bfa_init_args ####
-Applied to the initialization arguments before they are used to initialize the library.
+Applied to the initialization arguments after they have been parsed with default args, but before they are used to generate fetch any Font Awesome data.
 
 **Parameters**
 
