@@ -7,7 +7,7 @@ Better Font Awesome Library
 1. [Introduction](https://github.com/MickeyKay/better-font-awesome-library#introduction)
 1. [Features](https://github.com/MickeyKay/better-font-awesome-library#features)
 1. [Usage](https://github.com/MickeyKay/better-font-awesome-library#usage)
-1. [Initialization Parameters](https://github.com/MickeyKay/better-font-awesome-library#initialization-parameters)
+1. [Initialization Parameters](https://github.com/MickeyKay/better-font-awesome-library#initialization-parameters-args)
 1. [The Better Font Awesome Library Object](https://github.com/MickeyKay/better-font-awesome-library#the-better-font-awesome-library-object)
 1. [Filters](https://github.com/MickeyKay/better-font-awesome-library#filters)
 1. [To Do](https://github.com/MickeyKay/better-font-awesome-library#to-do)
@@ -34,7 +34,7 @@ The Better Font Awesome Library allows you to automatically integrate the latest
 	 */
 	function my_prefix_load_bfa() {
 
-		// Include the library file. Make sure to modify the path to match your directory structure.
+		// Include the main library file. Make sure to modify the path to match your directory structure.
 		require_once ( dirname( __FILE__ ) . '/better-font-awesome-library/better-font-awesome-library.php' );
 
 		// Set the library initialization args (defaults shown).
