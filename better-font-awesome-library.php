@@ -281,7 +281,7 @@ class Better_Font_Awesome_Library {
 		 * Use priority 15 to ensure this is done after removing existing Font
 		 * Awesome CSS and shortcodes.
 		 */
-		if ( $this->args['load_shortcode'] ) {
+		if ( $this->args['load_shortcode'] || $this->args['load_tinymce_plugin'] ) {
 			add_action( 'init', array( $this, 'add_icon_shortcode' ), 15 );
 		}
 
