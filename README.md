@@ -8,8 +8,8 @@ Better Font Awesome Library
 1. [Features](https://github.com/MickeyKay/better-font-awesome-library#features)
 1. [Usage](https://github.com/MickeyKay/better-font-awesome-library#usage)
 1. [Initialization Parameters](https://github.com/MickeyKay/better-font-awesome-library#initialization-parameters-args)
-1. [The Better Font Awesome Library Object](https://github.com/MickeyKay/better-font-awesome-library#the-better-font-awesome-library-object)
 1. [Shortcode](https://github.com/MickeyKay/better-font-awesome-library#shortcode)
+1. [The Better Font Awesome Library Object](https://github.com/MickeyKay/better-font-awesome-library#the-better-font-awesome-library-object)
 1. [Filters](https://github.com/MickeyKay/better-font-awesome-library#filters)
 1. [To Do](https://github.com/MickeyKay/better-font-awesome-library#to-do)
 
@@ -100,6 +100,33 @@ The following arguments can be used to initialize the library using `Better_Font
 * `true` (default)
 * `false`
 
+## Shortcode ##
+If either the `$args['load_shortcode']` or `$args['load_tinymce_plugin']` initialization arg is set to `true`, then the Better Font Awesome Library will include an icon shortcode that can be used as follows:
+```
+[icon name="star" class="2x spin" unprefixed_class="my-custom-class"]
+```
+
+**name**  
+The unprefixed icon name (e.g. star). The version-specific prefix will be automatically prepended.
+
+**class**  
+Unprefixed [Font Awesome icon classes](http://fortawesome.github.io/Font-Awesome/examples/). The version-specific prefix will be automatically prepended to each class.
+
+**unprefixed_class**  
+Any additional classes that you wish to remain unprefixed (e.g. my-custom-class).
+
+#### Shortcode Output ####
+The example shortcode above would output the following depending on which version of Font Awesome you've selected:
+
+**Version 4+**
+```
+<i class="fa fa-star fa-2x fa-spin my-custom-class"></i>
+```
+**Version 3**
+```
+<i class="icon icon-star icon-2x icon-spin my-custom-class"></i>
+```
+
 ## The Better Font Awesome Library Object ##
 The Better Font Awesome Library object can be accessed with the following code:  
 `Better_Font_Awesome_Library::get_instance();`
@@ -141,33 +168,6 @@ $icons = $my_bfa->get_icons();
 foreach ( $icons as $icon ) {
 	echo $icon . '<br />';
 }
-```
-
-## Shortcode ##
-If either the `$args['load_shortcode']` or `$args['load_tinymce_plugin']` initialization arg is set to `true`, then the Better Font Awesome Library will include an icon shortcode that can be used as follows:
-```
-[icon name="star" class="2x spin" unprefixed_class="my-custom-class"]
-```
-
-**name**  
-The unprefixed icon name (e.g. star). The version-specific prefix will be automatically prepended.
-
-**class**  
-Unprefixed [Font Awesome icon classes](http://fortawesome.github.io/Font-Awesome/examples/). The version-specific prefix will be automatically prepended to each class.
-
-**unprefixed_class**  
-Any additional classes that you wish to remain unprefixed (e.g. my-custom-class).
-
-#### Shortcode Output ####
-The example shortcode above would output the following depending on which version of Font Awesome you've selected:
-
-**Version 4+**
-```
-<i class="fa fa-star fa-2x fa-spin my-custom-class"></i>
-```
-**Version 3**
-```
-<i class="icon icon-star icon-2x icon-spin my-custom-class"></i>
 ```
 
 ## Filters ##

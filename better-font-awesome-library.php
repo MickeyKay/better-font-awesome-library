@@ -18,8 +18,6 @@
  *       editor and front end)
  * @todo There may be a better way to do get_local_file_contents(), refer to:
  *       https://github.com/markjaquith/feedback/issues/33
- * @todo Doublecheck error messages
- * @todo Update BFAL Object section in readme to reflect public methods
  * @todo Icon menu icon not showing up in black studio widget - add attribute
  *       selector for admin CSS instead of exact ID selector. Not sure if this
  *       is still an issue?
