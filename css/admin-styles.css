@@ -27,8 +27,8 @@
 	font-family: FontAwesome !important;
 }
 
-/* BFA select icon (for versions < and >= TinyMCE 4) */
-#content_bfaSelect_text:before {
+/* BFA select icon (for versions < TinyMCE 4) */
+[id*="bfaSelect_text"]:before {
 	content: "\f024";
 	margin-right: .5em;
 	font-family: FontAwesome;
