@@ -120,6 +120,9 @@ The object has the following public methods:
 #### get_api_data() ####
 (object) Returns version data for the remote jsDelivr CDN (uses [jsDelivr API](https://github.com/jsdelivr/api)). Includes all available versions and latest version.
 
+#### get_errors() ####
+(array) Returns all library errors, including API and CDN fetch failures.
+
 #### Example: ####
 ```
 // Initialize the library with custom args.
