@@ -12,6 +12,7 @@ Better Font Awesome Library
 1. [The Better Font Awesome Library Object](https://github.com/MickeyKay/better-font-awesome-library#the-better-font-awesome-library-object)
 1. [Filters](https://github.com/MickeyKay/better-font-awesome-library#filters)
 1. [To Do](https://github.com/MickeyKay/better-font-awesome-library#to-do)
+1. [Credits](https://github.com/MickeyKay/better-font-awesome-library#credits)
 
 ## Introduction ##
 The Better Font Awesome Library allows you to automatically integrate the latest available version of [Font Awesome](http://fontawesome.io/) into your WordPress project, along with accompanying CSS, shortcode, and TinyMCE icon shortcode generator. Furthermore, it generates all the data you need to create new functionality of your own.
@@ -241,3 +242,10 @@ Applied to the entire `<i>` element that is output for each icon.
 
 ## To Do ##
 Ideas? File an issue or add a pull request!
+
+## Credits ##
+Special thanks to the following folks/plugins for inspiration and support:
+* [Font Awesome Icons](http://wordpress.org/plugins/font-awesome/ "Font Awesome Icons") by [Rachel Baker](http://rachelbaker.me/ "Rachel Baker")
+* [Font Awesome More Icons](https://wordpress.org/plugins/font-awesome-more-icons/ "Font Awesome More Icons") by [Web Guys](http://webguysaz.com/ "Web Guys")
+* [Font Awesome Shortcodes](https://wordpress.org/plugins/font-awesome-shortcodes/) by [FoolsRun](https://profiles.wordpress.org/foolsrun/ "FoolsRun")
+* Dmitriy Akulov and the awesome folks at [jsDelivr](http://www.jsdelivr.com/)
