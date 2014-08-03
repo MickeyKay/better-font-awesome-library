@@ -427,7 +427,7 @@ class Better_Font_Awesome_Library {
 
 			} else {
 
-				$this->set_error( 'api', $response->get_error_code(), $response->get_error_message() );
+				$this->set_error( 'api', $response->get_error_code(), $response->get_error_message() . " (URL: $url)" );
 				$response = '';
 
 			}
@@ -635,7 +635,7 @@ class Better_Font_Awesome_Library {
 		} elseif ( is_wp_error( $response ) ) {
 			$response = $response;
 		} elseif ( isset( $response['response'] ) ) {
-			$response = new WP_Error( $response['response']['code'], $response['response']['message'] );
+			$response = new WP_Error( $response['response']['code'], $response['response']['message'] . " (URL: $url)" );
 		} else {
 			$response = '';
 		}
@@ -1109,7 +1109,7 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @return  WP_ERROR          The error for the specified process.
 	 */
-	private function get_error( $process ) {
+	public function get_error( $process ) {
 		return isset( $this->errors[ $process ] ) ? $this->errors[ $process ] : '';
 	}
 
