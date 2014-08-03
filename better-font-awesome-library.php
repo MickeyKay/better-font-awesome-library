@@ -427,7 +427,7 @@ class Better_Font_Awesome_Library {
 
 			} else {
 
-				$this->set_error( 'api', $response->get_error_code(), $response->get_error_message() . " (URL: $url)" );
+				$this->set_error( 'api', $response->get_error_code(), $response->get_error_message() . " (URL: $url" );
 				$response = '';
 
 			}
@@ -574,7 +574,7 @@ class Better_Font_Awesome_Library {
 		if ( is_wp_error( $response ) ) {
 
 			// Log the CSS fetch error.
-			$this->set_error( 'css', $response->get_error_code(), $response->get_error_message() );
+			$this->set_error( 'css', $response->get_error_code(), $response->get_error_message() . " (URL: $url)" );
 			
 			// Use the local fallback CSS.
 			$response = $this->fallback_data['css'];
