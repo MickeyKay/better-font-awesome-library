@@ -6,6 +6,7 @@ Better Font Awesome Library
 ## Table of contents ##
 1. [Introduction](https://github.com/MickeyKay/better-font-awesome-library#introduction)
 1. [Features](https://github.com/MickeyKay/better-font-awesome-library#features)
+1. [Downloading / Cloning](https://github.com/MickeyKay/better-font-awesome-library#downloading-cloning)
 1. [Usage](https://github.com/MickeyKay/better-font-awesome-library#usage)
 1. [Initialization Parameters](https://github.com/MickeyKay/better-font-awesome-library#initialization-parameters-args)
 1. [Shortcode](https://github.com/MickeyKay/better-font-awesome-library#shortcode)
@@ -24,6 +25,22 @@ The Better Font Awesome Library allows you to automatically integrate the latest
 * Includes a TinyMCE drop-down shortcode generator.
 * Includes a local copy of Font Awesome to use as a fallback in case the remote fetch fails (or you can specify your own with the [`bfa_fallback_directory_path`](https://github.com/MickeyKay/better-font-awesome-library#bfa_fallback_directory_path) filter).
 * Utilizes transients to optimize for speed and performance.
+
+## Downloading / Cloning ##
+The Better Font Awesome Library contains a [Git Submodule](http://git-scm.com/book/en/Git-Tools-Submodules) of Font Awesome that will require you to run a few special commands to get all necessary files after cloning the library. So the whole process of cloning and updating the library looks like this (performed from the command line):
+```
+// Clone the repo
+git clone https://github.com/MickeyKay/better-font-awesome-library.git
+
+// Enter the newly downloaded repo
+cd better-font-awesome-library
+
+// Initialize all submodules
+git submodule init
+
+// Pull in updated copies of all submodules
+git submodule update
+```
 
 ## Usage ##
 1. Copy the /better-font-awesome-library folder into your project.
