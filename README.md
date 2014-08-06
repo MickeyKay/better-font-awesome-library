@@ -267,5 +267,5 @@ Special thanks to the following folks and their plugins for inspiration and supp
 * [Font Awesome Shortcodes](https://wordpress.org/plugins/font-awesome-shortcodes/) by [FoolsRun](https://profiles.wordpress.org/foolsrun/ "FoolsRun")
 * Dmitriy Akulov and the awesome folks at [jsDelivr](http://www.jsdelivr.com/)
 
-And to the following folks who helped beta test:
-* Neil Gee - [@_neilgee](https://twitter.com/_neilgee) 
+And many thanks to the following folks who helped with testing and QA:
+* [Neil Gee](https://twitter.com/_neilgee)
