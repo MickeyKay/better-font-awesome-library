@@ -268,4 +268,7 @@ Special thanks to the following folks and their plugins for inspiration and supp
 * Dmitriy Akulov and the awesome folks at [jsDelivr](http://www.jsdelivr.com/)
 
 And many thanks to the following folks who helped with testing and QA:
+* [Jeffrey Dubinksy](#)
 * [Neil Gee](https://twitter.com/_neilgee)
+* [Michael Beil](https://twitter.com/MichaelBeil)
+* [Jan Hoek](https://twitter.com/JanHoekdotCom)
