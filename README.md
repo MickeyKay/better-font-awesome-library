@@ -26,19 +26,19 @@ The Better Font Awesome Library allows you to automatically integrate the latest
 * Includes a local copy of Font Awesome to use as a fallback in case the remote fetch fails (or you can specify your own with the [`bfa_fallback_directory_path`](https://github.com/MickeyKay/better-font-awesome-library#bfa_fallback_directory_path) filter).
 * Utilizes transients to optimize for speed and performance.
 
-## Downloading / Cloning ##
-The Better Font Awesome Library contains a [Git Submodule](http://git-scm.com/book/en/Git-Tools-Submodules) of Font Awesome that will require you to run a few special commands to get all necessary files after cloning the library. So the whole process of cloning and updating the library looks like this (performed from the command line):
+## Installation ##
+The Better Font Awesome Library contains a [Git submodule](http://git-scm.com/book/en/Git-Tools-Submodules) which will require you to recursively clone this repo:
 ```
-// Clone the repo
-git clone https://github.com/MickeyKay/better-font-awesome-library.git
+// Clones the repo and all of it's submodules.
+git clone --recursive https://github.com/MickeyKay/better-font-awesome-library.git
+```
 
-// Enter the newly downloaded repo
-cd better-font-awesome-library
-
-// Initialize all submodules
+Alternately, if you've already cloned the repo and need to add the submodules, you can run the following commands:
+```
+// Initialize all submodules.
 git submodule init
 
-// Pull in updated copies of all submodules
+// Pull in updated copies of all submodules.
 git submodule update
 ```
 
@@ -268,7 +268,9 @@ Special thanks to the following folks and their plugins for inspiration and supp
 * Dmitriy Akulov and the awesome folks at [jsDelivr](http://www.jsdelivr.com/)
 
 And many thanks to the following folks who helped with testing and QA:
-* [Jeffrey Dubinksy](#)
+* [Jeffrey Dubinksy](http://vanishingforests.org/)
 * [Neil Gee](https://twitter.com/_neilgee)
 * [Michael Beil](https://twitter.com/MichaelBeil)
+* [Rob Neue](https://twitter.com/rob_neu)
+* [Gary Jones](https://twitter.com/GaryJ)
 * [Jan Hoek](https://twitter.com/JanHoekdotCom)
