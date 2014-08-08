@@ -29,7 +29,6 @@ The Better Font Awesome Library allows you to automatically integrate the latest
 ## Installation ##
 The Better Font Awesome Library contains a [Git submodule](http://git-scm.com/book/en/Git-Tools-Submodules) which will require you to recursively clone this repo:
 ```
-// Clones the repo and all of it's submodules.
 git clone --recursive https://github.com/MickeyKay/better-font-awesome-library.git
 ```
 
