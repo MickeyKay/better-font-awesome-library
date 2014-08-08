@@ -6,7 +6,7 @@ Better Font Awesome Library
 ## Table of contents ##
 1. [Introduction](https://github.com/MickeyKay/better-font-awesome-library#introduction)
 1. [Features](https://github.com/MickeyKay/better-font-awesome-library#features)
-1. [Downloading / Cloning](https://github.com/MickeyKay/better-font-awesome-library#downloading--cloning)
+1. [Installation](https://github.com/MickeyKay/better-font-awesome-library#installation)
 1. [Usage](https://github.com/MickeyKay/better-font-awesome-library#usage)
 1. [Initialization Parameters](https://github.com/MickeyKay/better-font-awesome-library#initialization-parameters-args)
 1. [Shortcode](https://github.com/MickeyKay/better-font-awesome-library#shortcode)
