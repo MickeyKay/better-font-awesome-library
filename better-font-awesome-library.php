@@ -402,7 +402,7 @@ class Better_Font_Awesome_Library {
 	 *                          WP_ERROR if the fetch fails.
 	 */
 	private function fetch_api_data( $url ) {
-
+		
 		if ( false === ( $response = get_transient( self::SLUG . '-api-versions' ) ) ) {
 			
 			$response = wp_remote_get( $url, $this->wp_remote_get_args );
@@ -425,9 +425,19 @@ class Better_Font_Awesome_Library {
 				// Set the API transient.
 				set_transient( self::SLUG . '-api-versions', $response, $transient_expiration );
 
-			} else {
+			} elseif ( is_wp_error( $response ) ) { // Check for faulty wp_remote_get()
 
-				$this->set_error( 'api', $response->get_error_code(), $response->get_error_message() . " (URL: $url" );
+				$this->set_error( 'api', $response->get_error_code(), $response->get_error_message() . " (URL: $url)" );
+				$response = '';
+
+			} elseif ( isset( $response['response'] ) ) { // Check for 404 and other non-WP_ERROR codes
+				
+				$this->set_error( 'api', $response['response']['code'], $response['response']['message'] . " (URL: $url)" );
+				$response = '';
+
+			} else { // Total failsafe
+
+				$this->set_error( 'api', 'Unknown', __( 'The jsDelivr API servers appear to be temporarily unavailable.', 'bfa') . " (URL: $url)" );
 				$response = '';
 
 			}
@@ -632,11 +642,11 @@ class Better_Font_Awesome_Library {
 			$response = wp_remote_retrieve_body( $response );
 			$this->set_css_transient( $version, $response );
 
-		} elseif ( is_wp_error( $response ) ) {
+		} elseif ( is_wp_error( $response ) ) { // Check for faulty wp_remote_get()
 			$response = $response;
-		} elseif ( isset( $response['response'] ) ) {
+		} elseif ( isset( $response['response'] ) ) { // Check for 404 and other non-WP_ERROR codes
 			$response = new WP_Error( $response['response']['code'], $response['response']['message'] . " (URL: $url)" );
-		} else {
+		} else { // Total failsafe
 			$response = '';
 		}
 
@@ -1036,6 +1046,9 @@ class Better_Font_Awesome_Library {
 			        	?>
 			        </p>
 		        <?php endif; ?>
+
+		        <!-- Fallback Text -->
+		        <p><?php echo __( '<b>Don\'t worry! Better Font Awesome will still render using the included fallback version:</b> ', 'bfa' ) . '<code>' . $this->fallback_data['version'] . '</code>' ; ?></p>
 
 		        <!-- Solution Text -->
 		        <p>
