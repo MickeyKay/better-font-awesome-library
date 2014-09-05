@@ -402,7 +402,7 @@ class Better_Font_Awesome_Library {
 	 *                          WP_ERROR if the fetch fails.
 	 */
 	private function fetch_api_data( $url ) {
-		
+
 		if ( false === ( $response = get_transient( self::SLUG . '-api-versions' ) ) ) {
 			
 			$response = wp_remote_get( $url, $this->wp_remote_get_args );
@@ -437,7 +437,7 @@ class Better_Font_Awesome_Library {
 
 			} else { // Total failsafe
 
-				$this->set_error( 'api', 'Unknown', __( 'The jsDelivr API servers appear to be temporarily unavailable.', 'bfa') . " (URL: $url)" );
+				$this->set_error( 'api', 'Unknown', __( 'The jsDelivr API servers appear to be temporarily unavailable.', 'better-font-awesome' ) . " (URL: $url)" );
 				$response = '';
 
 			}
@@ -1018,15 +1018,15 @@ class Better_Font_Awesome_Library {
 			?>
 		    <div class="error">
 		    	<p>
-		    		<b><?php _e( 'Better Font Awesome', 'bfa' ); ?></b>
+		    		<b><?php _e( 'Better Font Awesome', 'better-font-awesome' ); ?></b>
 		    	</p>
 	        	
 	        	<!-- API Error -->
 	        	<?php if ( is_wp_error ( $this->get_error('api') ) ) : ?>
 		        	<p>
-		        		<b><?php _e( 'API Error', 'bfa' ); ?></b><br />
+		        		<b><?php _e( 'API Error', 'better-font-awesome' ); ?></b><br />
 		        		<?php 
-		        		printf( __( 'The attempt to reach the jsDelivr API server failed with the following error: %s', 'bfa' ), 
+		        		printf( __( 'The attempt to reach the jsDelivr API server failed with the following error: %s', 'better-font-awesome' ), 
 		        			'<code>' . $this->get_error('api')->get_error_code() . ': ' . $this->get_error('api')->get_error_message() . '</code>'
 		        		);
 		        		?>
@@ -1036,9 +1036,9 @@ class Better_Font_Awesome_Library {
 				<!-- CSS Error -->
 	        	<?php if ( is_wp_error ( $this->get_error('css') ) ) : ?>
 		        	<p>
-		        		<b><?php _e( 'Remote CSS Error', 'bfa' ); ?></b><br />
+		        		<b><?php _e( 'Remote CSS Error', 'better-font-awesome' ); ?></b><br />
 		        		<?php 
-		        		printf( __( 'The attempt to fetch the remote Font Awesome stylesheet failed with the following error: %s %s The embedded fallback Font Awesome will be used instead (version: %s).', 'bfa' ), 
+		        		printf( __( 'The attempt to fetch the remote Font Awesome stylesheet failed with the following error: %s %s The embedded fallback Font Awesome will be used instead (version: %s).', 'better-font-awesome' ), 
 		        			'<code>' . $this->get_error('css')->get_error_code() . ': ' . $this->get_error('css')->get_error_message() . '</code>',
 		        			'<br />',
 		        			'<code>' . $this->font_awesome_version . '</code>'
@@ -1048,13 +1048,13 @@ class Better_Font_Awesome_Library {
 		        <?php endif; ?>
 
 		        <!-- Fallback Text -->
-		        <p><?php echo __( '<b>Don\'t worry! Better Font Awesome will still render using the included fallback version:</b> ', 'bfa' ) . '<code>' . $this->fallback_data['version'] . '</code>' ; ?></p>
+		        <p><?php echo __( '<b>Don\'t worry! Better Font Awesome will still render using the included fallback version:</b> ', 'better-font-awesome' ) . '<code>' . $this->fallback_data['version'] . '</code>' ; ?></p>
 
 		        <!-- Solution Text -->
 		        <p>
-		        	<b><?php _e( 'Solution', 'bfa' ); ?></b><br />
+		        	<b><?php _e( 'Solution', 'better-font-awesome' ); ?></b><br />
 			        <?php
-			        printf( __( 'This may be the result of a temporary server or connectivity issue which will resolve shortly. However if the problem persists please file a support ticket on the %splugin forum%s, citing the errors listed above. ', 'bfa' ),
+			        printf( __( 'This may be the result of a temporary server or connectivity issue which will resolve shortly. However if the problem persists please file a support ticket on the %splugin forum%s, citing the errors listed above. ', 'better-font-awesome' ),
 	                    '<a href="http://wordpress.org/support/plugin/better-font-awesome" target="_blank" title="Better Font Awesome support forum">',
 	                    '</a>'
 	                );
@@ -1177,6 +1177,17 @@ class Better_Font_Awesome_Library {
 	 */
 	public function get_version() {
 		return $this->font_awesome_version;
+	}
+
+	/**
+	 * Get the fallback version of Font Awesome included locally.
+	 *
+	 * @since   1.0.0
+	 *
+	 * @return  string  Font Awesome fallback version.
+	 */
+	public function get_fallback_version() {
+		return $this->fallback_data['version'];
 	}
 
 	/**
