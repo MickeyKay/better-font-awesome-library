@@ -287,7 +287,7 @@ class Better_Font_Awesome_Library {
 		// Load TinyMCE functionality.
 		if ( $this->args['load_tinymce_plugin'] ) {
 		
-			add_action( 'admin_head', array( $this, 'add_tinymce_components' ) );
+			add_action( 'admin_init', array( $this, 'add_tinymce_components' ) );
 			add_action( 'admin_head', array( $this, 'output_admin_head_variables' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'register_custom_admin_css' ), 15 );
 
