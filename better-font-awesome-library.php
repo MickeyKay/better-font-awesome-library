@@ -578,14 +578,25 @@ class Better_Font_Awesome_Library {
 		}
 
 		/**
-		 * Use the local fallback if both the transient and wp_remote_get()
-		 * methods fail.
+		 * Filter the force fallback flag.
+		 *
+		 * @since  1.0.4
+		 *
+		 * @param  bool  Whether or not to force the fallback CSS.
 		 */
-		if ( is_wp_error( $response ) ) {
+		$force_fallback = apply_filters( 'bfa_force_fallback', false );
+
+		/**
+		 * Use the local fallback if both the transient and wp_remote_get()
+		 * methods fail, or if fallback is forced with bfa_force_fallback filter.
+		 */
+		if ( is_wp_error( $response ) || $force_fallback ) {
 
 			// Log the CSS fetch error.
-			$this->set_error( 'css', $response->get_error_code(), $response->get_error_message() . " (URL: $url)" );
-			
+			if ( ! $force_fallback ) {
+				$this->set_error( 'css', $response->get_error_code(), $response->get_error_message() . " (URL: $url)" );
+			}
+
 			// Use the local fallback CSS.
 			$response = $this->fallback_data['css'];
 
@@ -711,23 +722,21 @@ class Better_Font_Awesome_Library {
 	private function setup_icon_array( $css ) {
 		
 		$icons = array();
+		$hex_codes = array();
 
-		// Get all CSS selectors that have a "content:" pseudo-element rule.
-		preg_match_all( '/(\.[^}]*)\s*{\s*(content:)/s', $css, $matches );
-		$selectors = $matches[1];
+		/**
+		 * Get all CSS selectors that have a "content:" pseudo-element rule,
+		 * as well as all associated hex codes.
+		 */
+		preg_match_all( '/\.(icon-|fa-)([^,}]*)\s*:before\s*{\s*(content:)\s*"(\\\\[^"]+)"/s', $css, $matches );
+		$icons = $matches[2];
+		$hex_codes = $matches[4];
 
-		// Select for all icon- and fa- selectors and split where there are commas.
-		foreach ( $selectors as $selector ) {
-			preg_match_all( '/\.(icon-|fa-)([^,]*)\s*:before/s', $selector, $matches );
-			$clean_selectors = $matches[2];
+		// Add hex codes as icon array index.
+		$icons = array_combine( $hex_codes, $icons );
 
-			// Create an array of selectors (icon names).
-			foreach ( $clean_selectors as $clean_selector )
-				$icons[] = $clean_selector;
-		}
-
-		// Alphabetize the icons array.
-		sort( $icons );
+		// Alphabetize the icons array by icon name.
+		asort( $icons );
 
 		/**
 		 * Filter the array of available icons.
@@ -1014,7 +1023,7 @@ class Better_Font_Awesome_Library {
 	 */
 	public function do_admin_notice() { 
 
-		if ( ! empty( $this->errors ) ) :
+		if ( ! empty( $this->errors ) && apply_filters( 'bfa_show_errors', true ) ) :
 			?>
 		    <div class="error">
 		    	<p>

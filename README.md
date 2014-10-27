@@ -156,7 +156,7 @@ The object has the following public methods:
 (string) Returns the active Font Awesome stylesheet URL.
 
 #### get_icons() ####
-(array) Returns an alphabetical array of unprefixed icon names for all available icons in the active Font Awesome version.
+(array) Returns an associative array of icon hex values (index, e.g. \f000) and unprefixed icon names (values, e.g. rocket) for all available icons in the active Font Awesome version.
 
 #### get_prefix() ####
 (string) Returns the version-dependent prefix ('fa' or 'icon') that is used in the icons' CSS classes.
@@ -254,6 +254,20 @@ Applied to the entire `<i>` element that is output for each icon.
 **Parameters**
 
 * `$output` (string)
+
+#### bfa_force_fallback ####
+Set to true to force the included fallback version of Font Awesome to load. This can be useful if you're having trouble with delays or timeouts.
+
+**Parameters**
+
+* `$force_fallback` (false)
+
+#### bfa_show_errors ####
+Set to false to suppress all Font Awesome warnings that normally display in the admin.
+
+**Parameters**
+
+* `$show_errors` (true)
 
 
 ## To Do ##
