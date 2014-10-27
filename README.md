@@ -256,14 +256,14 @@ Applied to the entire `<i>` element that is output for each icon.
 * `$output` (string)
 
 #### bfa_force_fallback ####
-Set to true to force the included fallback version of Font Awesome to load. This can be useful if you're having trouble with delays or timeouts.
+Applied to the boolean that determines whether or not to force the included fallback version of Font Awesome to load. This can be useful if you're having trouble with delays or timeouts.
 
 **Parameters**
 
 * `$force_fallback` (false)
 
 #### bfa_show_errors ####
-Set to false to suppress all Font Awesome warnings that normally display in the admin.
+Applied to the boolean that determines whether or not to suppress all Font Awesome warnings that normally display in the admin.
 
 **Parameters**
 
