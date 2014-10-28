@@ -46,14 +46,14 @@ git submodule update
 
 2. Add the following code to your main plugin file or your theme's functions.php file.
    ```
+   	// Include the main library file. Make sure to modify the path to match your directory structure.
+	require_once ( dirname( __FILE__ ) . '/better-font-awesome-library/better-font-awesome-library.php' );
+
 	add_action( 'plugins_loaded', 'my_prefix_load_bfa' );
 	/**	
 	 * Initialize the Better Font Awesome Library.
 	 */
 	function my_prefix_load_bfa() {
-
-		// Include the main library file. Make sure to modify the path to match your directory structure.
-		require_once ( dirname( __FILE__ ) . '/better-font-awesome-library/better-font-awesome-library.php' );
 
 		// Set the library initialization args (defaults shown).
 		$args = array(
