@@ -71,7 +71,7 @@ git submodule update
 		// Initialize the Better Font Awesome Library.
 		$my_bfa = Better_Font_Awesome_Library::get_instance( $args );
 
-		// Get all avaiable icons.
+		// Get all available icons.
 		$icons = $my_bfa->get_icons();
 
 		.
