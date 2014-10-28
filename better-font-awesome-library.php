@@ -212,7 +212,7 @@ class Better_Font_Awesome_Library {
 		$this->args = $args;
 
 		// Load the library functionality.
-		add_action( 'plugins_loaded', array( $this, 'load' ) );
+		$this->load();
 
 	}
 
