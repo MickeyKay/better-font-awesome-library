@@ -69,7 +69,14 @@ git submodule update
 		);
 		
 		// Initialize the Better Font Awesome Library.
-		Better_Font_Awesome_Library::get_instance( $args );
+		$my_bfa = Better_Font_Awesome_Library::get_instance( $args );
+
+		// Get all avaiable icons.
+		$icons = $my_bfa->get_icons();
+
+		.
+		.
+		.
 	}
 ```
 
