@@ -52,6 +52,8 @@ git submodule update
 	add_action( 'plugins_loaded', 'my_prefix_load_bfa' );
 	/**	
 	 * Initialize the Better Font Awesome Library.
+	 *
+	 * (see usage notes below on proper hook priority)
 	 */
 	function my_prefix_load_bfa() {
 
