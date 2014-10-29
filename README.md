@@ -275,7 +275,7 @@ Applied to the boolean that determines whether or not to suppress all Font Aweso
 
 ## To Do ##
 Ideas? File an issue or add a pull request!
-* Add section on manually updating the fallback version.
+* Add README section on manually updating the fallback version.
 
 ## Credits ##
 Special thanks to the following folks and their plugins for inspiration and support:
