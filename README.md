@@ -276,6 +276,7 @@ Applied to the boolean that determines whether or not to suppress all Font Aweso
 ## To Do ##
 Ideas? File an issue or add a pull request!
 * Add README section on manually updating the fallback version.
+* Remove existing FA? - move to later hook so that it works for styles enqueued via shortcode (= wp_footer basically)
 
 ## Credits ##
 Special thanks to the following folks and their plugins for inspiration and support:
