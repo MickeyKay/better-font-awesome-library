@@ -49,7 +49,7 @@ git submodule update
    	// Include the main library file. Make sure to modify the path to match your directory structure.
 	require_once ( dirname( __FILE__ ) . '/better-font-awesome-library/better-font-awesome-library.php' );
 
-	add_action( 'plugins_loaded', 'my_prefix_load_bfa' );
+	add_action( 'init', 'my_prefix_load_bfa' );
 	/**	
 	 * Initialize the Better Font Awesome Library.
 	 *
@@ -77,7 +77,7 @@ git submodule update
 3. If desired, use the [Better Font Awesome Library object](#the-better-font-awesome-library-object) to manually include Font Awesome CSS, output lists of available icons, create your own shortcodes, and much more.
 
 #### Usage Notes ####
-The Better Font Awesome Library is designed to work in conjunction with the [Better Font Awesome](https://wordpress.org/plugins/better-font-awesome/) WordPress plugin. The plugin initializes this library (with its initialization args) on the `plugins_loaded` hook, priority `5`. When using the Better Font Awesome Library in your project, you have two options:
+The Better Font Awesome Library is designed to work in conjunction with the [Better Font Awesome](https://wordpress.org/plugins/better-font-awesome/) WordPress plugin. The plugin initializes this library (with its initialization args) on the `init` hook, priority `5`. When using the Better Font Awesome Library in your project, you have two options:
 
 1. Initialize later, to ensure that any Better Font Awesome plugin settings override yours.
 1. Initialize earlier, to "take over" and prevent Better Font Awesome settings from having an effect.
