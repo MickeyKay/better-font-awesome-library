@@ -79,7 +79,7 @@ git submodule update
 #### Usage Notes ####
 The Better Font Awesome Library is designed to work in conjunction with the [Better Font Awesome](https://wordpress.org/plugins/better-font-awesome/) WordPress plugin. The plugin initializes this library (with its initialization args) on the `plugins_loaded` hook, priority `5`. When using the Better Font Awesome Library in your project, you have two options:
 
-1. Initialize later, to ensure that any Better Font Awesome plugin settings override yours.
+1. Initialize later, to ensure that any Better Font Awesome plugin settings override yours (this is the default behavior, shown above by initializing the library on the `init` hook, which comes after the `plugins_loaded` hook).
 1. Initialize earlier, to "take over" and prevent Better Font Awesome settings from having an effect.
 
 **Note:** if you're using the library in a theme, the `plugins_loaded` hook has already fired and is unavailable to you. This behavior is intended - if your theme utilizes the library, and the Better Font Awesome plugin is also installed, users should be able to override all Font Awesome behavior/settings via the admin options provided via the plugin.
