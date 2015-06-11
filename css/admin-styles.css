@@ -45,6 +45,10 @@
 	width: 100%;
 }
 
+.bfa-iconpicker .iconpicker-popover.popover {
+	width: 253px;
+}
+
 .bfa-iconpicker .iconpicker-component i {
 	display: none;
 }
