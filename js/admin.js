@@ -8,7 +8,7 @@
 
 ( function( $ ) {
 
-    $( document ).ready( function() {
+    $( document ).on( 'tinymce-editor-init', function() {
 
     	$( '.bfa-iconpicker' )
     		.iconpicker({
