@@ -20,8 +20,11 @@
 	    		fullClassFormatter: function( val ) {
 	    			return bfa_vars.fa_prefix + ' ' + bfa_vars.fa_prefix + '-' + val;
 	    		},
-	    	});
-			$(window).on( 'iconpickerSelect', function( e ) {
+	    	})
+    		.on( 'click', function( e ) {
+    			$( this ).find( '.iconpicker-search').focus();
+    		})
+	    	.on( 'iconpickerSelect', function( e ) {
 	    		wp.media.editor.insert( icon_shortcode( e.iconpickerItem.context.title.replace( '.', '' ) ) );
 	    	});
 
