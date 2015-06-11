@@ -18,7 +18,11 @@
 	    		selectedCustomClass: 'selected',
 	    		icons: bfa_vars.fa_icons,
 	    		fullClassFormatter: function( val ) {
-	    			return bfa_vars.fa_prefix + ' ' + bfa_vars.fa_prefix + '-' + val;
+	    			if ( bfa_vars.fa_prefix ) {
+	    				return bfa_vars.fa_prefix + ' ' + bfa_vars.fa_prefix + '-' + val;
+	    			} else {
+	    				return val;
+	    			}
 	    		},
 	    	})
     		.on( 'click', function( e ) {
