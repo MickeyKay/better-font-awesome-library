@@ -920,8 +920,8 @@ class Better_Font_Awesome_Library {
 		$name = str_replace( 'icon-', '', $name );
 		$name = str_replace( 'fa-', '', $name );
 
-		// Add the version-specific prefix back on to $name.
-		$icon_name = $this->prefix . '-' . $name;
+		// Add the version-specific prefix back on to $name, if it exists.
+		$icon_name = $this->prefix ? $this->prefix . '-' . $name : $name;
 
 		// Remove "icon-" and "fa-" from the icon class.
 		$class = str_replace( 'icon-', '', $class );
@@ -932,7 +932,11 @@ class Better_Font_Awesome_Library {
 		$class = preg_replace( '/\s{3,}/', ' ', $class );
 
 		// Add the version-specific prefix back on to each class.
-		$class = $class ? ' ' . $this->prefix . '-' . str_replace( ' ', ' ' . $this->prefix . '-', $class ) : '';
+		$class_array = explode( ' ', $class );
+		foreach ( $class_array as $index => $class ) {
+			$class_array[ $index ] = $this->prefix ? $this->prefix . '-' . $class : $class;
+		}
+		$class = implode( ' ', $class_array );
 
 		// Add unprefixed classes.
 		$class .= $unprefixed_class ? ' ' . $unprefixed_class : '';
@@ -947,9 +951,11 @@ class Better_Font_Awesome_Library {
 		$class = apply_filters( 'bfa_icon_class', $class, $name );
 
 		// Generate the HTML <i> icon element output.
-		$output = sprintf( '<i class="%s %s" %s>%s</i>',
+		$output = sprintf( '<i class="%s %s %s %s" %s>%s</i>',
 			$this->prefix,
-			$icon_name . $class . $size,
+			$icon_name,
+			$class,
+			$size,
 			$title,
 			$space
 		);
