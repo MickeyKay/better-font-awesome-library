@@ -297,9 +297,10 @@ class Better_Font_Awesome_Library {
 		// Load TinyMCE functionality.
 		if ( $this->args['load_tinymce_plugin'] ) {
 		
-			add_action( 'admin_init', array( $this, 'add_tinymce_components' ) );
-			add_action( 'admin_head', array( $this, 'output_admin_head_variables' ) );
-			add_action( 'admin_enqueue_scripts', array( $this, 'register_custom_admin_css' ), 15 );
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
+
+			// Add shortcode insertion button.
+        	add_action( 'media_buttons', array( $this, 'add_insert_shortcode_button' ), 99 );
 
 		}
 
@@ -984,88 +985,50 @@ class Better_Font_Awesome_Library {
 	}
 
 	/**
-	 * Add TinyMCE button functionality.
-	 *
-	 * @since  1.0.0
-	 */
-	function add_tinymce_components() {
-		
-		if ( ! current_user_can( 'edit_posts' ) && ! current_user_can( 'edit_pages' ) ) {
-			return;
-		}
-
-		if ( get_user_option( 'rich_editing' ) == 'true' ) {
-			
-			add_filter( 'mce_external_plugins', array( $this, 'register_tinymce_plugin' ) );
-			add_filter( 'mce_buttons', array( $this, 'add_tinymce_buttons' ) );
-
-		}
-
-	}
-
-	/**
-	 * Load TinyMCE Font Awesome dropdown plugin.
-	 *
-	 * @since  1.0.0
-	 */
-	function register_tinymce_plugin( $plugin_array ) {
-		
-		global $tinymce_version;
-
-		/**
-		 * Register the correct TinyMCE plugin based on the version of TinyMCE
-		 * being used.
-		 */
-		if ( version_compare( $tinymce_version, '4000', '>=' ) ) {
-			$plugin_array['bfa_plugin'] = $this->root_url . 'js/tinymce-icons.js';
-		} else {
-			$plugin_array['bfa_plugin'] = $this->root_url . 'js/tinymce-icons-old.js';
-		}
-
-		return $plugin_array;
-
-	}
-
-	/**
-     * Add the TinyMCE button(s).
-     *
-     * @since  1.0.0
-     */
-	function add_tinymce_buttons( $buttons ) {
-		
-		array_push( $buttons, 'bfaSelect' );
-		return $buttons;
-
-	}
-
-	/**
-	 * Add PHP variables in HTML <head> for use by TinyMCE JavaScript.
-	 *
-	 * @since  1.0.0
-	 */
-	function output_admin_head_variables() {
-			
-		$icon_list = implode( ",", $this->icons );
-		?>
-		<!-- Better Font Awesome PHP variables for use by TinyMCE JavaScript -->
-		<script type='text/javascript'>
-		var bfa_vars = {
-		    'fa_prefix': '<?php echo $this->prefix; ?>',
-		    'fa_icons': '<?php echo $icon_list; ?>',
-		};
-		</script>
-		<!-- End Better Font Awesome PHP variables for use by TinyMCE JavaScript -->
-	    <?php
-
-	}
-
-	/**
 	 * Load admin CSS.
 	 *
 	 * @since  1.0.0
 	 */
-	public function register_custom_admin_css() {
-		wp_enqueue_style( self::SLUG . '-admin-styles', $this->root_url . 'css/admin-styles.css' );
+	public function enqueue_admin_scripts() {
+		
+		// Custom admin CSS.
+		wp_enqueue_style( self::SLUG . '-admin', $this->root_url . 'css/admin-styles.css' );
+
+		// Custom admin JS.
+		wp_enqueue_script( self::SLUG . '-admin', $this->root_url . 'js/admin.js' );
+
+		// Icon picker JS and CSS.
+		wp_enqueue_style( 'fontawesome-iconpicker', $this->root_url . 'lib/fontawesome-iconpicker/css/fontawesome-iconpicker.min.css' );
+		wp_enqueue_script( 'fontawesome-iconpicker', $this->root_url . 'lib/fontawesome-iconpicker/js/fontawesome-iconpicker.min.js' );
+
+		// Output PHP variables to JS.				
+		$bfa_vars = array(
+			'fa_prefix'   => $this->prefix,
+		    'fa_icons'    => $this->get_icons(),
+		);
+		wp_localize_script( self::SLUG . '-admin', 'bfa_vars', $bfa_vars );
+
+	}
+
+	/**
+	 * [add_insert_shortcode_button description]
+	 *
+	 * @since  1.3.0
+	 */
+	public function add_insert_shortcode_button() {
+
+		ob_start();
+		?>
+		<span class="bfa-iconpicker fontawesome-iconpicker" data-selected="fa-flag">
+			<a href="#" class="button-primary iconpicker-component">
+				<span class="fa icon fa-flag icon-flag"></span>&nbsp;
+				<?php esc_html_e( 'Insert Icon', 'better-font-awesome' ); ?>
+				<i class="change-icon-placeholder"></i>
+			</a>
+		</span>
+		<?php
+		echo ob_get_clean();
+
 	}
 
 	/**
