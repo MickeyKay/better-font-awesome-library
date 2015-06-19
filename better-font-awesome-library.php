@@ -1037,7 +1037,7 @@ class Better_Font_Awesome_Library {
 		ob_start();
 		?>
 		<span class="bfa-iconpicker fontawesome-iconpicker" data-selected="fa-flag">
-			<a href="#" class="button-primary iconpicker-component">
+			<a href="#" class="button button-secondary iconpicker-component">
 				<span class="fa icon fa-flag icon-flag"></span>&nbsp;
 				<?php esc_html_e( 'Insert Icon', 'better-font-awesome' ); ?>
 				<i class="change-icon-placeholder"></i>
