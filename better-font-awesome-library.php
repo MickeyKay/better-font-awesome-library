@@ -222,7 +222,7 @@ class Better_Font_Awesome_Library {
 		$this->args = $args;
 
 		// Load the library functionality.
-		add_action( 'after_setup_theme', array( $this, 'load' ), 15 );
+		$this->load();
 
 	}
 
@@ -248,6 +248,12 @@ class Better_Font_Awesome_Library {
 		// Get stylesheet and generate list of available icons in Font Awesome stylesheet.
 		$this->setup_stylesheet_data();
 
+		// Add Font Awesome and/or custom CSS to the editor.
+		$this->add_editor_styles();
+
+		// Output any necessary admin notices.
+		add_action( 'admin_notices', array( $this, 'do_admin_notice' ) );
+
 		/**
 		 * Remove existing Font Awesome CSS and shortcodes if needed.
 		 *
@@ -259,7 +265,7 @@ class Better_Font_Awesome_Library {
 		if ( $this->args['remove_existing_fa'] ) {
 
 			add_action( 'wp_enqueue_scripts', array( $this, 'remove_font_awesome_css' ), 15 );
-			add_action( 'init', array( $this, 'remove_icon_shortcode' ), 15 );
+			add_action( 'init', array( $this, 'remove_icon_shortcode' ), 20 );
 
 		}
 
@@ -288,11 +294,8 @@ class Better_Font_Awesome_Library {
 		 * Awesome CSS and shortcodes.
 		 */
 		if ( $this->args['load_shortcode'] || $this->args['load_tinymce_plugin'] ) {
-			add_action( 'init', array( $this, 'add_icon_shortcode' ), 15 );
+			add_action( 'init', array( $this, 'add_icon_shortcode' ), 20 );
 		}
-
-		// Add Font Awesome and/or custom CSS to the editor.
-		add_action( 'init', array( $this, 'add_editor_styles' ) );
 
 		// Load TinyMCE functionality.
 		if ( $this->args['load_tinymce_plugin'] ) {
@@ -303,9 +306,6 @@ class Better_Font_Awesome_Library {
         	add_action( 'media_buttons', array( $this, 'add_insert_shortcode_button' ), 99 );
 
 		}
-
-		// Output any necessary admin notices.
-		add_action( 'admin_notices', array( $this, 'do_admin_notice' ) );
 
 	}
 
@@ -1005,6 +1005,9 @@ class Better_Font_Awesome_Library {
 	 */
 	public function enqueue_admin_scripts() {
 
+		// Check whether to get minified or non-minified files.
+		$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
+
 		// Custom admin CSS.
 		wp_enqueue_style( self::SLUG . '-admin', $this->root_url . 'css/admin-styles.css' );
 
@@ -1012,8 +1015,8 @@ class Better_Font_Awesome_Library {
 		wp_enqueue_script( self::SLUG . '-admin', $this->root_url . 'js/admin.js' );
 
 		// Icon picker JS and CSS.
-		wp_enqueue_style( 'fontawesome-iconpicker', $this->root_url . 'lib/fontawesome-iconpicker/css/fontawesome-iconpicker.min.css' );
-		wp_enqueue_script( 'fontawesome-iconpicker', $this->root_url . 'lib/fontawesome-iconpicker/js/fontawesome-iconpicker.min.js' );
+		wp_enqueue_style( 'fontawesome-iconpicker', $this->root_url . 'lib/fontawesome-iconpicker/css/fontawesome-iconpicker' . $suffix . '.css' );
+		wp_enqueue_script( 'fontawesome-iconpicker', $this->root_url . 'lib/fontawesome-iconpicker/js/fontawesome-iconpicker' . $suffix . '.js' );
 
 		// Output PHP variables to JS.
 		$bfa_vars = array(
