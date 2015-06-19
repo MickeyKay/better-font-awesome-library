@@ -76,7 +76,7 @@ git submodule update --init --recursive
 #### Usage Notes ####
 The Better Font Awesome Library is designed to work in conjunction with the [Better Font Awesome](https://wordpress.org/plugins/better-font-awesome/) WordPress plugin. The plugin initializes this library (with its initialization args) on the `init` hook, priority `5`. When using the Better Font Awesome Library in your project, you have two options:
 
-1. Initialize later, to ensure that any Better Font Awesome plugin settings override yours (this is the default behavior, shown above by initializing the library on the `init` hook with default priority 10.
+1. Initialize later, to ensure that any Better Font Awesome plugin settings override yours (this is the default behavior, shown above by initializing the library on the `init` hook with default priority `10`.
 1. Initialize earlier, to "take over" and prevent Better Font Awesome settings from having an effect.
 
 ## Initialization Parameters ($args) ##
