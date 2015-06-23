@@ -10,7 +10,8 @@
 
     $( document ).on( 'tinymce-editor-init', function() {
 
-    	$( '.bfa-iconpicker' )
+    	$( '.bfa-iconpicker' ).not( '.initialized' )
+    		.addClass( 'initialized' )
     		.iconpicker({
 	    		placement: 'bottomLeft',
 	    		hideOnSelect: true,
@@ -26,7 +27,8 @@
 	    		},
 	    	})
     		.on( 'click', function( e ) {
-    			$( this ).find( '.iconpicker-search').focus();
+    			e.preventDefault();
+    			$( this ).find( '.iconpicker-search' ).focus();
     		})
 	    	.on( 'iconpickerSelect', function( e ) {
 	    		wp.media.editor.insert( icon_shortcode( e.iconpickerItem.context.title.replace( '.', '' ) ) );
