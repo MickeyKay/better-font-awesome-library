@@ -8,7 +8,7 @@
 
 ( function( $ ) {
 
-    $( document ).on( 'tinymce-editor-init', function() {
+    $( document ).on( 'ready tinymce-editor-init', function() {
 
     	$( '.bfa-iconpicker' ).not( '.initialized' )
     		.addClass( 'initialized' )
