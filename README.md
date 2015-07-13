@@ -56,13 +56,13 @@ git submodule update --init --recursive
 
 		// Set the library initialization args (defaults shown).
 		$args = array(
-				'version' => 'latest',
-				'minified' => true,
-				'remove_existing_fa' => false,
-				'load_styles'             => true,
-				'load_admin_styles'       => true,
-				'load_shortcode'          => true,
-				'load_tinymce_plugin'     => true,
+				'version'             => 'latest',
+				'minified'            => true,
+				'remove_existing_fa'  => false,
+				'load_styles'         => true,
+				'load_admin_styles'   => true,
+				'load_shortcode'      => true,
+				'load_tinymce_plugin' => true,
 		);
 		
 		// Initialize the Better Font Awesome Library.
