@@ -10,7 +10,7 @@
 
     $( document ).on( 'ready tinymce-editor-init', function() {
 
-    	$( '.bfa-iconpicker' ).not( '.initialized, .row-clone *' )
+    	$( '.bfa-iconpicker' ).not( '.initialized, [id*="__i__"] *, .row-clone *' ) // [id*="__i__"] = available widgets, .row-clone = ACF repeater fields
     		.addClass( 'initialized' )
     		.iconpicker({
 	    		placement: 'bottomLeft',
