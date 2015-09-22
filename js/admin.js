@@ -10,7 +10,7 @@
 
     $( document ).on( 'ready tinymce-editor-init', function() {
 
-    	$( '.bfa-iconpicker' ).not( '.initialized, [id*="__i__"] *, .row-clone *' ) // [id*="__i__"] = available widgets, .row-clone = ACF repeater fields
+    	$( '.bfa-iconpicker' ).not( ' .initialized, [id*="__i__"] *, .row-clone *, .acf-clone *' ) // [id*="__i__"] = available widgets, .row-clone/.acf-clone = ACF 4x/Pro repeater fields
     		.addClass( 'initialized' )
     		.iconpicker({
 	    		placement: 'bottomLeft',
