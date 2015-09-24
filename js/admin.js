@@ -8,31 +8,40 @@
 
 ( function( $ ) {
 
-    $( document ).on( 'ready tinymce-editor-init', function() {
+    $( document ).on( 'ready ', function() {
 
-    	$( '.bfa-iconpicker' ).not( ' .initialized, [id*="__i__"] *, .row-clone *, .acf-clone *' ) // [id*="__i__"] = available widgets, .row-clone/.acf-clone = ACF 4x/Pro repeater fields
-    		.addClass( 'initialized' )
-    		.iconpicker({
-	    		placement: 'bottomLeft',
-	    		hideOnSelect: true,
-	    		animation: false,
-	    		selectedCustomClass: 'selected',
-	    		icons: bfa_vars.fa_icons,
-	    		fullClassFormatter: function( val ) {
-	    			if ( bfa_vars.fa_prefix ) {
-	    				return bfa_vars.fa_prefix + ' ' + bfa_vars.fa_prefix + '-' + val;
-	    			} else {
-	    				return val;
-	    			}
-	    		},
-	    	})
-    		.on( 'click', function( e ) {
-    			e.preventDefault();
-    			$( this ).find( '.iconpicker-search' ).focus();
-    		})
-	    	.on( 'iconpickerSelect', function( e ) {
-	    		wp.media.editor.insert( icon_shortcode( e.iconpickerItem.context.title.replace( '.', '' ) ) );
-	    	});
+		$( 'body' ).on( 'mousedown', '.bfa-iconpicker', function(e) { // Use mousedown even to allow for triggering click later without infinite looping.
+
+			e.preventDefault();
+
+	    	$( this ).not( ' .initialized' )
+	    		.addClass( 'initialized' )
+	    		.iconpicker({
+		    		placement: 'bottomLeft',
+		    		hideOnSelect: true,
+		    		animation: false,
+		    		selectedCustomClass: 'selected',
+		    		icons: bfa_vars.fa_icons,
+		    		fullClassFormatter: function( val ) {
+		    			if ( bfa_vars.fa_prefix ) {
+		    				return bfa_vars.fa_prefix + ' ' + bfa_vars.fa_prefix + '-' + val;
+		    			} else {
+		    				return val;
+		    			}
+		    		},
+		    	});
+
+		    $( this ).trigger( 'click' );
+
+		})
+		.on( 'click', '.bfa-iconpicker', function(e) {
+			$( this ).find( '.iconpicker-search' ).focus();
+		});
+
+		// Set up icon insertion functionality.
+		$( document ).on( 'iconpickerSelect', function( e ) {
+    		wp.media.editor.insert( icon_shortcode( e.iconpickerItem.context.title.replace( '.', '' ) ) );
+    	});
 
     });
 
