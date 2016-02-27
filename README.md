@@ -243,12 +243,16 @@ Applied to the Font Awesome prefix ('fa' or 'icon') before it is assigned to the
 #### bfa_icon_class ####
 Applied to the classes that are output on each icon's `<i>` element.
 
-#### bfa_icon_tag ####
-Applied to the tag that is output for each icon. Defaults is 'i'.
-
 **Parameters**
 
 * `$class` (string)
+
+#### bfa_icon_tag ####
+Applied to the tag that is output for each icon. Defaults is 'i', which outputs `<i>`.
+
+**Parameters**
+
+* `$tag` (string)
 
 #### bfa_icon ####
 Applied to the entire `<i>` element that is output for each icon.
