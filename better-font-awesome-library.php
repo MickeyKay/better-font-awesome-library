@@ -958,14 +958,25 @@ class Better_Font_Awesome_Library {
 		 */
 		$class = apply_filters( 'bfa_icon_class', $class, $name );
 
+		/**
+		 * Filter the default <i> icon tag.
+		 *
+		 * @since  1.5.0
+		 *
+		 * @param  string  Tag to use for output icons (default = 'i').
+		 */
+		$tag = apply_filters( 'bfa_icon_tag', 'i' );
+
 		// Generate the HTML <i> icon element output.
-		$output = sprintf( '<i class="%s %s %s %s" %s>%s</i>',
+		$output = sprintf( '<%s class="%s %s %s %s" %s>%s</%s>',
+			$tag,
 			$this->prefix,
 			$icon_name,
 			$class,
 			$size,
 			$title,
-			$space
+			$space,
+			$tag
 		);
 
 		/**
