@@ -45,7 +45,7 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @var    string
 	 */
-	const VERSION = '1.4.0';
+	const VERSION = '1.6.0';
 
 	/**
 	 * jsDelivr API URL for Font Awesome version info.
@@ -73,13 +73,13 @@ class Better_Font_Awesome_Library {
 	 * @var    array
 	 */
 	private $default_args = array(
-		'version'                 => 'latest',
-		'minified'                => true,
-		'remove_existing_fa'      => false,
-		'load_styles'             => true,
-		'load_admin_styles'       => true,
-		'load_shortcode'          => true,
-		'load_tinymce_plugin'     => true,
+		'version'             => 'latest',
+		'minified'            => true,
+		'remove_existing_fa'  => false,
+		'load_styles'         => true,
+		'load_admin_styles'   => true,
+		'load_shortcode'      => true,
+		'load_tinymce_plugin' => true,
 	);
 
 	/**
