@@ -1,0 +1,8 @@
+{
+	"name": "MickeyKay/better-font-awesome-library",
+    "description": "Better Font Awesome Library for PHP",
+    "require": {
+        "itsjavi/fontawesome-iconpicker": "1.3",
+        "fortawesome/font-awesome": "4.7"
+    }
+}
