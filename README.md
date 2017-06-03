@@ -27,7 +27,11 @@ The Better Font Awesome Library allows you to automatically integrate the latest
 * Utilizes transients to optimize for speed and performance.
 
 ## Installation ##
-The Better Font Awesome Library contains a [Git submodule](http://git-scm.com/book/en/Git-Tools-Submodules) which will require you to recursively clone this repo:
+The Better Font Awesome Library utilizes composer to manage dependencies. To install it in your project, you can simply run:
+```
+composer require mickey-kay/better-font-awesome-library
+```
+
 ```
 git clone https://github.com/MickeyKay/better-font-awesome-library.git
 cd better-font-awesome-library
