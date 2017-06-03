@@ -1,0 +1,6 @@
+{
+    "require": {
+        "itsjavi/fontawesome-iconpicker": "1.3",
+        "fortawesome/font-awesome": "4.7"
+    }
+}
