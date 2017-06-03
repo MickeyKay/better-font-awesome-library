@@ -147,12 +147,19 @@ class Better_Font_Awesome_Library {
 	 * @var    string
 	 */
 	private $fallback_data = array(
-		'directory' => 'lib/fallback-font-awesome/',
+		'directory' => 'vendor/fortawesome/font-awesome/',
 		'path'      => '',
 		'url'       => '',
 		'version'   => '',
 		'css'       => '',
 	);
+
+	/**
+	 * Icon picker library dir.
+	 *
+	 * @var  string
+	 */
+	private $this->icon_picker_directory = 'vendor/itsjavi/fontawesome-iconpicker/dist/';
 
 	/**
 	 * Array of available Font Awesome icon slugs.
@@ -1026,8 +1033,8 @@ class Better_Font_Awesome_Library {
 		wp_enqueue_script( self::SLUG . '-admin', $this->root_url . 'js/admin.js' );
 
 		// Icon picker JS and CSS.
-		wp_enqueue_style( 'fontawesome-iconpicker', $this->root_url . 'lib/fontawesome-iconpicker/css/fontawesome-iconpicker' . $suffix . '.css' );
-		wp_enqueue_script( 'fontawesome-iconpicker', $this->root_url . 'lib/fontawesome-iconpicker/js/fontawesome-iconpicker' . $suffix . '.js' );
+		wp_enqueue_style( 'fontawesome-iconpicker', $this->root_url . $this->icon_picker_directory . $suffix . '.css' );
+		wp_enqueue_script( 'fontawesome-iconpicker', $this->root_url . $this->icon_picker_directory . $suffix . '.js' );
 
 		// Output PHP variables to JS.
 		$bfa_vars = array(
