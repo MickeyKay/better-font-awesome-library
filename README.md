@@ -32,12 +32,6 @@ The Better Font Awesome Library utilizes composer to manage dependencies. To ins
 composer require mickey-kay/better-font-awesome-library
 ```
 
-```
-git clone https://github.com/MickeyKay/better-font-awesome-library.git
-cd better-font-awesome-library
-composer install
-```
-
 ## Usage ##
 1. Copy the /better-font-awesome-library folder into your project.
 
