@@ -39,15 +39,6 @@ class Better_Font_Awesome_Library {
 	const SLUG = 'bfa';
 
 	/**
-	 * Better Font Awesome Library version slug.
-	 *
-	 * @since  1.0.0
-	 *
-	 * @var    string
-	 */
-	const VERSION = '1.6.0';
-
-	/**
 	 * jsDelivr API URL for Font Awesome version info.
 	 *
 	 * @since  1.0.0
