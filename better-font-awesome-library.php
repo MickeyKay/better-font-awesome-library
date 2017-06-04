@@ -147,7 +147,7 @@ class Better_Font_Awesome_Library {
 	 * @var    string
 	 */
 	private $fallback_data = array(
-		'directory' => 'vendor/fortawesome/font-awesome/',
+		'directory' => 'node_modules/font-awesome/',
 		'path'      => '',
 		'url'       => '',
 		'version'   => '',
@@ -159,7 +159,7 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @var  string
 	 */
-	private $icon_picker_directory = 'vendor/itsjavi/fontawesome-iconpicker/dist/';
+	private $icon_picker_directory = 'node_modules/fontawesome-iconpicker/dist/';
 
 	/**
 	 * Array of available Font Awesome icon slugs.
