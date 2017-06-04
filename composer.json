@@ -2,12 +2,8 @@
     "name": "mickey-kay/better-font-awesome-library",
     "description": "Better Font Awesome Library for PHP",
     "license": "GPL-2.0",
-    "require": {
-        "itsjavi/fontawesome-iconpicker": "1.3",
-        "fortawesome/font-awesome": "4.7"
-    },
     "scripts": {
-        "post-update-cmd": [
+        "pre-package-update": [
             "npm install"
         ]
     }
