@@ -27,9 +27,16 @@ The Better Font Awesome Library allows you to automatically integrate the latest
 * Utilizes transients to optimize for speed and performance.
 
 ## Installation ##
-The Better Font Awesome Library utilizes composer to manage dependencies. To install it in your project, you can simply run:
+The Better Font Awesome Library should ideally be installed via Composer:
 ```
 composer require mickey-kay/better-font-awesome-library
+```
+
+Alternately, you can install the library manually, which can be useful for development and/or custom builds:
+```
+git clone https://github.com/MickeyKay/better-font-awesome-library.git
+cd better-font-awesome-library
+npm run build
 ```
 
 ## Usage ##
