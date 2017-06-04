@@ -1,13 +1,5 @@
 {
-    "name": "mickey-kay/better-font-awesome-library",
-    "description": "Better Font Awesome Library for PHP",
-    "license": "GPL-2.0",
-    "scripts": {
-        "post-package-install": [
-            "npm install"
-        ],
-        "post-package-update": [
-            "npm install"
-        ]
-    }
+	"name": "mickey-kay/better-font-awesome-library",
+	"description": "Better Font Awesome Library for PHP",
+	"license": "GPL-2.0"
 }
