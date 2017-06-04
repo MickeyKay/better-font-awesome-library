@@ -3,7 +3,7 @@
     "description": "Better Font Awesome Library for PHP",
     "license": "GPL-2.0",
     "scripts": {
-        "pre-package-update": [
+        "post-package-update": [
             "npm install"
         ]
     }
