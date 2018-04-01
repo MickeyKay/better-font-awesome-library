@@ -1,5 +1,8 @@
 {
 	"name": "mickey-kay/better-font-awesome-library",
 	"description": "Better Font Awesome Library for PHP",
-	"license": "GPL-2.0"
+	"license": "GPL-2.0",
+	"require": {
+		"mustangostang/spyc": "^0.6.2"
+	}
 }
