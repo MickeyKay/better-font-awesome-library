@@ -62,8 +62,7 @@
 			var icon_title = e.iconpickerItem.context.title.replace( '.', '' );
 			var icon = get_icon_by_title( icon_title );
 			wp.media.editor.insert( icon_shortcode( icon ) );
-    	});
-
+		});
     });
 
 } )( jQuery );
