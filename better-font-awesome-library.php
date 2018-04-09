@@ -45,7 +45,29 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @var    string
 	 */
-	const JSDELIVR_API_URL = 'http://api.jsdelivr.com/v1/jsdelivr/libraries/fontawesome/?fields=versions,lastversion';
+	const JSDELIVR_API_URL = 'https://data.jsdelivr.com/v1/package/gh/FortAwesome/Font-Awesome';
+
+	/**
+	 * jsDelivr API URL for Font Awesome icon metadata.
+	 *
+	 * Version 5+ only,
+	 *
+	 * @since  2.0.0
+	 *
+	 * @var    string
+	 */
+	const JSDELIVR_ICON_METADATA_BASE_URL = 'https://cdn.jsdelivr.net/gh/FortAwesome/Font-Awesome@';
+
+	/**
+	 * jsDelivr API file path for Font Awesome icon metadata.
+	 *
+	 * Version 5+ only,
+	 *
+	 * @since  2.0.0
+	 *
+	 * @var    string
+	 */
+	const JSDELIVR_ICON_METADATA_FILE_PATH = '/advanced-options/metadata/icons.yml';
 
 	/**
 	 * Initialization args.
@@ -120,15 +142,6 @@ class Better_Font_Awesome_Library {
 	 * @var    string
 	 */
 	private $stylesheet_url;
-
-	/**
-	 * Font Awesome CSS.
-	 *
-	 * @since  1.0.0
-	 *
-	 * @var    string
-	 */
-	private $css;
 
 	/**
 	 * Data associated with the local fallback version of Font Awesome.
@@ -231,6 +244,9 @@ class Better_Font_Awesome_Library {
 	 */
 	public function load() {
 
+		// Load dependencies.
+		$this->load_depenencies();
+
 		// Initialize library properties and actions as needed.
 		$this->initialize( $this->args );
 
@@ -305,6 +321,10 @@ class Better_Font_Awesome_Library {
 
 		}
 
+	}
+
+	private function load_depenencies() {
+		require __DIR__ . '/vendor/autoload.php';
 	}
 
 	/**
@@ -438,7 +458,7 @@ class Better_Font_Awesome_Library {
 	 * @since  1.0.0
 	 */
 	private function setup_api_data() {
-		$this->api_data = $this->fetch_api_data( self::JSDELIVR_API_URL );
+		$this->api_data = $this->get_version_data();
 	}
 
 	/**
@@ -452,9 +472,11 @@ class Better_Font_Awesome_Library {
 	 * @return  array|WP_ERROR  Available CDN Font Awesome versions, or a
 	 *                          WP_ERROR if the fetch fails.
 	 */
-	private function fetch_api_data( $url ) {
+	private function get_version_data() {
+		$transient_suffix = '-version-data';
+		$url = self::JSDELIVR_API_URL;
 
-		if ( false === ( $response = get_transient( self::SLUG . '-api-versions' ) ) ) {
+		if ( false === ( $response = get_transient( self::SLUG . $transient_suffix ) ) ) {
 
 			$response = wp_remote_get( $url, $this->wp_remote_get_args );
 
@@ -462,10 +484,12 @@ class Better_Font_Awesome_Library {
 
 				// Decode the API data and grab the versions info.
 				$json_data = json_decode( wp_remote_retrieve_body( $response ) );
-				$response = $json_data[0];
+				$response = $json_data;
 
 				/**
-				 * Filter the API transient expiration.
+				 * Deprecated.
+				 *
+				 * Preserved for legacy support.
 				 *
 				 * @since  1.0.0
 				 *
@@ -473,8 +497,83 @@ class Better_Font_Awesome_Library {
 				 */
 				$transient_expiration = apply_filters( 'bfa_api_transient_expiration', 12 * HOUR_IN_SECONDS );
 
+				/**
+				 * Filter API version data transient expiration.
+				 *
+				 * @since  2.0.0
+				 *
+				 * @param  int  Expiration for API version data.
+				 */
+				$transient_expiration = apply_filters( 'bfa_api_version_data', $transient_expiration );
+
 				// Set the API transient.
-				set_transient( self::SLUG . '-api-versions', $response, $transient_expiration );
+				set_transient( self::SLUG . $transient_suffix, $response, $transient_expiration );
+
+			} elseif ( is_wp_error( $response ) ) { // Check for faulty wp_remote_get()
+
+				$this->set_error( 'api', $response->get_error_code(), $response->get_error_message() . " (URL: $url)" );
+				$response = '';
+
+			} elseif ( isset( $response['response'] ) ) { // Check for 404 and other non-WP_ERROR codes
+
+				$this->set_error( 'api', $response['response']['code'], $response['response']['message'] . " (URL: $url)" );
+				$response = '';
+
+			} else { // Total failsafe
+
+				$this->set_error( 'api', 'Unknown', __( 'The jsDelivr API servers appear to be temporarily unavailable.', 'better-font-awesome' ) . " (URL: $url)" );
+				$response = '';
+
+			}
+
+		}
+
+		return $response;
+
+	}
+
+	/**
+	 * Fetch the jsDelivr API data.
+	 *
+	 * First check to see if the transient is set for this version's metadata,
+	 * and if not use the jsDelivr API to retrieve all available versions of
+	 * Font Awesome.
+	 *
+	 * @since   2.0.0
+	 *
+	 * @return  array  Icon metadata, keyed by icon slug.
+	 */
+	private function get_icons_metadata() {
+		$transient_suffix = '-icons-metadata';
+		$version = $this->get_version();
+		$transient_slug = self::SLUG . "${transient_suffix}_version-${version}";
+
+		$url = self::JSDELIVR_ICON_METADATA_BASE_URL . $version . self::JSDELIVR_ICON_METADATA_FILE_PATH;
+
+		if ( false === ( $response = get_transient( $transient_slug ) ) ) {
+
+			$response = wp_remote_get( $url, $this->wp_remote_get_args );
+
+			if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
+
+				// Decode the API data and grab the versions info.
+				$yaml_data = wp_remote_retrieve_body( $response );
+
+				$parsed_yaml = spyc_load( $yaml_data );
+
+				/**
+				 * Filter icon metadata transient expiration.
+				 *
+				 * This can be very long since versioned icon data should never change.
+				 *
+				 * @since  2.0.0
+				 *
+				 * @param  int  Expiration for icon metadata.
+				 */
+				$transient_expiration = apply_filters( 'bfa_icons_metadata', YEAR_IN_SECONDS );
+
+				// Set the API transient.
+				set_transient( $transient_slug, $parsed_yaml, $transient_expiration );
 
 			} elseif ( is_wp_error( $response ) ) { // Check for faulty wp_remote_get()
 
@@ -526,7 +625,8 @@ class Better_Font_Awesome_Library {
 	private function get_latest_version() {
 
 		if ( $this->api_data_exists() ) {
-			return $this->get_api_value( 'lastversion' );
+			$versions = $this->get_api_value( 'versions' );
+			return $versions[0];
 		} else {
 			return $this->guess_latest_version();
 		}
@@ -584,7 +684,11 @@ class Better_Font_Awesome_Library {
 	 * @param  string  $version  Version of Font Awesome to use.
 	 */
 	private function set_stylesheet_url( $version ) {
-		$this->stylesheet_url = '//cdn.jsdelivr.net/fontawesome/' . $version . '/css/font-awesome' . $this->get_min_suffix() . '.css';
+		if ( version_compare( $version, '5.0.0', '>=' ) ) {
+			$this->stylesheet_url = '//cdn.jsdelivr.net/gh/FortAwesome/Font-Awesome@' . $version . '/web-fonts-with-css/css/fontawesome-all' . $this->get_min_suffix() . '.css';
+		} else {
+			$this->stylesheet_url = '//cdn.jsdelivr.net/fontawesome/' . $version . '/css/font-awesome' . $this->get_min_suffix() . '.css';
+		}
 	}
 
 	/**
@@ -594,15 +698,11 @@ class Better_Font_Awesome_Library {
 	 */
 	private function setup_stylesheet_data() {
 
-		// Get the Font Awesome CSS.
-		$this->css = $this->get_css( $this->stylesheet_url, $this->font_awesome_version );
-
-		// Get the list of available icons from the Font Awesome CSS.
-		$this->icons = $this->setup_icon_array( $this->css );
-
 		// Set up prefix based on version ('fa' or 'icon').
-		$this->prefix = $this->setup_prefix( $this->font_awesome_version );
+		$this->prefix = $this->derive_prefix( $this->font_awesome_version );
 
+		// Get the list of available icons.
+		$this->icons = $this->get_icon_array();
 	}
 
 	/**
@@ -761,36 +861,87 @@ class Better_Font_Awesome_Library {
 		return $this->get_local_file_contents( $this->fallback_data['path'] );
 	}
 
-	/**
-	 * Get array of icons from the Font Awesome CSS.
-	 *
-	 * @since   1.0.0
-	 *
-	 * @param   string  $css  The Font Awesome CSS.
-	 *
-	 * @return  array   	  All available icon names (e.g. adjust, car, pencil).
-	 */
-	private function setup_icon_array( $css ) {
+	private function get_icon_array_version_5() {
+
+		$icons_metadata = $this->get_icons_metadata();
+		$icons = [];
+
+		// Add style prefixes.
+		foreach ( $icons_metadata as $slug => $metadata ) {
+
+			$search_terms = array_map( function( $term ) {
+				return $term;
+			}, $metadata['search']['terms'] );
+
+			foreach ( $metadata['styles'] as $style ) {
+				$icons[] = array(
+					'title'       => "{$metadata['label']} ({$style})",
+					'slug'        => $slug,
+					'style'       => $style,
+					'base_class'  => $this->get_icon_base_class( $slug, $style ),
+					'searchTerms' => $search_terms,
+				);
+			}
+		}
+
+		return $icons;
+	}
+
+	private function get_icon_array_version_pre_5() {
 
 		$icons = array();
 		$hex_codes = array();
+
+		$css = $this->get_css( $this->stylesheet_url, $this->font_awesome_version );
 
 		/**
 		 * Get all CSS selectors that have a "content:" pseudo-element rule,
 		 * as well as all associated hex codes.
 		 */
 		preg_match_all( '/\.(icon-|fa-)([^,}]*)\s*:before\s*{\s*(content:)\s*"(\\\\[^"]+)"/s', $css, $matches );
-		$icons = $matches[2];
+
+		$icon_slugs = $matches[2];
 		$hex_codes = $matches[4];
 
-		// Add hex codes as icon array index.
-		$icons = array_combine( $hex_codes, $icons );
+		foreach ( $icon_slugs as $index => $slug ) {
+			$icons[] = array(
+				'title'       => $slug,
+				'slug'        => $slug,
+				'base_class'  => $this->get_icon_base_class( $slug ),
+				'searchTerms' => $slug,
+			);
 
-		// Alphabetize the icons array by icon name.
-		asort( $icons );
+		}
+
+		// Alphabetize the icons array by icon slug.
+		uasort( $icons, function( $icon1, $icon2 ) {
+			return strcmp( $icon1['slug'], $icon2['slug'] );
+		});
+
+		return array_values( $icons );
+	}
+
+	/**
+	 * Get array of icons for the current version.
+	 *
+	 * @since   1.0.0
+	 *
+	 * @param   string  CSS for the current version of FA (only used pre-v5)
+	 *
+	 * @return  array   All available icon names (e.g. adjust, car, pencil).
+	 */
+	private function get_icon_array() {
+
+		$icons = array();
+
+		if ( version_compare( $this->get_version(), '5.0.0', '>=' ) ) {
+			$icons = $this->get_icon_array_version_5();
+		} else {
+			$icons = $this->get_icon_array_version_pre_5();
+		}
 
 		/**
-		 * Filter the array of available icons.
+		 * [DEPRECATED] Filter the array of available icons.
 		 *
 		 * @since   1.0.0
 		 *
@@ -798,8 +949,16 @@ class Better_Font_Awesome_Library {
 		 */
 		$icons = apply_filters( 'bfa_icon_list', $icons );
 
-		return $icons;
+		/**
+		 * Filter the array of available icons.
+		 *
+		 * @since   2.0.0
+		 *
+		 * @param   array  $icons  Array of all available icons.
+		 */
+		$icons = apply_filters( 'bfa_icon_array', $icons );
 
+		return $icons;
 	}
 
 	/**
@@ -811,9 +970,9 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @return  string  $prefix  'fa' or 'icon', depending on the version.
 	 */
-	private function setup_prefix( $version ) {
+	private function derive_prefix( $version ) {
 
-		if ( 0 <= version_compare( $version, '4' ) ) {
+		if ( version_compare( $this->get_version(), 4, '>=' ) ) {
 			$prefix = 'fa';
 		} else {
 			$prefix = 'icon';
@@ -873,41 +1032,7 @@ class Better_Font_Awesome_Library {
 		add_shortcode( 'icon', array( $this, 'render_shortcode' ) );
 	}
 
-	/**
-	 * Render [icon] shortcode.
-	 *
-	 * Usage:
-	 * [icon name="flag" class="fw 2x spin" unprefixed_class="custom_class"]
-	 *
-	 * @param   array   $atts    Shortcode attributes.
-	 * @return  string  $output  Icon HTML (e.g. <i class="fa fa-car"></i>).
-	 */
-	public function render_shortcode( $atts ) {
-
-		extract( shortcode_atts( array(
-					'name'             => '',
-					'class'            => '',
-					'unprefixed_class' => '',
-					'title'            => '', /* For compatibility with other plugins */
-					'size'             => '', /* For compatibility with other plugins */
-					'space'            => '',
-			), $atts )
-		);
-
-		/**
-		 * Include for backwards compatibility with Font Awesome More Icons plugin.
-		 *
-		 * @see https://wordpress.org/plugins/font-awesome-more-icons/
-		 */
-		$title = $title ? 'title="' . $title . '" ' : '';
-		$space = 'true' == $space ? '&nbsp;' : '';
-		$size = $size ? ' '. $this->prefix . '-' . $size : '';
-
-		// Remove "icon-" and "fa-" from name
-		// This helps both:
-		//  1. Incorrect shortcodes (when user includes full class name including prefix)
-		//  2. Old shortcodes from other plugins that required prefixes
-
+	public function sanitize_shortcode_name_att( $name ) {
 		/**
 		 * Strip 'icon-' and 'fa-' from the BEGINNING of $name.
 		 *
@@ -924,10 +1049,11 @@ class Better_Font_Awesome_Library {
 
 		}
 
-		$name = str_replace( 'fa-', '', $name );
+		return $name;
+	}
 
-		// Add the version-specific prefix back on to $name, if it exists.
-		$icon_name = $this->prefix ? $this->prefix . '-' . $name : $name;
+	public function sanitize_shortcode_class_att( $class ) {
+		$prefix = $this->get_prefix();
 
 		// Remove "icon-" and "fa-" from the icon class.
 		$class = str_replace( 'icon-', '', $class );
@@ -938,23 +1064,78 @@ class Better_Font_Awesome_Library {
 		$class = preg_replace( '/\s{3,}/', ' ', $class );
 
 		// Add the version-specific prefix back on to each class.
-		$class_array = explode( ' ', $class );
-		foreach ( $class_array as $index => $class ) {
-			$class_array[ $index ] = $this->prefix ? $this->prefix . '-' . $class : $class;
-		}
-		$class = implode( ' ', $class_array );
+		$class_array = array_filter( explode( ' ', $class ) );
 
-		// Add unprefixed classes.
-		$class .= $unprefixed_class ? ' ' . $unprefixed_class : '';
+		foreach ( $class_array as $index => $class ) {
+			$class_array[ $index ] = $prefix ? $prefix . '-' . $class : $class;
+		}
+
+		return implode( ' ', $class_array );
+	}
+
+	/**
+	 * Render [icon] shortcode.
+	 *
+	 * Usage:
+	 * [icon name="flag" class="fw 2x spin" unprefixed_class="custom_class"]
+	 *
+	 * @param   array   $atts    Shortcode attributes.
+	 * @return  string  $output  Icon HTML (e.g. <i class="fa fa-car"></i>).
+	 */
+	public function render_shortcode( $atts ) {
+
+		extract( shortcode_atts( array(
+			'name'             => '',
+			'class'            => '',
+			'unprefixed_class' => '',
+			'title'            => '', /* For compatibility with other plugins */
+			'size'             => '', /* For compatibility with other plugins */
+			'space'            => '',
+			'style'            => '', /* Style category */
+		), $atts ));
+
+		$icon = $this->get_icon_by_slug( $name );
+
+		// Maybe this is an old icon that needs an updated alias.
+		if ( ! $icon ) {
+			require __DIR__ . '/inc/icon-updater.php';
+			$name = bfa_get_updated_icon_slug( $name );
+
+			if ( ! $name ) {
+				return '';
+			}
+		}
+
+		$prefix = $this->get_prefix();
+		$classes = [];
+
+		/**
+		 * Include for backwards compatibility with Font Awesome More Icons plugin.
+		 *
+		 * @see https://wordpress.org/plugins/font-awesome-more-icons/
+		 */
+		$title = $title ? 'title="' . $title . '" ' : '';
+		$space = 'true' == $space ? '&nbsp;' : '';
+		$size = $size ? ' '. $prefix . '-' . $size : '';
+
+		// Santize name.
+		$name = $this->sanitize_shortcode_name_att( $name );
+
+		// Generate classes array.
+		$classes[] = $this->get_icon_by_slug( $name )['base_class'];
+		$classes[] = $this->sanitize_shortcode_class_att( $class );
+		$classes[] = $unprefixed_class;
+
+		$class_string = implode( ' ', array_filter( $classes ) );
 
 		/**
 		 * Filter the icon class.
 		 *
 		 * @since  1.0.0
 		 *
-		 * @param  string  $class  Classes attached to the icon.
+		 * @param  string  $class_string  Classes attached to the icon.
 		 */
-		$class = apply_filters( 'bfa_icon_class', $class, $name );
+		$class_string = apply_filters( 'bfa_icon_class', $class_string, $name );
 
 		/**
 		 * Filter the default <i> icon tag.
@@ -966,11 +1147,9 @@ class Better_Font_Awesome_Library {
 		$tag = apply_filters( 'bfa_icon_tag', 'i' );
 
 		// Generate the HTML <i> icon element output.
-		$output = sprintf( '<%s class="%s %s %s %s" %s>%s</%s>',
+		$output = sprintf( '<%s class="%s %s" %s>%s</%s>',
 			$tag,
-			$this->prefix,
-			$icon_name,
-			$class,
+			$class_string,
 			$size,
 			$title,
 			$space,
@@ -986,6 +1165,32 @@ class Better_Font_Awesome_Library {
 		 */
 		return apply_filters( 'bfa_icon', $output );
 
+	}
+
+	public function get_icon_base_class( $slug, $style = '' ) {
+		return "{$this->get_icon_style_class( $style )} {$this->get_prefix()}-{$slug}";
+	}
+
+	private function get_icon_style_class( $style = '' ) {
+
+		if ( version_compare( $this->get_version(), 5, '>=' ) ) {
+			switch ( $style ) {
+				case 'brands':
+					return 'fab';
+
+				case 'solid':
+					return 'fas';
+
+				case 'light':
+					return 'fal';
+
+				case 'regular':
+				default:
+					return 'far';
+			}
+		} else {
+			return $this->get_prefix();
+		}
 	}
 
 	/**
@@ -1293,6 +1498,16 @@ class Better_Font_Awesome_Library {
 	 */
 	public function get_errors() {
 		return $this->errors;
+	}
+
+	public function get_icon_by_slug( $slug ) {
+		$time_pre = microtime(true);
+		// Code to time
+		foreach ( $this->get_icons() as $icon ) {
+			if ( $slug === $icon['slug'] ) {
+				return $icon;
+			}
+		}
 	}
 
 }
