@@ -11,15 +11,15 @@
 	var icons = Object.values( bfa_vars.fa_icons );
 
 	function get_icon_by_title( title ) {
-    	return icons.find( function( icon ) {
-  			return icon.title == title;
-    	});
+		return icons.find( function( icon ) {
+			return icon.title == title;
+		});
     }
 
 	function icon_shortcode( icon ) {
 		var icon_style_string = icon.style ? ' style="' + icon.style + '"' : '';
-        return '[icon name="' + icon.slug + '"' + icon_style_string + ' class="" unprefixed_class=""]';
-    }
+		return '[icon name="' + icon.slug + '"' + icon_style_string + ' class="" unprefixed_class=""]';
+	}
 
     $( document ).on( 'ready ', function() {
 
@@ -44,7 +44,6 @@
 		    	})
 		    	.find( '.iconpicker-item' ).each( function() {
 		    		var $item = $( this );
-		    		console.log($item);
 		    		var title = $item.attr( 'title' ).replace( '.', '' );
 
 		    		$item.attr( 'title', title );
@@ -54,7 +53,7 @@
 
 		})
 		.on( 'click', '.bfa-iconpicker', function(e) {
-			e.preventDefault();
+			e.preventDefault(); // Prevent scrolling to top.
 			$( this ).find( '.iconpicker-search' ).focus();
 		});
 
@@ -62,7 +61,7 @@
 		$( document ).on( 'iconpickerSelect', function( e ) {
 			var icon_title = e.iconpickerItem.context.title.replace( '.', '' );
 			var icon = get_icon_by_title( icon_title );
-    		wp.media.editor.insert( icon_shortcode( icon ) );
+			wp.media.editor.insert( icon_shortcode( icon ) );
     	});
 
     });
