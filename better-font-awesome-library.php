@@ -1107,7 +1107,7 @@ class Better_Font_Awesome_Library {
 		}
 
 		$prefix = $this->get_prefix();
-		$classes = [];
+		$classes = array();
 
 		/**
 		 * Include for backwards compatibility with Font Awesome More Icons plugin.
