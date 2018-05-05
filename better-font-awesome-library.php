@@ -1122,7 +1122,8 @@ class Better_Font_Awesome_Library {
 		$name = $this->sanitize_shortcode_name_att( $name );
 
 		// Generate classes array.
-		$classes[] = $this->get_icon_by_slug( $name )['base_class'];
+		$icon = $this->get_icon_by_slug( $name );
+		$classes[] = $icon['base_class'];
 		$classes[] = $this->sanitize_shortcode_class_att( $class );
 		$classes[] = $unprefixed_class;
 
