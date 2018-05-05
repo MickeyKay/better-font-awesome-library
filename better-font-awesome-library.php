@@ -1502,8 +1502,6 @@ class Better_Font_Awesome_Library {
 	}
 
 	public function get_icon_by_slug( $slug ) {
-		$time_pre = microtime(true);
-		// Code to time
 		foreach ( $this->get_icons() as $icon ) {
 			if ( $slug === $icon['slug'] ) {
 				return $icon;
