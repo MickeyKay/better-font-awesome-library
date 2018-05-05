@@ -864,7 +864,7 @@ class Better_Font_Awesome_Library {
 	private function get_icon_array_version_5() {
 
 		$icons_metadata = $this->get_icons_metadata();
-		$icons = [];
+		$icons = array();
 
 		// Add style prefixes.
 		foreach ( $icons_metadata as $slug => $metadata ) {
