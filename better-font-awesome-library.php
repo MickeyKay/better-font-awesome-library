@@ -86,6 +86,7 @@ class Better_Font_Awesome_Library {
 	 * @var    array
 	 */
 	private $default_args = array(
+		'method'              => 'svg',
 		'version'             => 'latest',
 		'minified'            => true,
 		'remove_existing_fa'  => false,
@@ -142,6 +143,15 @@ class Better_Font_Awesome_Library {
 	 * @var    string
 	 */
 	private $stylesheet_url;
+
+	/**
+	 * Font Awesome javascript URL.
+	 *
+	 * @since  1.0.0
+	 *
+	 * @var    string
+	 */
+	private $javascript_url;
 
 	/**
 	 * Data associated with the local fallback version of Font Awesome.
@@ -257,7 +267,10 @@ class Better_Font_Awesome_Library {
 		$this->set_active_version();
 
 		// Set the URL for the Font Awesome stylesheet.
-		$this->set_stylesheet_url( $this->font_awesome_version );
+		$this->set_stylesheet_url();
+
+		// Set the URL for the Font Awesome javascript.
+		$this->set_javascript_url();
 
 		// Get stylesheet and generate list of available icons in Font Awesome stylesheet.
 		$this->setup_stylesheet_data();
@@ -288,8 +301,11 @@ class Better_Font_Awesome_Library {
 		 *
 		 * Use priority 15 to make sure styles/scripts load after other plugins.
 		 */
-		if ( $this->args['load_styles'] || $this->args['remove_existing_fa'] ) {
-			add_action( 'wp_enqueue_scripts', array( $this, 'register_font_awesome_css' ), 15 );
+		if ( 'svg' === $this->args['method'] && version_compare( $this->font_awesome_version , '5.0.0', '>=' ) ) {
+			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_font_awesome_js' ), 15 );
+			add_filter('script_loader_tag', array( $this, 'add_script_defer_att' ), 15, 2 );
+		} elseif ( $this->args['load_styles'] || $this->args['remove_existing_fa'] ) {
+			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_font_awesome_css' ), 15 );
 		}
 
 		/**
@@ -298,7 +314,7 @@ class Better_Font_Awesome_Library {
 		 * Use priority 15 to make sure styles/scripts load after other plugins.
 		 */
 		if ( $this->args['load_admin_styles'] || $this->args['load_tinymce_plugin'] ) {
-			add_action( 'admin_enqueue_scripts', array( $this, 'register_font_awesome_css' ), 15 );
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_font_awesome_css' ), 15 );
 		}
 
 		/**
@@ -683,11 +699,24 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @param  string  $version  Version of Font Awesome to use.
 	 */
-	private function set_stylesheet_url( $version ) {
-		if ( version_compare( $version, '5.0.0', '>=' ) ) {
-			$this->stylesheet_url = '//cdn.jsdelivr.net/gh/FortAwesome/Font-Awesome@' . $version . '/web-fonts-with-css/css/fontawesome-all' . $this->get_min_suffix() . '.css';
+	private function set_stylesheet_url() {
+		if ( version_compare( $this->font_awesome_version , '5.0.0', '>=' ) ) {
+			$this->stylesheet_url = '//cdn.jsdelivr.net/gh/FortAwesome/Font-Awesome@' . $this->font_awesome_version  . '/web-fonts-with-css/css/fontawesome-all' . $this->get_min_suffix() . '.css';
 		} else {
-			$this->stylesheet_url = '//cdn.jsdelivr.net/fontawesome/' . $version . '/css/font-awesome' . $this->get_min_suffix() . '.css';
+			$this->stylesheet_url = '//cdn.jsdelivr.net/fontawesome/' . $this->font_awesome_version . '/css/font-awesome' . $this->get_min_suffix() . '.css';
+		}
+	}
+
+	/**
+	 * Set the URL for the CDN-hosted Font Awesome JS.
+	 *
+	 * @since  1.0.0
+	 *
+	 * @param  string  $version  Version of Font Awesome to use.
+	 */
+	private function set_javascript_url() {
+		if ( version_compare( $this->font_awesome_version , '5.0.0', '>=' ) ) {
+			$this->javascript_url = "https://use.fontawesome.com/releases/v{$this->font_awesome_version}/js/all.js";
 		}
 	}
 
@@ -1195,13 +1224,31 @@ class Better_Font_Awesome_Library {
 	}
 
 	/**
+	 * Register and enqueue Font Awesome JS.
+	 */
+	public function enqueue_font_awesome_js() {
+		wp_enqueue_script( self::SLUG . '-font-awesome', $this->javascript_url, '', $this->font_awesome_version );
+	}
+
+	/**
+	 * Add defer att to script.
+	 *
+	 * @param string $tag    Script tag.
+	 * @param string $handle Script handle.
+	 */
+	public function add_script_defer_att( $tag, $handle ) {
+		if ( self::SLUG . '-font-awesome' !== $handle ) {
+			return $tag;
+		}
+
+		return str_replace( 'src', 'defer src', $tag );
+	}
+
+	/**
 	 * Register and enqueue Font Awesome CSS.
 	 */
-	public function register_font_awesome_css() {
-
-		wp_register_style( self::SLUG . '-font-awesome', $this->stylesheet_url, '', $this->font_awesome_version );
-		wp_enqueue_style( self::SLUG . '-font-awesome' );
-
+	public function enqueue_font_awesome_css() {
+		wp_enqueue_style( self::SLUG . '-font-awesome', $this->stylesheet_url, '', $this->font_awesome_version );
 	}
 
 	/**
