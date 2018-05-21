@@ -559,7 +559,12 @@ class Better_Font_Awesome_Library {
 				// Decode the API data and grab the versions info.
 				$yaml_data = wp_remote_retrieve_body( $response );
 
-				$parsed_yaml = spyc_load( $yaml_data );
+				$response = spyc_load( $yaml_data );
+
+				// Short-circuit if something is wrong with parsing.
+				if ( empty( $response ) ) {
+					return '';
+				}
 
 				/**
 				 * Filter icon metadata transient expiration.
@@ -573,7 +578,7 @@ class Better_Font_Awesome_Library {
 				$transient_expiration = apply_filters( 'bfa_icons_metadata', YEAR_IN_SECONDS );
 
 				// Set the API transient.
-				set_transient( $transient_slug, $parsed_yaml, $transient_expiration );
+				set_transient( $transient_slug, $response, $transient_expiration );
 
 			} elseif ( is_wp_error( $response ) ) { // Check for faulty wp_remote_get()
 
@@ -868,7 +873,6 @@ class Better_Font_Awesome_Library {
 
 		// Add style prefixes.
 		foreach ( $icons_metadata as $slug => $metadata ) {
-
 			$search_terms = array_map( function( $term ) {
 				return $term;
 			}, $metadata['search']['terms'] );
