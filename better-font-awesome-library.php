@@ -324,7 +324,7 @@ class Better_Font_Awesome_Library {
 	}
 
 	private function load_depenencies() {
-		require __DIR__ . '/vendor/autoload.php';
+		require_once __DIR__ . '/vendor/autoload.php';
 	}
 
 	/**
@@ -1102,7 +1102,7 @@ class Better_Font_Awesome_Library {
 
 		// Maybe this is an old icon that needs an updated alias.
 		if ( ! $icon ) {
-			require __DIR__ . '/inc/icon-updater.php';
+			require_once __DIR__ . '/inc/icon-updater.php';
 			$name = bfa_get_updated_icon_slug( $name );
 
 			if ( ! $name ) {
