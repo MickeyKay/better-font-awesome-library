@@ -67,7 +67,7 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @var    string
 	 */
-	const JSDELIVR_ICON_METADATA_FILE_PATH = '/advanced-options/metadata/icons.yml';
+	const JSDELIVR_ICON_METADATA_FILE_PATH = '/metadata/icons.yml';
 
 	/**
 	 * Initialization args.
@@ -685,7 +685,7 @@ class Better_Font_Awesome_Library {
 	 */
 	private function set_stylesheet_url( $version ) {
 		if ( version_compare( $version, '5.0.0', '>=' ) ) {
-			$this->stylesheet_url = '//cdn.jsdelivr.net/gh/FortAwesome/Font-Awesome@' . $version . '/web-fonts-with-css/css/fontawesome-all' . $this->get_min_suffix() . '.css';
+			$this->stylesheet_url = '//cdn.jsdelivr.net/gh/FortAwesome/Font-Awesome@' . $version . '/css/all' . $this->get_min_suffix() . '.css';
 		} else {
 			$this->stylesheet_url = '//cdn.jsdelivr.net/fontawesome/' . $version . '/css/font-awesome' . $this->get_min_suffix() . '.css';
 		}
@@ -865,6 +865,8 @@ class Better_Font_Awesome_Library {
 
 		$icons_metadata = $this->get_icons_metadata();
 		$icons = [];
+
+		//error_log( print_r($icons_metadata, true) );
 
 		// Add style prefixes.
 		foreach ( $icons_metadata as $slug => $metadata ) {
