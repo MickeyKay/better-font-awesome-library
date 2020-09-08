@@ -4,7 +4,6 @@
   "version": "1.4.6",
   "main": " ",
   "devDependencies": {
-    "font-awesome": "4.7.0",
     "fontawesome-iconpicker": "3.0.0",
     "grunt": "^1.0.1",
     "grunt-contrib-copy": "^1.0.0",
@@ -29,5 +28,6 @@
   "bugs": {
     "url": "https://github.com/MickeyKay/better-font-awesome-library/issues"
   },
-  "homepage": "https://github.com/MickeyKay/better-font-awesome-library#readme"
+  "homepage": "https://github.com/MickeyKay/better-font-awesome-library#readme",
+  "dependencies": {}
 }
