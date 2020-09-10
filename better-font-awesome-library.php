@@ -953,12 +953,13 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 			<?php endif; ?>
 
 			<!-- Fallback Text -->
-			<p><?php
-				echo __( 'Don\'t worry! Better Font Awesome will still render using the included fallback version:</b> ', 'better-font-awesome' ) . '<code>' . $this->get_version() . '</code>.' ;
-				printf( __( 'This may be the result of a temporary server or connectivity issue which will resolve shortly. However if the problem persists please file a support ticket on the %splugin forum%s, citing the errors listed above. ', 'better-font-awesome' ),
-					'<a href="http://wordpress.org/support/plugin/better-font-awesome" target="_blank" title="Better Font Awesome support forum">',
-					'</a>'
-				);
+			<p>
+				<?php
+					echo __( 'Don\'t worry! Better Font Awesome will still render using the included fallback version:</b> ', 'better-font-awesome' ) . '<code>' . $this->get_version() . '</code>. ' ;
+					printf( __( 'This may be the result of a temporary server or connectivity issue which will resolve shortly. However if the problem persists please file a support ticket on the %splugin forum%s, citing the errors listed above. ', 'better-font-awesome' ),
+						'<a href="http://wordpress.org/support/plugin/better-font-awesome" target="_blank" title="Better Font Awesome support forum">',
+						'</a>'
+					);
 				?>
 			</p>
 		</div>
