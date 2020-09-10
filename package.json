@@ -1,10 +1,10 @@
 {
   "name": "better-font-awesome-library",
   "description": "Better Font Awesome Library",
-  "version": "1.4.6",
+  "version": "2.0.0-beta4",
   "main": " ",
   "devDependencies": {
-    "fontawesome-iconpicker": "3.0.0",
+    "fontawesome-iconpicker": "^3.0.0",
     "grunt": "^1.0.1",
     "grunt-contrib-copy": "^1.0.0",
     "load-grunt-tasks": "^3.5.2"
@@ -28,6 +28,5 @@
   "bugs": {
     "url": "https://github.com/MickeyKay/better-font-awesome-library/issues"
   },
-  "homepage": "https://github.com/MickeyKay/better-font-awesome-library#readme",
-  "dependencies": {}
+  "homepage": "https://github.com/MickeyKay/better-font-awesome-library#readme"
 }

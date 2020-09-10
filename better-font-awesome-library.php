@@ -31,7 +31,7 @@
  * 		- [x] Version data
  * 		- [x] Icons list
  * - [ ] Include v4 shim css if needed, add admin option
- * - [ ] Display current version in the admin.
+ * - [x] Display current version in the admin.
  * - [ ] Remove inc/icon-updater logic if possible
  * - [ ] Corroborate what shim actually does
  */
