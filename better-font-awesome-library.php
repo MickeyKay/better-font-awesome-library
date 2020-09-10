@@ -106,6 +106,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	private $default_args = array(
 		'version'             => 'latest',
 		'minified'            => true,
+		'include_v4_shim'     => false,
 		'remove_existing_fa'  => false,
 		'load_styles'         => true,
 		'load_admin_styles'   => true,
@@ -847,8 +848,10 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 				return 'far';
 
 				case 'solid':
-				default:
 				return 'fas';
+
+				default:
+				return 'fa';
 			}
 		} else {
 			return $this->get_prefix();
@@ -863,8 +866,13 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 		wp_register_style( self::SLUG . '-font-awesome', $this->get_stylesheet_url() );
 		wp_enqueue_style( self::SLUG . '-font-awesome' );
 
-		wp_register_style( self::SLUG . '-font-awesome-v4-shim', $this->get_stylesheet_url_v4_shim() );
-		wp_enqueue_style( self::SLUG . '-font-awesome-v4-shim' );
+		// Conditionally include the Font Awesome v4 CSS shim.
+		if ( $this->args['include_v4_shim'] ) {
+
+			wp_register_style( self::SLUG . '-font-awesome-v4-shim', $this->get_stylesheet_url_v4_shim() );
+			wp_enqueue_style( self::SLUG . '-font-awesome-v4-shim' );
+
+		}
 	}
 
 	/**
@@ -874,6 +882,11 @@ if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 	 */
 	public function add_editor_styles() {
 		add_editor_style( $this->get_stylesheet_url() );
+
+		// Conditionally include the Font Awesome v4 CSS shim.
+		if ( $this->args['include_v4_shim'] ) {
+			add_editor_style( $this->get_stylesheet_url_v4_shim() );
+		}
 	}
 
 	/**
