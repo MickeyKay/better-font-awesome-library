@@ -34,7 +34,7 @@
  * - [x] Display current version in the admin.
  * - [x] Remove inc/icon-updater logic if possible
  * - [x] Corroborate what shim actually does
- * - [ ] Add option for, or explanation of, transient expiration
+ * - [x] Add note on transient expiration
  * 		- [ ] Check what happens if transient expires but fetch fails
  */
 
@@ -88,6 +88,17 @@ class Better_Font_Awesome_Library {
 	 * @var    string
 	 */
 	const ICON_PREFIX = 'fa';
+
+	/**
+	 * Release data transient expiration.
+	 *
+	 * Aka how often will we check for new Font Awesome release.
+	 *
+	 * @since  2.0.0
+	 *
+	 * @var    int
+	 */
+	const TRANSIENT_EXPIRATION = DAY_IN_SECONDS;
 
 	/**
 	 * Initialization args.
@@ -481,7 +492,7 @@ class Better_Font_Awesome_Library {
 				 *
 				 * @param  int  Expiration for release data.
 				 */
-				$transient_expiration = apply_filters( 'bfa_release_data_transient_expiration', WEEK_IN_SECONDS );
+				$transient_expiration = apply_filters( 'bfa_release_data_transient_expiration', $this->get_transient_expiration() );
 
 				// Set the API transient.
 				set_transient( $transient_slug, $release_data, $transient_expiration );
@@ -1073,6 +1084,17 @@ class Better_Font_Awesome_Library {
 	 */
 	public function get_prefix() {
 		return self::ICON_PREFIX;
+	}
+
+	/**
+	 * Get release data transient duration.
+	 *
+	 * @since   2.0.0
+	 *
+	 * @return  int  Release data transient expiration.
+	 */
+	public function get_transient_expiration() {
+		return self::TRANSIENT_EXPIRATION;
 	}
 
 	/**
