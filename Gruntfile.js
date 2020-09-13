@@ -16,7 +16,7 @@ module.exports = function( grunt ) {
 			fontawesome: {
 				cwd: 'node_modules/',
 				src:  [
-					'fontawesome-iconpicker/**'
+					'fontawesome-iconpicker/dist/**'
 				],
 				dest: 'lib/',
 				expand: true,
