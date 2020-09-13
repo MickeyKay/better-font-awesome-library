@@ -10,7 +10,8 @@
     "load-grunt-tasks": "^3.5.2"
   },
   "scripts": {
-    "build": "npm install && grunt"
+    "clean": "rm -rf lib",
+    "build": "npm run clean && npm install && grunt"
   },
   "repository": {
     "type": "git",
