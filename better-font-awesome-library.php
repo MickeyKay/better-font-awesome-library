@@ -40,7 +40,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
-	class Better_Font_Awesome_Library {
+class Better_Font_Awesome_Library {
 
 	/**
 	 * Better Font Awesome Library slug.
