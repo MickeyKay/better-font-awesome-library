@@ -23,21 +23,6 @@
  *       is still an issue?
  */
 
-/**
- * 2.0.0 changes
- *
- * - [x] Switch to only using 1. FA@latest, or 2. 4@latest vs 5@latest (need to pin at 4 for any reason?)
- * - [x] Switch to using FA GraphQL API for #allthethings
- * 		- [x] Version data
- * 		- [x] Icons list
- * - [x] Include v4 shim css if needed, add admin option
- * - [x] Display current version in the admin.
- * - [x] Remove inc/icon-updater logic if possible
- * - [x] Corroborate what shim actually does
- * - [x] Add note on transient expiration
- * 		- [ ] Check what happens if transient expires but fetch fails
- */
-
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) exit;
 
@@ -773,10 +758,8 @@ class Better_Font_Awesome_Library {
 				return 'far';
 
 				case 'solid':
-				return 'fas';
-
 				default:
-				return 'fa';
+				return 'fas';
 			}
 		} else {
 			return $this->get_prefix();
