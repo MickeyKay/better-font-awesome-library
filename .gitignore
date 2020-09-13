@@ -37,4 +37,5 @@ dwsync.xml
 intermediate
 .idea
 cache
+vendor
 node_modules
