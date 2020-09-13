@@ -43,31 +43,31 @@ npm run build
 1. Copy the /better-font-awesome-library folder into your project.
 
 2. Add the following code to your main plugin file or your theme's functions.php file.
-   ```php
-  add_action( 'init', 'my_prefix_load_bfa' );
-  /**
-   * Initialize the Better Font Awesome Library.
-   *
-   * (see usage notes below on proper hook priority)
-   */
-  function my_prefix_load_bfa() {
+```php
+add_action( 'init', 'my_prefix_load_bfa' );
+    /**
+    * Initialize the Better Font Awesome Library.
+    *
+    * (see usage notes below on proper hook priority)
+    */
+    function my_prefix_load_bfa() {
 
     // Include the main library file. Make sure to modify the path to match your directory structure.
     require_once ( dirname( __FILE__ ) . '/better-font-awesome-library/better-font-awesome-library.php' );
 
     // Set the library initialization args (defaults shown).
     $args = array(
-        'include_v4_shim'     => false,
-        'remove_existing_fa'  => false,
-        'load_styles'         => true,
-        'load_admin_styles'   => true,
-        'load_shortcode'      => true,
-        'load_tinymce_plugin' => true,
+      'include_v4_shim'     => false,
+      'remove_existing_fa'  => false,
+      'load_styles'         => true,
+      'load_admin_styles'   => true,
+      'load_shortcode'      => true,
+      'load_tinymce_plugin' => true,
     );
 
     // Initialize the Better Font Awesome Library.
     Better_Font_Awesome_Library::get_instance( $args );
-  }
+}
 ```
 
 3. If desired, use the [Better Font Awesome Library object](#the-better-font-awesome-library-object) to manually include Font Awesome CSS, output lists of available icons, create your own shortcodes, and much more.
@@ -208,7 +208,7 @@ $icons = $my_bfa->get_icons();
 
 // Output all available icons.
 foreach ( $icons as $icon ) {
-  echo $icon . '<br />';
+    echo $icon . '<br />';
 }
 ```
 
@@ -229,14 +229,19 @@ Applied to arguments passed to all `wp_remote_get()` calls (useful for adjusting
 
 * `$wp_remote_get_args` (array)
 
-#### bfa_fallback_directory_path ####
-Applied to the fallback directory path before setting up any fallback CSS info. Can be used to specify an alternate fallback directory to replace the default fallback directory.
-
-*The path must be to a local, non-remote, directory.*
+#### bfa_fallback_release_data_path ####
+Applied to the path for the fallback release data JSON file. Can be used to specify an alternate fallback data file.
 
 **Parameters**
 
-* `$path` (string)
+* `$fallback_release_data_path` (string)
+
+#### bfa_release_data_transient_expiration ####
+This value controls how often the plugin will check for the latest updated version of Font Awesome. Can be used to increase/decrease the frequency of this check as desired.
+
+**Parameters**
+
+* `$api_expiration` (int) (default: `WEEK_IN_SECONDS`)
 
 #### bfa_icon_list ####
 Applied to the icon array after it has been generated from the Font Awesome stylesheet, and before it is assigned to the Better Font Awesome Library object's `$icons` property.
@@ -244,13 +249,6 @@ Applied to the icon array after it has been generated from the Font Awesome styl
 **Parameters**
 
 * `$icons` (array)
-
-#### bfa_prefix ####
-Applied to the Font Awesome prefix ('fa' or 'icon') before it is assigned to the Better Font Awesome Library object's `$prefix` property.
-
-**Parameters**
-
-* `$prefix` (string)
 
 #### bfa_icon_class ####
 Applied to the classes that are output on each icon's `<i>` element.
@@ -273,13 +271,6 @@ Applied to the entire `<i>` element that is output for each icon.
 
 * `$output` (string)
 
-#### bfa_force_fallback ####
-Applied to the boolean that determines whether or not to force the included fallback version of Font Awesome to load. This can be useful if you're having trouble with delays or timeouts.
-
-**Parameters**
-
-* `$force_fallback` (false)
-
 #### bfa_show_errors ####
 Applied to the boolean that determines whether or not to suppress all Font Awesome warnings that normally display in the admin.
 
@@ -288,6 +279,16 @@ Applied to the boolean that determines whether or not to suppress all Font Aweso
 * `$show_errors` (true)
 
 ### Deprecated
+
+#### bfa_fallback_directory_path ####
+_This is now replaced by the similar `bfa_fallback_release_data_path` filter._
+Applied to the fallback directory path before setting up any fallback CSS info. Can be used to specify an alternate fallback directory to replace the default fallback directory.
+
+*The path must be to a local, non-remote, directory.*
+
+**Parameters**
+
+* `$path` (string)
 
 #### bfa_api_transient_expiration (2.0.0) ####
 _This data now comes from the GraphQL API. The new `bfa_release_data_transient_expiration` replaces this legacy filter._
@@ -306,6 +307,24 @@ Applied to the CSS stylesheet data transient [expiration](http://codex.wordpress
 **Parameters**
 
 * `$css_expiration` (int)
+
+#### bfa_force_fallback (2.0.0) ####
+_There should no longer be a need to force a fallback._
+
+Applied to the boolean that determines whether or not to force the included fallback version of Font Awesome to load. This can be useful if you're having trouble with delays or timeouts.
+
+**Parameters**
+
+* `$force_fallback` (false)
+
+#### bfa_prefix (2.0.0) ####
+_Given the update to v5+ always, there should be no need to modify the icon prefix._
+
+Applied to the Font Awesome prefix ('fa' or 'icon') before it is assigned to the Better Font Awesome Library object's `$prefix` property.
+
+**Parameters**
+
+* `$prefix` (string)
 
 ## To Do ##
 Ideas? File an issue or add a pull request!

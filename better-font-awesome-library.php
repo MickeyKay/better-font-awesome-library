@@ -30,10 +30,12 @@
  * - [x] Switch to using FA GraphQL API for #allthethings
  * 		- [x] Version data
  * 		- [x] Icons list
- * - [ ] Include v4 shim css if needed, add admin option
+ * - [x] Include v4 shim css if needed, add admin option
  * - [x] Display current version in the admin.
- * - [ ] Remove inc/icon-updater logic if possible
- * - [ ] Corroborate what shim actually does
+ * - [x] Remove inc/icon-updater logic if possible
+ * - [x] Corroborate what shim actually does
+ * - [ ] Add option for, or explanation of, transient expiration
+ * 		- [ ] Check what happens if transient expires but fetch fails
  */
 
 // Exit if accessed directly
@@ -104,8 +106,6 @@ class Better_Font_Awesome_Library {
 	 * @var    array
 	 */
 	private $default_args = array(
-		'version'             => 'latest',
-		'minified'            => true,
 		'include_v4_shim'     => false,
 		'remove_existing_fa'  => false,
 		'load_styles'         => true,
@@ -369,6 +369,8 @@ class Better_Font_Awesome_Library {
 	 * Get fallback (hard-coded) release data in case failing from the
 	 * Font Awesome API fails.
 	 *
+	 * @since  2.0.0
+	 *
 	 * @return array Fallback release data.
 	 */
 	private function get_fallback_release_data() {
@@ -498,94 +500,6 @@ class Better_Font_Awesome_Library {
 		// (avoid hitting db each time), and return.
 		$this->release_data = $release_data;
 		return $release_data;
-	}
-
-	/**
-	 * Get the transient copy of the CSS for the specified version.
-	 *
-	 * @since   1.0.0
-	 *
-	 * @param   string  $version  Font Awesome version to check.
-	 *
-	 * @return  string  		  Transient CSS if it exists, otherwise null.
-	 */
-	private function get_transient_css( $version ) {
-
-		$transient_css_array = get_transient( self::SLUG . '-css' );
-		return isset( $transient_css_array[ $version ] ) ? $transient_css_array[ $version ] : '';
-
-	}
-
-	/**
-	 * Get the CSS from the remote jsDelivr CDN.
-	 *
-	 * @since   1.0.0
-	 *
-	 * @param   string           $url       URL for the remote stylesheet.
-	 * @param   string           $version   Font Awesome version to fetch.
-	 *
-	 * @return  string|WP_ERROR  $response  Remote CSS, or WP_ERROR if
-	 *                                      wp_remote_get() fails.
-	 */
-	private function get_remote_css( $url, $version ) {
-
-		// Get the remote Font Awesome CSS.
-		$url = set_url_scheme( $url );
-		$response = wp_remote_get( $url, $this->wp_remote_get_args );
-
-		/**
-		 * If fetch was successful, return the remote CSS, and set the CSS
-		 * transient for this version. Otherwise, return a WP_Error object.
-		 */
-		if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
-
-			$response = wp_remote_retrieve_body( $response );
-			$this->set_css_transient( $version, $response );
-
-		} elseif ( is_wp_error( $response ) ) { // Check for faulty wp_remote_get()
-			$response = $response;
-		} elseif ( isset( $response['response'] ) ) { // Check for 404 and other non-WP_ERROR codes
-			$response = new WP_Error( $response['response']['code'], $response['response']['message'] . " (URL: $url)" );
-		} else { // Total failsafe
-			$response = '';
-		}
-
-		return $response;
-
-	}
-
-	/**
-	 * Set the CSS transient array.
-	 *
-	 * @since  1.0.0
-	 *
-	 * @param  string  $version  Version of Font Awesome for which to set the
-	 *                           transient.
-	 * @param  string  $value    CSS for corresponding version of Font Awesome.
-	 */
-	private function set_css_transient( $version, $value ) {
-
-		/**
-		 * Get the transient array, which contains data for multiple Font
-		 * Awesome version.
-		 */
-		$transient_css_array = get_transient( self::SLUG . '-css' );
-
-		// Set the new value for the specified Font Awesome version.
-		$transient_css_array[ $version ] = $value;
-
-		/**
-		 * Filter the CSS transient expiration.
-		 *
-		 * @since  1.0.0
-		 *
-		 * @param  int  Expiration for the CSS transient.
-		 */
-		$transient_expiration = apply_filters( 'bfa_css_transient_expiration', 30 * DAY_IN_SECONDS );
-
-		// Set the new CSS array transient.
-		set_transient( self::SLUG . '-css', $transient_css_array, $transient_expiration );
-
 	}
 
 	/**
