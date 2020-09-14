@@ -133,19 +133,19 @@ If either the `$args['load_shortcode']` or `$args['load_tinymce_plugin']` initia
 [icon name="star" class="2x spin" unprefixed_class="my-custom-class"]
 ```
 
-**name**
+#### name
 The unprefixed icon name (e.g. star). The version-specific prefix will be automatically prepended.
 
-**class**
+#### class
 Unprefixed [Font Awesome icon classes](http://fortawesome.github.io/Font-Awesome/examples/). The version-specific prefix will be automatically prepended to each class.
 
-**unprefixed_class**
+#### unprefixed_class
 Any additional classes that you wish to remain unprefixed (e.g. my-custom-class).
 
-**style**
+#### style
 The specific icon style (e.g. `brand` vs. `solid`) to use.
 
-#### Shortcode Output ####
+### Shortcode Output
 The following shortcode:
 ```
 [icon name="moon" style="solid" class="2x spin" unprefixed_class="my-custom-class"]
