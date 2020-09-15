@@ -332,33 +332,47 @@ class Better_Font_Awesome_Library {
 	 */
 	function setup_root_url() {
 
-		// Get BFA directory and theme root directory paths.
-		$bfa_directory = dirname(__FILE__);
-		$theme_directory = get_stylesheet_directory();
-		$plugin_dir = plugin_dir_url( __FILE__ );
+	    // Get BFA directory and theme root directory paths.
+	    $bfa_directory = dirname(__FILE__);
+	    $theme_directory = get_template_directory();
+	    $child_theme_directory = get_stylesheet_directory();
+	    $plugin_dir = plugin_dir_url( __FILE__ );
 
-		/**
-		 * Check if we're inside a theme or plugin.
-		 *
-		 * If we're in a theme, than plugin_dir_url() will return a
-		 * funky URL that includes the actual file path (e.g.
-		 * /srv/www/site_name/wp-content/...)
-		 */
-		$is_theme = false;
-		if ( strpos( $plugin_dir, $bfa_directory ) !== false ) {
-			$is_theme = true;
-		}
+	    /**
+	     * Check if we're inside a theme or plugin.
+	     *
+	     * If we're in a theme, than plugin_dir_url() will return a
+	     * funky URL that includes the actual file path (e.g.
+	     * /srv/www/site_name/wp-content/...)
+	     */
+	    $is_theme = false;
+	    if ( strpos( $plugin_dir, $bfa_directory ) !== false ) {
+	        $is_theme = true;
+	    }
 
-		// First check if we're inside a theme.
-		if ( $is_theme ) {
+	    // First check if we're inside a theme.
+	    if ( $is_theme ) {
 
-			// Get relative BFA directory by removing theme root directory path.
-			$bfa_rel_path = str_replace( $theme_directory, '', $bfa_directory );
-			$this->root_url = trailingslashit( get_stylesheet_directory_uri() . $bfa_rel_path );
+	        // Use appropriate file paths for parent themes and child themes.
+	        if ( strpos( $bfa_directory, $theme_directory ) !== false ) {
 
-		} else { // Otherwise we're inside a plugin.
-			$this->root_url = trailingslashit( plugin_dir_url( __FILE__ ) );
-		}
+	            // Get relative BFA directory by removing theme root directory path.
+	            $bfa_rel_path = str_replace( $theme_directory, '', $bfa_directory );
+	            $this->root_url = trailingslashit( get_template_directory_uri() . $bfa_rel_path );
+
+	        } else {
+
+	            $bfa_rel_path = str_replace( $child_theme_directory, '', $bfa_directory );
+	            $this->root_url = trailingslashit( get_stylesheet_directory_uri() . $bfa_rel_path );
+
+	        }
+
+	    } else { // Otherwise we're inside a plugin.
+
+	        $this->root_url = trailingslashit( plugin_dir_url( __FILE__ ) );
+
+	    }
+
 	}
 
 	/**
