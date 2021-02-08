@@ -5,7 +5,7 @@
   "main": " ",
   "devDependencies": {
     "font-awesome": "4.7.0",
-    "fontawesome-iconpicker": "3.0.0",
+    "fontawesome-iconpicker": "^3.2.0",
     "grunt": "^1.0.1",
     "grunt-contrib-copy": "^1.0.0",
     "load-grunt-tasks": "^3.5.2"
