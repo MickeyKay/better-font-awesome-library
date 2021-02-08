@@ -21,7 +21,7 @@
 		return '[icon name="' + icon.slug + '"' + icon_style_string + ' class="" unprefixed_class=""]';
 	}
 
-	$( document ).on( 'ready ', function() {
+	$( function() {
 
 		$( 'body' ).on( 'mousedown', '.bfa-iconpicker', function(e) { // Use mousedown even to allow for triggering click later without infinite looping.
 
@@ -62,7 +62,7 @@
 			var icon_title = e.iconpickerItem.context.title.replace( '.', '' );
 			var icon = get_icon_by_title( icon_title );
 			wp.media.editor.insert( icon_shortcode( icon ) );
-		});
+
 	});
 
 } )( jQuery );
