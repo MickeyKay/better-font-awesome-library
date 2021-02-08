@@ -1,7 +1,7 @@
 {
   "name": "better-font-awesome-library",
   "description": "Better Font Awesome Library",
-  "version": "1.4.7",
+  "version": "1.4.6",
   "main": " ",
   "devDependencies": {
     "font-awesome": "4.7.0",
