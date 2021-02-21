@@ -39,6 +39,15 @@ class Better_Font_Awesome_Library {
 	const SLUG = 'bfa';
 
 	/**
+	 * Better Font Awesome Library version.
+	 *
+	 * @since  2.0.0
+	 *
+	 * @var    string
+	 */
+	const VERSION = '2.0.0-beta5';
+
+	/**
 	 * Font awesome GraphQL url.
 	 *
 	 * @since  2.0.0
@@ -768,13 +777,23 @@ class Better_Font_Awesome_Library {
 	 */
 	public function register_font_awesome_css() {
 
-		wp_register_style( self::SLUG . '-font-awesome', $this->get_stylesheet_url() );
+		wp_register_style(
+			self::SLUG . '-font-awesome',
+			$this->get_stylesheet_url(),
+			array(),
+			self::VERSION
+		);
 		wp_enqueue_style( self::SLUG . '-font-awesome' );
 
 		// Conditionally include the Font Awesome v4 CSS shim.
 		if ( $this->args['include_v4_shim'] ) {
 
-			wp_register_style( self::SLUG . '-font-awesome-v4-shim', $this->get_stylesheet_url_v4_shim() );
+			wp_register_style(
+				self::SLUG . '-font-awesome-v4-shim',
+				$this->get_stylesheet_url_v4_shim(),
+				array(),
+				self::VERSION
+			);
 			wp_enqueue_style( self::SLUG . '-font-awesome-v4-shim' );
 
 		}
@@ -805,14 +824,34 @@ class Better_Font_Awesome_Library {
 		$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
 
 		// Custom admin CSS.
-		wp_enqueue_style( self::SLUG . '-admin', $this->root_url . 'css/admin-styles.css' );
+		wp_enqueue_style(
+			self::SLUG . '-admin',
+			$this->root_url . 'css/admin-styles.css',
+			array(),
+			self::VERSION
+		);
 
 		// Custom admin JS.
-		wp_enqueue_script( self::SLUG . '-admin', $this->root_url . 'js/admin.js' );
+		wp_enqueue_script(
+			self::SLUG . '-admin',
+			$this->root_url . 'js/admin.js',
+			array(),
+			self::VERSION
+		);
 
 		// Icon picker JS and CSS.
-		wp_enqueue_style( 'fontawesome-iconpicker', $this->root_url . $this->icon_picker_directory . 'css/fontawesome-iconpicker' . $suffix . '.css' );
-		wp_enqueue_script( 'fontawesome-iconpicker', $this->root_url . $this->icon_picker_directory . 'js/fontawesome-iconpicker' . $suffix . '.js' );
+		wp_enqueue_style(
+			'fontawesome-iconpicker',
+			$this->root_url . $this->icon_picker_directory . 'css/fontawesome-iconpicker' . $suffix . '.css',
+			array(),
+			self::VERSION
+		);
+		wp_enqueue_script(
+			'fontawesome-iconpicker',
+			$this->root_url . $this->icon_picker_directory . 'js/fontawesome-iconpicker' . $suffix . '.js',
+			array(),
+			self::VERSION
+		);
 
 		// Output PHP variables to JS.
 		$bfa_vars = array(
