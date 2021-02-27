@@ -764,8 +764,10 @@ class Better_Font_Awesome_Library {
 				return 'far';
 
 				case 'solid':
-				default:
 				return 'fas';
+
+				default:
+				return 'fa';
 			}
 		} else {
 			return $this->get_prefix();
