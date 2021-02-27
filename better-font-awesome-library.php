@@ -892,7 +892,7 @@ class Better_Font_Awesome_Library {
 
 		if ( ! empty( $this->errors ) && apply_filters( 'bfa_show_errors', true ) ) :
 			?>
-		<div class="error">
+		<div class="notice notice-error is-dismissible">
 			<p>
 				<b><?php _e( 'Better Font Awesome', 'better-font-awesome' ); ?></b>
 			</p>
