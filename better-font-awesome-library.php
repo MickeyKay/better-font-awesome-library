@@ -136,7 +136,7 @@ class Better_Font_Awesome_Library {
 	 * @var    array
 	 */
 	private $wp_remote_get_args = array(
-		'timeout'   => 10,
+		'timeout'   => 3,
 		'sslverify' => false,
 	);
 
