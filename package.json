@@ -1,7 +1,7 @@
 {
   "name": "better-font-awesome-library",
   "description": "Better Font Awesome Library",
-  "version": "2.0.0-beta5",
+  "version": "2.0.0",
   "main": " ",
   "devDependencies": {
     "fontawesome-iconpicker": "^3.2.0",
@@ -11,7 +11,7 @@
   },
   "scripts": {
     "clean": "rm -rf lib",
-    "build": "npm run clean && npm install && grunt"
+    "build": "npm run clean && npm ci && grunt"
   },
   "repository": {
     "type": "git",
