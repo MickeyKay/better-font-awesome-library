@@ -39,35 +39,60 @@ class Better_Font_Awesome_Library {
 	const SLUG = 'bfa';
 
 	/**
-	 * jsDelivr API URL for Font Awesome version info.
-	 *
-	 * @since  1.0.0
-	 *
-	 * @var    string
-	 */
-	const JSDELIVR_API_URL = 'https://data.jsdelivr.com/v1/package/gh/FortAwesome/Font-Awesome';
-
-	/**
-	 * jsDelivr API URL for Font Awesome icon metadata.
-	 *
-	 * Version 5+ only,
+	 * Better Font Awesome Library version.
 	 *
 	 * @since  2.0.0
 	 *
 	 * @var    string
 	 */
-	const JSDELIVR_ICON_METADATA_BASE_URL = 'https://cdn.jsdelivr.net/gh/FortAwesome/Font-Awesome@';
+	const VERSION = '2.0.0';
 
 	/**
-	 * jsDelivr API file path for Font Awesome icon metadata.
-	 *
-	 * Version 5+ only,
+	 * Font awesome GraphQL url.
 	 *
 	 * @since  2.0.0
 	 *
 	 * @var    string
 	 */
-	const JSDELIVR_ICON_METADATA_FILE_PATH = '/advanced-options/metadata/icons.yml';
+	const FONT_AWESOME_API_BASE_URL = 'https://api.fontawesome.com';
+
+	/**
+	 * Font awesome CDN url.
+	 *
+	 * @since  2.0.0
+	 *
+	 * @var    string
+	 */
+	const FONT_AWESOME_CDN_BASE_URL = 'https://use.fontawesome.com/releases';
+
+	/**
+	 * Fallback release data path.
+	 *
+	 * @since  2.0.0
+	 *
+	 * @var    string
+	 */
+	const FALLBACK_RELEASE_DATA_PATH = 'inc/fallback-release-data.json';
+
+	/**
+	 * Icon prefix.
+	 *
+	 * @since  2.0.0
+	 *
+	 * @var    string
+	 */
+	const ICON_PREFIX = 'fa';
+
+	/**
+	 * Release data transient expiration.
+	 *
+	 * Aka how often will we check for new Font Awesome release.
+	 *
+	 * @since  2.0.0
+	 *
+	 * @var    int
+	 */
+	const TRANSIENT_EXPIRATION = DAY_IN_SECONDS;
 
 	/**
 	 * Initialization args.
@@ -86,8 +111,7 @@ class Better_Font_Awesome_Library {
 	 * @var    array
 	 */
 	private $default_args = array(
-		'version'             => 'latest',
-		'minified'            => true,
+		'include_v4_shim'     => false,
 		'remove_existing_fa'  => false,
 		'load_styles'         => true,
 		'load_admin_styles'   => true,
@@ -112,50 +136,8 @@ class Better_Font_Awesome_Library {
 	 * @var    array
 	 */
 	private $wp_remote_get_args = array(
-		'timeout'   => 10,
+		'timeout'   => 3,
 		'sslverify' => false,
-	);
-
-	/**
-	 * Array to hold the jsDelivr API data.
-	 *
-	 * @since  1.0.0
-	 *
-	 * @var    string
-	 */
-	private $api_data = array();
-
-	/**
-	 * Version of Font Awesome being used.
-	 *
-	 * @since  1.0.0
-	 *
-	 * @var    string
-	 */
-	private $font_awesome_version;
-
-	/**
-	 * Font Awesome stylesheet URL.
-	 *
-	 * @since  1.0.0
-	 *
-	 * @var    string
-	 */
-	private $stylesheet_url;
-
-	/**
-	 * Data associated with the local fallback version of Font Awesome.
-	 *
-	 * @since  1.0.0
-	 *
-	 * @var    string
-	 */
-	private $fallback_data = array(
-		'directory' => 'lib/font-awesome/',
-		'path'      => '',
-		'url'       => '',
-		'version'   => '',
-		'css'       => '',
 	);
 
 	/**
@@ -166,22 +148,20 @@ class Better_Font_Awesome_Library {
 	private $icon_picker_directory = 'lib/fontawesome-iconpicker/dist/';
 
 	/**
-	 * Array of available Font Awesome icon slugs.
+	 * Instance-level variable to store Font Awesome release data to
+	 * avoid refetches for a single page load.
 	 *
-	 * @since  1.0.0
-	 *
-	 * @var    string
+	 * @var array
 	 */
-	private $icons = array();
+	private $release_data = array();
 
 	/**
-	 * Font Awesome prefix to be used ('icon' or 'fa').
+	 * Instance-level variable to store formatted icon array to avoid
+	 * extra data transformations each time we want this data.
 	 *
-	 * @since  1.0.0
-	 *
-	 * @var    string
+	 * @var array
 	 */
-	private $prefix;
+	private $formatted_icon_array = array();
 
 	/**
 	 * Array to track errors and wp_remote_get() failures.
@@ -244,23 +224,8 @@ class Better_Font_Awesome_Library {
 	 */
 	public function load() {
 
-		// Load dependencies.
-		$this->load_depenencies();
-
 		// Initialize library properties and actions as needed.
 		$this->initialize( $this->args );
-
-		// Use the jsDelivr API to fetch info on the jsDelivr Font Awesome CDN.
-		$this->setup_api_data();
-
-		// Set the version of Font Awesome to be used.
-		$this->set_active_version();
-
-		// Set the URL for the Font Awesome stylesheet.
-		$this->set_stylesheet_url( $this->font_awesome_version );
-
-		// Get stylesheet and generate list of available icons in Font Awesome stylesheet.
-		$this->setup_stylesheet_data();
 
 		// Add Font Awesome and/or custom CSS to the editor.
 		$this->add_editor_styles();
@@ -317,14 +282,10 @@ class Better_Font_Awesome_Library {
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 
 			// Add shortcode insertion button.
-        	add_action( 'media_buttons', array( $this, 'add_insert_shortcode_button' ), 99 );
+			add_action( 'media_buttons', array( $this, 'add_insert_shortcode_button' ), 99 );
 
 		}
 
-	}
-
-	private function load_depenencies() {
-		require_once __DIR__ . '/vendor/autoload.php';
 	}
 
 	/**
@@ -339,10 +300,6 @@ class Better_Font_Awesome_Library {
 
 		// Setup root URL, which differs for plugins vs. themes.
 		$this->setup_root_url();
-
-		// Set fallback stylesheet directory URL and path.
-		$this->setup_fallback_data();
-
 	}
 
 	/**
@@ -386,7 +343,8 @@ class Better_Font_Awesome_Library {
 
 		// Get BFA directory and theme root directory paths.
 		$bfa_directory = dirname(__FILE__);
-		$theme_directory = get_stylesheet_directory();
+		$theme_directory = get_template_directory();
+		$child_theme_directory = get_stylesheet_directory();
 		$plugin_dir = plugin_dir_url( __FILE__ );
 
 		/**
@@ -404,9 +362,19 @@ class Better_Font_Awesome_Library {
 		// First check if we're inside a theme.
 		if ( $is_theme ) {
 
-			// Get relative BFA directory by removing theme root directory path.
-			$bfa_rel_path = str_replace( $theme_directory, '', $bfa_directory );
-			$this->root_url = trailingslashit( get_stylesheet_directory_uri() . $bfa_rel_path );
+			// Use appropriate file paths for parent themes and child themes.
+			if ( strpos( $bfa_directory, $theme_directory ) !== false ) {
+
+				// Get relative BFA directory by removing theme root directory path.
+				$bfa_rel_path = str_replace( $theme_directory, '', $bfa_directory );
+				$this->root_url = trailingslashit( get_template_directory_uri() . $bfa_rel_path );
+
+			} else {
+
+				$bfa_rel_path = str_replace( $child_theme_directory, '', $bfa_directory );
+				$this->root_url = trailingslashit( get_stylesheet_directory_uri() . $bfa_rel_path );
+
+			}
 
 		} else { // Otherwise we're inside a plugin.
 
@@ -417,512 +385,137 @@ class Better_Font_Awesome_Library {
 	}
 
 	/**
-	 * Set up data for the local fallback version of Font Awesome.
+	 * Get fallback (hard-coded) release data in case failing from the
+	 * Font Awesome API fails.
 	 *
-	 * @since  1.0.0
+	 * @since  2.0.0
+	 *
+	 * @return array Fallback release data.
 	 */
-	private function setup_fallback_data() {
-
+	private function get_fallback_release_data() {
 		// Set fallback directory path.
-		$directory_path = plugin_dir_path( __FILE__ ) . $this->fallback_data['directory'];
+		$fallback_release_data_path = plugin_dir_path( __FILE__ ) . SELF::FALLBACK_RELEASE_DATA_PATH;
 
 		/**
-		 * Filter directory path.
+		 * Filter the fallback release data path.
 		 *
-		 * @since  1.0.0
+		 * @since  2.0.0
 		 *
-		 * @param  string  $directory_path  The path to the fallback Font Awesome directory.
+		 * @param  string  $fallback_release_data_path  The path to the fallback Font Awesome directory.
 		 */
-		$directory_path = trailingslashit( apply_filters( 'bfa_fallback_directory_path', $directory_path ) );
+		$fallback_release_data_path = apply_filters( 'bfa_fallback_release_data_path', $fallback_release_data_path );
 
-		// Set fallback path and URL.
-		$this->fallback_data['path'] = $directory_path . 'css/font-awesome' . $this->get_min_suffix() . '.css';
-		$this->fallback_data['url'] = $this->root_url . $this->fallback_data['directory'] . 'css/font-awesome' . $this->get_min_suffix() . '.css';
-
-		// Get the fallback version based on package.json.
-		$fallback_json_file_path = $directory_path . 'package.json';
-		$fallback_data = json_decode( $this->get_local_file_contents( $fallback_json_file_path ) );
-		$this->fallback_data['version'] = $fallback_data->version;
-
-		// Get the fallback CSS.
-		$this->fallback_data['css'] = $this->get_fallback_css();
-
+		return json_decode( $this->get_local_file_contents( $fallback_release_data_path ), true )['data']['release'];
 	}
 
 	/**
-	 * Set up data for all versions of Font Awesome available on the jsDelivr
-	 * CDN.
+	 * Get Font Awesome release data from the Font Awesome GraphQL API.
 	 *
-	 * Uses the jsDelivr API.
-	 *
-	 * @since  1.0.0
-	 */
-	private function setup_api_data() {
-		$this->api_data = $this->get_version_data();
-	}
-
-	/**
-	 * Fetch the jsDelivr API data.
-	 *
-	 * First check to see if the api-versions transient is set, and if not use
-	 * the jsDelivr API to retrieve all available versions of Font Awesome.
-	 *
-	 * @since   1.0.0
-	 *
-	 * @return  array|WP_ERROR  Available CDN Font Awesome versions, or a
-	 *                          WP_ERROR if the fetch fails.
-	 */
-	private function get_version_data() {
-		$transient_suffix = '-version-data';
-		$url = self::JSDELIVR_API_URL;
-
-		if ( false === ( $response = get_transient( self::SLUG . $transient_suffix ) ) ) {
-
-			$response = wp_remote_get( $url, $this->wp_remote_get_args );
-
-			if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
-
-				// Decode the API data and grab the versions info.
-				$json_data = json_decode( wp_remote_retrieve_body( $response ) );
-				$response = $json_data;
-
-				/**
-				 * Deprecated.
-				 *
-				 * Preserved for legacy support.
-				 *
-				 * @since  1.0.0
-				 *
-				 * @param  int  Expiration for API transient.
-				 */
-				$transient_expiration = apply_filters( 'bfa_api_transient_expiration', 12 * HOUR_IN_SECONDS );
-
-				/**
-				 * Filter API version data transient expiration.
-				 *
-				 * @since  2.0.0
-				 *
-				 * @param  int  Expiration for API version data.
-				 */
-				$transient_expiration = apply_filters( 'bfa_api_version_data', $transient_expiration );
-
-				// Set the API transient.
-				set_transient( self::SLUG . $transient_suffix, $response, $transient_expiration );
-
-			} elseif ( is_wp_error( $response ) ) { // Check for faulty wp_remote_get()
-
-				$this->set_error( 'api', $response->get_error_code(), $response->get_error_message() . " (URL: $url)" );
-				$response = '';
-
-			} elseif ( isset( $response['response'] ) ) { // Check for 404 and other non-WP_ERROR codes
-
-				$this->set_error( 'api', $response['response']['code'], $response['response']['message'] . " (URL: $url)" );
-				$response = '';
-
-			} else { // Total failsafe
-
-				$this->set_error( 'api', 'Unknown', __( 'The jsDelivr API servers appear to be temporarily unavailable.', 'better-font-awesome' ) . " (URL: $url)" );
-				$response = '';
-
-			}
-
-		}
-
-		return $response;
-
-	}
-
-	/**
-	 * Fetch the jsDelivr API data.
-	 *
-	 * First check to see if the transient is set for this version's metadata,
-	 * and if not use the jsDelivr API to retrieve all available versions of
-	 * Font Awesome.
+	 * First check to see if the transient is current. If not, fetch the data.
 	 *
 	 * @since   2.0.0
 	 *
-	 * @return  array  Icon metadata, keyed by icon slug.
+	 * @return  array  Release data.
 	 */
-	private function get_icons_metadata() {
-		$transient_suffix = '-icons-metadata';
-		$version = $this->get_version();
-		$transient_slug = self::SLUG . "${transient_suffix}_version-${version}";
+	private function get_font_awesome_release_data() {
+		// 1. If we've already retrieved/set the instance-level data, use that for performance.
+		if ( ! empty( $this->release_data ) ) {
+			return $this->release_data;
+		}
 
-		$url = self::JSDELIVR_ICON_METADATA_BASE_URL . $version . self::JSDELIVR_ICON_METADATA_FILE_PATH;
+		$transient_slug = self::SLUG . '-release-data';
+		$transient_value = $response = get_transient( $transient_slug );
+		$release_data = array();
 
-		if ( false === ( $response = get_transient( $transient_slug ) ) ) {
+		// 2. Short-circuit return the transient value if set.
+		if ( false !== $transient_value ) {
+			$release_data = $transient_value ;
+		}
 
-			$response = wp_remote_get( $url, $this->wp_remote_get_args );
+		// 3. Otherwise fetch the release data from the GraphQL API.
+		else {
+			$query_args = array_merge(
+				$this->wp_remote_get_args,
+				[
+					'headers' => [
+						'Content-Type' => 'application/json',
+					],
+					'body' => wp_json_encode([
+						'query' => '
+						{
+							release(version: "latest") {
+								version,
+								icons {
+									id,
+									label,
+									membership {
+										free
+									},
+									styles
+								}
+								srisByLicense {
+									free {
+										path
+										value
+									}
+								}
+							}
+						}
+						'
+					])
+				]
+			);
 
-			if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
+			$response = wp_remote_post( self::FONT_AWESOME_API_BASE_URL, $query_args );
 
-				// Decode the API data and grab the versions info.
-				$yaml_data = wp_remote_retrieve_body( $response );
+			$response_code = wp_remote_retrieve_response_code( $response );
+			$response_body = json_decode( wp_remote_retrieve_body( $response ), true );
 
-				$response = spyc_load( $yaml_data );
+			// Check for non-200 response.
+			if ( 200 !== $response_code ) {
+				$this->set_error( 'api', wp_remote_retrieve_response_code( $response ), wp_remote_retrieve_response_message( $response ) . " - " . self::FONT_AWESOME_API_BASE_URL );
+			}
 
-				// Short-circuit if something is wrong with parsing.
-				if ( empty( $response ) ) {
-					return '';
-				}
+			// Check for API errors - GraphQL returns a 200 even with errors.
+			elseif ( ! empty( $response_body['errors'] ) ) {
+				$this->set_error( 'api', 'GraphQL Error', print_r( $response_body['errors'], true ) );
+			}
+
+			// Check for faulty wp_remote_post()
+			elseif ( is_wp_error( $response ) ) {
+				$this->set_error( 'api', $response->get_error_code(), $response->get_error_message() . " - " . self::FONT_AWESOME_API_BASE_URL );
+			}
+
+			// Successful!
+			else {
+				$release_data = $response_body['data']['release'];
 
 				/**
-				 * Filter icon metadata transient expiration.
-				 *
-				 * This can be very long since versioned icon data should never change.
+				 * Filter release data transient expiration.
 				 *
 				 * @since  2.0.0
 				 *
-				 * @param  int  Expiration for icon metadata.
+				 * @param  int  Expiration for release data.
 				 */
-				$transient_expiration = apply_filters( 'bfa_icons_metadata', YEAR_IN_SECONDS );
+				$transient_expiration = apply_filters( 'bfa_release_data_transient_expiration', $this->get_transient_expiration() );
 
 				// Set the API transient.
-				set_transient( $transient_slug, $response, $transient_expiration );
-
-			} elseif ( is_wp_error( $response ) ) { // Check for faulty wp_remote_get()
-
-				$this->set_error( 'api', $response->get_error_code(), $response->get_error_message() . " (URL: $url)" );
-				$response = '';
-
-			} elseif ( isset( $response['response'] ) ) { // Check for 404 and other non-WP_ERROR codes
-
-				$this->set_error( 'api', $response['response']['code'], $response['response']['message'] . " (URL: $url)" );
-				$response = '';
-
-			} else { // Total failsafe
-
-				$this->set_error( 'api', 'Unknown', __( 'The jsDelivr API servers appear to be temporarily unavailable.', 'better-font-awesome' ) . " (URL: $url)" );
-				$response = '';
-
-			}
-
-		}
-
-		return $response;
-
-	}
-
-	/**
-	 * Set the version of Font Awesome to use.
-	 *
-	 * @since  1.0.0
-	 */
-	private function set_active_version() {
-
-		if ( 'latest' == $this->args['version'] ) {
-			$this->font_awesome_version = $this->get_latest_version();
-		} else {
-			$this->font_awesome_version = $this->args['version'];
-		}
-
-	}
-
-	/**
-	 * Get the latest available Font Awesome version.
-	 *
-	 * @since   1.0.0
-	 *
-	 * @return  string  Latest available Font Awesome version, either via the
-	 *                  jsDelivr API data (if available), or a best guess based on transient and
-	 *                  fallback version data.
-	 */
-	private function get_latest_version() {
-
-		if ( $this->api_data_exists() ) {
-			$versions = $this->get_api_value( 'versions' );
-			return $versions[0];
-		} else {
-			return $this->guess_latest_version();
-		}
-
-	}
-
-	/**
-	 * Guess the latest Font Awesome version.
-	 *
-	 * Check both the transient Font Awesome CSS array and the locally-hosted
-	 * version of Font Awesome to determine the latest listed version.
-	 *
-	 * @since   1.0.0
-	 *
-	 * @return  string  Latest transient or fallback version of Font Awesome CSS.
-	 */
-	private function guess_latest_version() {
-
-		$css_transient_latest_version = $this->get_css_transient_latest_version();
-
-		if ( version_compare( $css_transient_latest_version, $this->fallback_data['version'], '>' ) ) {
-			return $css_transient_latest_version;
-		} else {
-			return $this->fallback_data['version'];
-		}
-
-	}
-
-	/**
-	 * Get the latest version saved in the CSS transient.
-	 *
-	 * @since   1.0.0
-	 *
-	 * @return  string  Latest version key in the CSS transient array.
-	 *                  Return '0' if the CSS transient isn't set.
-	 */
-	private function get_css_transient_latest_version() {
-
-		$transient_css_array = get_transient( self::SLUG . '-css' );
-
-		if ( ! empty( $transient_css_array ) ) {
-			return max( array_keys( $transient_css_array ) );
-		} else {
-			return '0';
-		}
-
-	}
-
-	/**
-	 * Determine the remote Font Awesome stylesheet URL based on the selected
-	 * version.
-	 *
-	 * @since  1.0.0
-	 *
-	 * @param  string  $version  Version of Font Awesome to use.
-	 */
-	private function set_stylesheet_url( $version ) {
-		if ( version_compare( $version, '5.0.0', '>=' ) ) {
-			$this->stylesheet_url = '//cdn.jsdelivr.net/gh/FortAwesome/Font-Awesome@' . $version . '/web-fonts-with-css/css/fontawesome-all' . $this->get_min_suffix() . '.css';
-		} else {
-			$this->stylesheet_url = '//cdn.jsdelivr.net/fontawesome/' . $version . '/css/font-awesome' . $this->get_min_suffix() . '.css';
-		}
-	}
-
-	/**
-	 * Get stylesheet CSS and populate icons array.
-	 *
-	 * @since  1.0.0
-	 */
-	private function setup_stylesheet_data() {
-
-		// Set up prefix based on version ('fa' or 'icon').
-		$this->prefix = $this->derive_prefix( $this->font_awesome_version );
-
-		// Get the list of available icons.
-		$this->icons = $this->get_icon_array();
-	}
-
-	/**
-	 * Get the Font Awesome CSS.
-	 *
-	 * @since   1.0.0
-	 *
-	 * @param   string  $url       URL of the remote stylesheet.
-	 * @param   string  $version   Version of Font Awesome to fetch.
-	 *
-	 * @return  string  $response  Font Awesome CSS, from either:
-	 *                             1. transient,
-	 *                             2. wp_remote_get(), or
-	 *                             3. fallback CSS.
-	 */
-	private function get_css( $url, $version ) {
-
-		// First try getting the transient CSS.
-		$response = $this->get_transient_css( $version );
-
-		// Next, try fetching the CSS from the remote jsDelivr CDN.
-		if ( ! $response ) {
-			$response = $this->get_remote_css( $url, $version );
-		}
-
-		/**
-		 * Filter the force fallback flag.
-		 *
-		 * @since  1.0.4
-		 *
-		 * @param  bool  Whether or not to force the fallback CSS.
-		 */
-		$force_fallback = apply_filters( 'bfa_force_fallback', false );
-
-		/**
-		 * Use the local fallback if both the transient and wp_remote_get()
-		 * methods fail, or if fallback is forced with bfa_force_fallback filter.
-		 */
-		if ( is_wp_error( $response ) || $force_fallback ) {
-
-			// Log the CSS fetch error.
-			if ( ! $force_fallback ) {
-				$this->set_error( 'css', $response->get_error_code(), $response->get_error_message() . " (URL: $url)" );
-			}
-
-			// Use the local fallback CSS.
-			$response = $this->fallback_data['css'];
-
-			// Update the version string to match the fallback version.
-			$this->font_awesome_version = $this->fallback_data['version'];
-
-			// Update the stylesheet URL to match the fallback version.
-			$this->stylesheet_url = $this->fallback_data['url'];
-		}
-
-		return $response;
-
-	}
-
-	/**
-	 * Get the transient copy of the CSS for the specified version.
-	 *
-	 * @since   1.0.0
-	 *
-	 * @param   string  $version  Font Awesome version to check.
-	 *
-	 * @return  string  		  Transient CSS if it exists, otherwise null.
-	 */
-	private function get_transient_css( $version ) {
-
-		$transient_css_array = get_transient( self::SLUG . '-css' );
-		return isset( $transient_css_array[ $version ] ) ? $transient_css_array[ $version ] : '';
-
-	}
-
-	/**
-	 * Get the CSS from the remote jsDelivr CDN.
-	 *
-	 * @since   1.0.0
-	 *
-	 * @param   string           $url       URL for the remote stylesheet.
-	 * @param   string           $version   Font Awesome version to fetch.
-	 *
-	 * @return  string|WP_ERROR  $response  Remote CSS, or WP_ERROR if
-	 *                                      wp_remote_get() fails.
-	 */
-	private function get_remote_css( $url, $version ) {
-
-		// Get the remote Font Awesome CSS.
-		$url = set_url_scheme( $url );
-		$response = wp_remote_get( $url, $this->wp_remote_get_args );
-
-		/**
-		 * If fetch was successful, return the remote CSS, and set the CSS
-		 * transient for this version. Otherwise, return a WP_Error object.
-		 */
-		if ( 200 == wp_remote_retrieve_response_code( $response ) ) {
-
-			$response = wp_remote_retrieve_body( $response );
-			$this->set_css_transient( $version, $response );
-
-		} elseif ( is_wp_error( $response ) ) { // Check for faulty wp_remote_get()
-			$response = $response;
-		} elseif ( isset( $response['response'] ) ) { // Check for 404 and other non-WP_ERROR codes
-			$response = new WP_Error( $response['response']['code'], $response['response']['message'] . " (URL: $url)" );
-		} else { // Total failsafe
-			$response = '';
-		}
-
-		return $response;
-
-	}
-
-	/**
-	 * Set the CSS transient array.
-	 *
-	 * @since  1.0.0
-	 *
-	 * @param  string  $version  Version of Font Awesome for which to set the
-	 *                           transient.
-	 * @param  string  $value    CSS for corresponding version of Font Awesome.
-	 */
-	private function set_css_transient( $version, $value ) {
-
-		/**
-		 * Get the transient array, which contains data for multiple Font
-		 * Awesome version.
-		 */
-		$transient_css_array = get_transient( self::SLUG . '-css' );
-
-		// Set the new value for the specified Font Awesome version.
-		$transient_css_array[ $version ] = $value;
-
-		/**
-		 * Filter the CSS transient expiration.
-		 *
-		 * @since  1.0.0
-		 *
-		 * @param  int  Expiration for the CSS transient.
-		 */
-		$transient_expiration = apply_filters( 'bfa_css_transient_expiration', 30 * DAY_IN_SECONDS );
-
-		// Set the new CSS array transient.
-		set_transient( self::SLUG . '-css', $transient_css_array, $transient_expiration );
-
-	}
-
-	/**
-	 * Get the CSS of the local fallback Font Awesome version.
-	 *
-	 * @since   1.0.0
-	 *
-	 * @return  string  Contents of the local fallback Font Awesome stylesheet.
-	 */
-	private function get_fallback_css() {
-		return $this->get_local_file_contents( $this->fallback_data['path'] );
-	}
-
-	private function get_icon_array_version_5() {
-
-		$icons_metadata = $this->get_icons_metadata();
-		$icons = array();
-
-		// Add style prefixes.
-		foreach ( $icons_metadata as $slug => $metadata ) {
-			$search_terms = array_map( function( $term ) {
-				return $term;
-			}, $metadata['search']['terms'] );
-
-			foreach ( $metadata['styles'] as $style ) {
-				$icons[] = array(
-					'title'       => "{$metadata['label']} ({$style})",
-					'slug'        => $slug,
-					'style'       => $style,
-					'base_class'  => $this->get_icon_base_class( $slug, $style ),
-					'searchTerms' => $search_terms,
-				);
+				set_transient( $transient_slug, $release_data, $transient_expiration );
 			}
 		}
 
-		return $icons;
-	}
-
-	private function get_icon_array_version_pre_5() {
-
-		$icons = array();
-		$hex_codes = array();
-
-		$css = $this->get_css( $this->stylesheet_url, $this->font_awesome_version );
-
-		/**
-		 * Get all CSS selectors that have a "content:" pseudo-element rule,
-		 * as well as all associated hex codes.
-		 */
-		preg_match_all( '/\.(icon-|fa-)([^,}]*)\s*:before\s*{\s*(content:)\s*"(\\\\[^"]+)"/s', $css, $matches );
-
-		$icon_slugs = $matches[2];
-		$hex_codes = $matches[4];
-
-		foreach ( $icon_slugs as $index => $slug ) {
-			$icons[] = array(
-				'title'       => $slug,
-				'slug'        => $slug,
-				'base_class'  => $this->get_icon_base_class( $slug ),
-				'searchTerms' => $slug,
-			);
-
+		// If we've made it this far, it means we:
+		// 1. don't have a valid transient value
+		// 2. don't have a valid fetched value
+		// . . . and we should therefore return the fallback data.
+		if ( empty( $release_data ) ) {
+			$release_data = $this->get_fallback_release_data();
 		}
 
-		// Alphabetize the icons array by icon slug.
-		uasort( $icons, function( $icon1, $icon2 ) {
-			return strcmp( $icon1['slug'], $icon2['slug'] );
-		});
-
-		return array_values( $icons );
+		// Store an instance level release data for performance
+		// (avoid hitting db each time), and return.
+		$this->release_data = $release_data;
+		return $release_data;
 	}
 
 	/**
@@ -934,14 +527,35 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @return  array   All available icon names (e.g. adjust, car, pencil).
 	 */
-	private function get_icon_array() {
+	private function get_formatted_icon_array() {
 
-		$icons = array();
+		// If we have the instance-level var populated, use it.
+		if ( ! empty( $this->formatted_icon_array ) ) {
+			return $this->formatted_icon_array;
+		}
 
-		if ( version_compare( $this->get_version(), '5.0.0', '>=' ) ) {
-			$icons = $this->get_icon_array_version_5();
-		} else {
-			$icons = $this->get_icon_array_version_pre_5();
+		$icons_metadata = $this->get_release_icons();
+		$icons = [];
+
+		foreach ( $icons_metadata as $icon_metadata ) {
+
+			$icon_styles = $icon_metadata['membership']['free'];
+
+			// Only include if this icon supports FREE styles.
+			// @see https://fontawesome.com/how-to-use/graphql-api/objects/membership
+			if ( empty( $icon_styles ) ) {
+				continue;
+			}
+
+			foreach ( $icon_styles as $icon_style ) {
+				$icons[] = [
+					'title'       => "{$icon_metadata['label']} ({$icon_style})",
+					'slug'        => $icon_metadata['id'],
+					'style'       => $icon_style,
+					'base_class'  => $this->get_icon_base_class( $icon_metadata['id'], $icon_style ),
+					'searchTerms' => $icon_metadata['id'],
+				];
+			}
 		}
 
 		/**
@@ -962,37 +576,10 @@ class Better_Font_Awesome_Library {
 		 */
 		$icons = apply_filters( 'bfa_icon_array', $icons );
 
+		// Set instance-level variable to avoid recalculating this function each time.
+		$this->formatted_icon_array = $icons;
+
 		return $icons;
-	}
-
-	/**
-	 * Get the Font Awesosome prefix ('fa' or 'icon').
-	 *
-	 * @since  1.0.0
-	 *
-	 * @param   string  $version  Font Awesome version being used.
-	 *
-	 * @return  string  $prefix  'fa' or 'icon', depending on the version.
-	 */
-	private function derive_prefix( $version ) {
-
-		if ( version_compare( $this->get_version(), 4, '>=' ) ) {
-			$prefix = 'fa';
-		} else {
-			$prefix = 'icon';
-		}
-
-		/**
-		 * Filter the Font Awesome prefix.
-		 *
-		 * @since  1.0.0
-		 *
-		 * @param  string  $prefix  Font Awesome prefix ('icon' or 'fa').
-		 */
-		$prefix = apply_filters( 'bfa_prefix', $prefix );
-
-		return $prefix;
-
 	}
 
 	/**
@@ -1098,20 +685,8 @@ class Better_Font_Awesome_Library {
 			'style'            => '', /* Style category */
 		), $atts ));
 
-		$icon = $this->get_icon_by_slug( $name );
-
-		// Maybe this is an old icon that needs an updated alias.
-		if ( ! $icon ) {
-			require_once __DIR__ . '/inc/icon-updater.php';
-			$name = bfa_get_updated_icon_slug( $name );
-
-			if ( ! $name ) {
-				return '';
-			}
-		}
-
 		$prefix = $this->get_prefix();
-		$classes = array();
+		$classes = [];
 
 		/**
 		 * Include for backwards compatibility with Font Awesome More Icons plugin.
@@ -1126,8 +701,7 @@ class Better_Font_Awesome_Library {
 		$name = $this->sanitize_shortcode_name_att( $name );
 
 		// Generate classes array.
-		$icon = $this->get_icon_by_slug( $name );
-		$classes[] = $icon['base_class'];
+		$classes[] = $this->get_icon_base_class( $name, $style );
 		$classes[] = $this->sanitize_shortcode_class_att( $class );
 		$classes[] = $unprefixed_class;
 
@@ -1181,17 +755,19 @@ class Better_Font_Awesome_Library {
 		if ( version_compare( $this->get_version(), 5, '>=' ) ) {
 			switch ( $style ) {
 				case 'brands':
-					return 'fab';
-
-				case 'solid':
-					return 'fas';
+				return 'fab';
 
 				case 'light':
-					return 'fal';
+				return 'fal';
 
 				case 'regular':
+				return 'far';
+
+				case 'solid':
+				return 'fas';
+
 				default:
-					return 'far';
+				return 'fa';
 			}
 		} else {
 			return $this->get_prefix();
@@ -1203,9 +779,26 @@ class Better_Font_Awesome_Library {
 	 */
 	public function register_font_awesome_css() {
 
-		wp_register_style( self::SLUG . '-font-awesome', $this->stylesheet_url, '', $this->font_awesome_version );
+		wp_register_style(
+			self::SLUG . '-font-awesome',
+			$this->get_stylesheet_url(),
+			array(),
+			self::VERSION
+		);
 		wp_enqueue_style( self::SLUG . '-font-awesome' );
 
+		// Conditionally include the Font Awesome v4 CSS shim.
+		if ( $this->args['include_v4_shim'] ) {
+
+			wp_register_style(
+				self::SLUG . '-font-awesome-v4-shim',
+				$this->get_stylesheet_url_v4_shim(),
+				array(),
+				self::VERSION
+			);
+			wp_enqueue_style( self::SLUG . '-font-awesome-v4-shim' );
+
+		}
 	}
 
 	/**
@@ -1214,7 +807,12 @@ class Better_Font_Awesome_Library {
 	 * @since  1.0.0
 	 */
 	public function add_editor_styles() {
-		add_editor_style( $this->stylesheet_url );
+		add_editor_style( $this->get_stylesheet_url() );
+
+		// Conditionally include the Font Awesome v4 CSS shim.
+		if ( $this->args['include_v4_shim'] ) {
+			add_editor_style( $this->get_stylesheet_url_v4_shim() );
+		}
 	}
 
 	/**
@@ -1228,26 +826,46 @@ class Better_Font_Awesome_Library {
 		$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
 
 		// Custom admin CSS.
-		wp_enqueue_style( self::SLUG . '-admin', $this->root_url . 'css/admin-styles.css' );
+		wp_enqueue_style(
+			self::SLUG . '-admin',
+			$this->root_url . 'css/admin-styles.css',
+			array(),
+			self::VERSION
+		);
 
 		// Custom admin JS.
-		wp_enqueue_script( self::SLUG . '-admin', $this->root_url . 'js/admin.js' );
+		wp_enqueue_script(
+			self::SLUG . '-admin',
+			$this->root_url . 'js/admin.js',
+			array(),
+			self::VERSION
+		);
 
 		// Icon picker JS and CSS.
-		wp_enqueue_style( 'fontawesome-iconpicker', $this->root_url . $this->icon_picker_directory . 'css/fontawesome-iconpicker' . $suffix . '.css' );
-		wp_enqueue_script( 'fontawesome-iconpicker', $this->root_url . $this->icon_picker_directory . 'js/fontawesome-iconpicker' . $suffix . '.js' );
+		wp_enqueue_style(
+			'fontawesome-iconpicker',
+			$this->root_url . $this->icon_picker_directory . 'css/fontawesome-iconpicker' . $suffix . '.css',
+			array(),
+			self::VERSION
+		);
+		wp_enqueue_script(
+			'fontawesome-iconpicker',
+			$this->root_url . $this->icon_picker_directory . 'js/fontawesome-iconpicker' . $suffix . '.js',
+			array(),
+			self::VERSION
+		);
 
 		// Output PHP variables to JS.
 		$bfa_vars = array(
-			'fa_prefix'   => $this->prefix,
-		    'fa_icons'    => $this->get_icons(),
+			'fa_prefix'   => $this->get_prefix(),
+			'fa_icons'    => $this->get_icons(),
 		);
 		wp_localize_script( self::SLUG . '-admin', 'bfa_vars', $bfa_vars );
 
 	}
 
 	/**
-	 * [add_insert_shortcode_button description]
+	 * Add a button to insert icon shortcode.
 	 *
 	 * @since  1.3.0
 	 */
@@ -1276,53 +894,36 @@ class Better_Font_Awesome_Library {
 
 		if ( ! empty( $this->errors ) && apply_filters( 'bfa_show_errors', true ) ) :
 			?>
-		    <div class="error">
-		    	<p>
-		    		<b><?php _e( 'Better Font Awesome', 'better-font-awesome' ); ?></b>
-		    	</p>
+		<div class="notice notice-error is-dismissible">
+			<p>
+				<b><?php _e( 'Better Font Awesome', 'better-font-awesome' ); ?></b>
+			</p>
 
-	        	<!-- API Error -->
-	        	<?php if ( is_wp_error ( $this->get_error('api') ) ) : ?>
-		        	<p>
-		        		<b><?php _e( 'API Error', 'better-font-awesome' ); ?></b><br />
-		        		<?php
-		        		printf( __( 'The attempt to reach the jsDelivr API server failed with the following error: %s', 'better-font-awesome' ),
-		        			'<code>' . $this->get_error('api')->get_error_code() . ': ' . $this->get_error('api')->get_error_message() . '</code>'
-		        		);
-		        		?>
-		        	</p>
-		        <?php endif; ?>
+			<!-- API Error -->
+			<?php if ( is_wp_error ( $this->get_error('api') ) ) : ?>
+				<p>
+					<?php
+						_e( 'It looks like something went wrong when trying to fetch data from the Font Awesome API:', 'better-font-awesome' );
+					?>
+				</p>
+				<p>
+					<code><?php echo $this->get_error('api')->get_error_code() . ': ' . $this->get_error('api')->get_error_message(); ?></code>
+				</p>
+			<?php endif; ?>
 
-				<!-- CSS Error -->
-	        	<?php if ( is_wp_error ( $this->get_error('css') ) ) : ?>
-		        	<p>
-		        		<b><?php _e( 'Remote CSS Error', 'better-font-awesome' ); ?></b><br />
-		        		<?php
-		        		printf( __( 'The attempt to fetch the remote Font Awesome stylesheet failed with the following error: %s %s The embedded fallback Font Awesome will be used instead (version: %s).', 'better-font-awesome' ),
-		        			'<code>' . $this->get_error('css')->get_error_code() . ': ' . $this->get_error('css')->get_error_message() . '</code>',
-		        			'<br />',
-		        			'<code>' . $this->font_awesome_version . '</code>'
-		        		);
-			        	?>
-			        </p>
-		        <?php endif; ?>
-
-		        <!-- Fallback Text -->
-		        <p><?php echo __( '<b>Don\'t worry! Better Font Awesome will still render using the included fallback version:</b> ', 'better-font-awesome' ) . '<code>' . $this->fallback_data['version'] . '</code>' ; ?></p>
-
-		        <!-- Solution Text -->
-		        <p>
-		        	<b><?php _e( 'Solution', 'better-font-awesome' ); ?></b><br />
-			        <?php
-			        printf( __( 'This may be the result of a temporary server or connectivity issue which will resolve shortly. However if the problem persists please file a support ticket on the %splugin forum%s, citing the errors listed above. ', 'better-font-awesome' ),
-	                    '<a href="http://wordpress.org/support/plugin/better-font-awesome" target="_blank" title="Better Font Awesome support forum">',
-	                    '</a>'
-	                );
-	                ?>
-	            </p>
-		    </div>
-		    <?php
-	    endif;
+			<!-- Fallback Text -->
+			<p>
+				<?php
+					echo __( 'Don\'t worry! Better Font Awesome will still render using the included fallback version:</b> ', 'better-font-awesome' ) . '<code>' . $this->get_version() . '</code>. ' ;
+					printf( __( 'This may be the result of a temporary server or connectivity issue which will resolve shortly. However if the problem persists please file a support ticket on the %splugin forum%s, citing the errors listed above. ', 'better-font-awesome' ),
+						'<a href="http://wordpress.org/support/plugin/better-font-awesome" target="_blank" title="Better Font Awesome support forum">',
+						'</a>'
+					);
+				?>
+			</p>
+		</div>
+		<?php
+		endif;
 	}
 
 	/*----------------------------------------------------------------------------*
@@ -1342,9 +943,9 @@ class Better_Font_Awesome_Library {
 
 		ob_start();
 		include $file_path;
-	    $contents = ob_get_clean();
+		$contents = ob_get_clean();
 
-	    return $contents;
+		return $contents;
 
 	}
 
@@ -1386,90 +987,111 @@ class Better_Font_Awesome_Library {
 		return isset( $this->errors[ $process ] ) ? $this->errors[ $process ] : '';
 	}
 
-	/**
-	 * Check if API version data has been retrieved.
-	 *
-	 * @since   1.0.0
-	 *
-	 * @return  boolean  Whether or not the API version info was successfully fetched.
-	 */
-	public function api_data_exists() {
-
-		if ( $this->api_data ) {
-			return true;
-		} else {
-			return false;
-		}
-
-	}
-
-	/**
-	 * Get a specific API value.
-	 *
-	 * @since   1.0.0
-	 *
-	 * @param   string  $key    Array key of the API data to get.
-	 *
-	 * @return  mixed   $value  Value associated with specified key.
-	 */
-	public function get_api_value( $key ) {
-
-		if ( $this->api_data ) {
-			$value = $this->api_data->$key;
-		} else {
-			$value = '';
-		}
-
-		return $value;
-
-	}
-
 	/*----------------------------------------------------------------------------*
 	 * Public User Functions
 	 *----------------------------------------------------------------------------*/
 
 	/**
-	 * Get the version of Font Awesome currently in use.
+	 * Get Font Awesome release version.
 	 *
-	 * @since   1.0.0
+	 * @since   2.0.0
 	 *
-	 * @return  string  Font Awesome version.
+	 * @return  string  Release version.
 	 */
 	public function get_version() {
-		return $this->font_awesome_version;
+		return $this->get_font_awesome_release_data()['version'];
 	}
 
 	/**
-	 * Get the fallback version of Font Awesome included locally.
+	 * Get the main font awesome stylesheet URL.
 	 *
-	 * @since   1.0.0
+	 * @since   2.0.0
 	 *
-	 * @return  string  Font Awesome fallback version.
+	 * @return  string  Stylesheet URL.
 	 */
-	public function get_fallback_version() {
-		return $this->fallback_data['version'];
+	public function get_stylesheet_url() {
+		$release_assets = $this->get_release_assets();
+		$release_css_path = '';
+
+		foreach ( $release_assets as $release_asset ) {
+			$release_asset_path = $release_asset['path'];
+
+			if ( strpos( $release_asset_path, 'all' ) !== false && strpos( $release_asset_path, '.css' ) !== false ) {
+				$release_css_path = $release_asset_path;
+				break;
+			}
+		}
+
+		return sprintf(
+			'%s/v%s/%s',
+			self::FONT_AWESOME_CDN_BASE_URL,
+			$this->get_version(),
+			$release_css_path
+		);
 	}
 
 	/**
-	 * Get the stylesheet URL.
+	 * Get the v4 shim stylesheet URL.
 	 *
 	 * @since   1.0.0
 	 *
 	 * @return  string  Stylesheet URL.
 	 */
-	public function get_stylesheet_url() {
-		return $this->stylesheet_url;
+	public function get_stylesheet_url_v4_shim() {
+		$release_assets = $this->get_release_assets();
+		$release_css_path = '';
+
+		foreach ( $release_assets as $release_asset ) {
+			$release_asset_path = $release_asset['path'];
+
+			if ( strpos( $release_asset_path, 'shim' ) !== false && strpos( $release_asset_path, '.css' ) !== false ) {
+				$release_css_path = $release_asset_path;
+				break;
+			}
+		}
+
+		return sprintf(
+			'%s/v%s/%s',
+			self::FONT_AWESOME_CDN_BASE_URL,
+			$this->get_version(),
+			$release_css_path
+		);
 	}
 
 	/**
-	 * Get the array of available icons.
+	 * Get the array of available icons, with their/data shape
+	 * modified from the original GraphQL API response to better match
+	 * our consumers.
 	 *
 	 * @since   1.0.0
 	 *
 	 * @return  array  Available Font Awesome icons.
 	 */
 	public function get_icons() {
-		return $this->icons;
+		return $this->get_formatted_icon_array();
+	}
+
+	/**
+	 * Get the array of available icon data in the original shape
+	 * provided by the GraphQL API.
+	 *
+	 * @since   2.0.0
+	 *
+	 * @return  array  Release icons.
+	 */
+	public function get_release_icons() {
+		return $this->get_font_awesome_release_data()['icons'];
+	}
+
+	/**
+	 * Get Font Awesome release assets.
+	 *
+	 * @since   2.0.0
+	 *
+	 * @return  array  Release assets.
+	 */
+	public function get_release_assets() {
+		return $this->get_font_awesome_release_data()['srisByLicense']['free'];
 	}
 
 	/**
@@ -1480,18 +1102,18 @@ class Better_Font_Awesome_Library {
 	 * @return  string  Font Awesome prefix.
 	 */
 	public function get_prefix() {
-		return $this->prefix;
+		return self::ICON_PREFIX;
 	}
 
 	/**
-	 * Get version data for the remote jsDelivr CDN.
+	 * Get release data transient duration.
 	 *
-	 * @since   1.0.0
+	 * @since   2.0.0
 	 *
-	 * @return  object  jsDelivr API data.
+	 * @return  int  Release data transient expiration.
 	 */
-	public function get_api_data() {
-		return $this->api_data;
+	public function get_transient_expiration() {
+		return self::TRANSIENT_EXPIRATION;
 	}
 
 	/**
@@ -1504,14 +1126,5 @@ class Better_Font_Awesome_Library {
 	public function get_errors() {
 		return $this->errors;
 	}
-
-	public function get_icon_by_slug( $slug ) {
-		foreach ( $this->get_icons() as $icon ) {
-			if ( $slug === $icon['slug'] ) {
-				return $icon;
-			}
-		}
-	}
-
 }
 endif;

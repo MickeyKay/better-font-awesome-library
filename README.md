@@ -43,38 +43,37 @@ npm run build
 1. Copy the /better-font-awesome-library folder into your project.
 
 2. Add the following code to your main plugin file or your theme's functions.php file.
-   ```php
-	add_action( 'init', 'my_prefix_load_bfa' );
-	/**
-	 * Initialize the Better Font Awesome Library.
-	 *
-	 * (see usage notes below on proper hook priority)
-	 */
-	function my_prefix_load_bfa() {
+```php
+add_action( 'init', 'my_prefix_load_bfa' );
+    /**
+    * Initialize the Better Font Awesome Library.
+    *
+    * (see usage notes below on proper hook priority)
+    */
+    function my_prefix_load_bfa() {
 
-		// Include the main library file. Make sure to modify the path to match your directory structure.
-		require_once ( dirname( __FILE__ ) . '/better-font-awesome-library/better-font-awesome-library.php' );
+    // Include the main library file. Make sure to modify the path to match your directory structure.
+    require_once ( dirname( __FILE__ ) . '/better-font-awesome-library/better-font-awesome-library.php' );
 
-		// Set the library initialization args (defaults shown).
-		$args = array(
-				'version'             => 'latest',
-				'minified'            => true,
-				'remove_existing_fa'  => false,
-				'load_styles'         => true,
-				'load_admin_styles'   => true,
-				'load_shortcode'      => true,
-				'load_tinymce_plugin' => true,
-		);
+    // Set the library initialization args (defaults shown).
+    $args = array(
+      'include_v4_shim'     => false,
+      'remove_existing_fa'  => false,
+      'load_styles'         => true,
+      'load_admin_styles'   => true,
+      'load_shortcode'      => true,
+      'load_tinymce_plugin' => true,
+    );
 
-		// Initialize the Better Font Awesome Library.
-		Better_Font_Awesome_Library::get_instance( $args );
-	}
+    // Initialize the Better Font Awesome Library.
+    Better_Font_Awesome_Library::get_instance( $args );
+}
 ```
 
 3. If desired, use the [Better Font Awesome Library object](#the-better-font-awesome-library-object) to manually include Font Awesome CSS, output lists of available icons, create your own shortcodes, and much more.
 
 #### Usage Notes ####
-The Better Font Awesome Library is designed to work in conjunction with the [Better Font Awesome](https://wordpress.org/plugins/better-font-awesome/) WordPress plugin. The plugin initializes this library (with its initialization args) on the `init` hook, priority `5`. When using the Better Font Awesome Library in your project, you have two options:
+The Better Font Awesome Library is designed to work in conjunction with the [Better Font Awesome](https://wordpress.org/plugins/better-font-awesome/) WordPress plugin. The plugin initializes this library (with its own initialization args) on the `init` hook, priority `5`. When using the Better Font Awesome Library in your project, you have two options:
 
 1. Initialize later, to ensure that any Better Font Awesome plugin settings override yours (this is the default behavior, shown above by initializing the library on the `init` hook with default priority `10`.
 1. Initialize earlier, to "take over" and prevent Better Font Awesome settings from having an effect.
@@ -82,15 +81,10 @@ The Better Font Awesome Library is designed to work in conjunction with the [Bet
 ## Initialization Parameters ($args) ##
 The following arguments can be used to initialize the library using `Better_Font_Awesome_Library::get_instance( $args )`:
 
-#### $args['version'] ####
-(string) Which version of Font Awesome you want to use.
-* `'latest'` (default) - always use the latest available version.
-* `'3.2.1'` - any existing Font Awesome version number.
-
-#### $args['minified'] ####
-(boolean) Use minified Font Awesome CSS.
-* `true` (default) - uses minifed CSS.
-* `false` - uses unminified CSS.
+#### $args['include_v4_shim'] ####
+(boolean) Include the [Font Awesome v4 shim CSS stylesheet](https://fontawesome.com/how-to-use/on-the-web/setup/upgrading-from-version-4) to support legacy icon.
+* `true`
+* `false` (default)
 
 #### $args['remove_existing_fa'] ####
 (boolean) Attempts to remove existing Font Awesome styles and shortcodes. This can be useful to prevent conflicts with other themes/plugins, but is no guarantee.
@@ -117,31 +111,48 @@ The following arguments can be used to initialize the library using `Better_Font
 * `true` (default)
 * `false`
 
+### Deprecated
+
+#### $args['version'] (2.0.0) ####
+_The library now always defaults to the latest available version of Font Awesome._
+
+(string) Which version of Font Awesome you want to use.
+* `'latest'` (default) - always use the latest available version.
+* `'3.2.1'` - any existing Font Awesome version number.
+
+#### $args['minified'] (2.0.0) ####
+_The library now always defaults to minified CSS._
+
+(boolean) Use minified Font Awesome CSS.
+* `true` (default) - uses minifed CSS.
+* `false` - uses unminified CSS.
+
 ## Shortcode ##
-If either the `$args['load_shortcode']` or `$args['load_tinymce_plugin']` initialization arg is set to `true`, then the Better Font Awesome Library will include an icon shortcode that can be used as follows:
+If either the `$args['load_shortcode']` or `$args['load_tinymce_plugin']` initialization arg is set to `true`, then the Better Font Awesome Library will include an `[icon]` shortcode that can be used as follows:
 ```
 [icon name="star" class="2x spin" unprefixed_class="my-custom-class"]
 ```
 
-**name**
+#### name
 The unprefixed icon name (e.g. star). The version-specific prefix will be automatically prepended.
 
-**class**
+#### class
 Unprefixed [Font Awesome icon classes](http://fortawesome.github.io/Font-Awesome/examples/). The version-specific prefix will be automatically prepended to each class.
 
-**unprefixed_class**
+#### unprefixed_class
 Any additional classes that you wish to remain unprefixed (e.g. my-custom-class).
 
-#### Shortcode Output ####
-The example shortcode above would output the following depending on which version of Font Awesome you've selected:
+#### style
+The specific icon style (e.g. `brand` vs. `solid`) to use.
 
-**Version 4+**
+### Shortcode Output
+The following shortcode:
 ```
-<i class="fa fa-star fa-2x fa-spin my-custom-class"></i>
+[icon name="moon" style="solid" class="2x spin" unprefixed_class="my-custom-class"]
 ```
-**Version 3**
+. . . will produce the following HTML:
 ```
-<i class="icon icon-star icon-2x icon-spin my-custom-class"></i>
+<i class="fas fa-moon fa-2x fa-spin my-custom-class "></i>
 ```
 
 ## The Better Font Awesome Library Object ##
@@ -153,21 +164,35 @@ The object has the following public methods:
 (string) Returns the active version of Font Awesome being used.
 
 #### get_stylesheet_url() ####
-(string) Returns the active Font Awesome stylesheet URL.
+(string) Returns the Font Awesome stylesheet URL.
+
+#### get_stylesheet_url_v4_shim() ####
+(string) Returns the Font Awesome v4 shim stylesheet URL.
 
 #### get_icons() ####
 (array) Returns an associative array of icon hex values (index, e.g. \f000) and unprefixed icon names (values, e.g. rocket) for all available icons in the active Font Awesome version.
 
+#### get_release_icons() ####
+(array) Returns icon data in the exact format provided by the Font Awesome GraphQL API.
+
+#### get_release_assets() ####
+(array) Returns icon asset (CSS/JS) data for the latest Font Awesome version.
+
 #### get_prefix() ####
 (string) Returns the version-dependent prefix ('fa' or 'icon') that is used in the icons' CSS classes.
-
-#### get_api_data() ####
-(object) Returns version data for the remote jsDelivr CDN (uses [jsDelivr API](https://github.com/jsdelivr/api)). Includes all available versions and latest version.
 
 #### get_errors() ####
 (array) Returns all library errors, including API and CDN fetch failures.
 
-#### Example: ####
+### Deprecated
+
+#### get_api_data() (2.0.0) ####
+_The library no longe relies on the jsDelivr CDN._
+
+(object) Returns version data for the remote jsDelivr CDN (uses [jsDelivr API](https://github.com/jsdelivr/api)). Includes all available versions and latest version.
+
+### Example:
+
 ```php
 // Initialize the library with custom args.
 Better_Font_Awesome_Library::get_instance( $args );
@@ -183,7 +208,7 @@ $icons = $my_bfa->get_icons();
 
 // Output all available icons.
 foreach ( $icons as $icon ) {
-	echo $icon . '<br />';
+    echo $icon . '<br />';
 }
 ```
 
@@ -204,28 +229,19 @@ Applied to arguments passed to all `wp_remote_get()` calls (useful for adjusting
 
 * `$wp_remote_get_args` (array)
 
-#### bfa_fallback_directory_path ####
-Applied to the fallback directory path before setting up any fallback CSS info. Can be used to specify an alternate fallback directory to replace the default fallback directory.
-
-*The path must be to a local, non-remote, directory.*
+#### bfa_fallback_release_data_path ####
+Applied to the path for the fallback release data JSON file. Can be used to specify an alternate fallback data file.
 
 **Parameters**
 
-* `$path` (string)
+* `$fallback_release_data_path` (string)
 
-#### bfa_api_transient_expiration ####
-Applied to the API (version information) transient [expiration](http://codex.wordpress.org/Transients_API#Using_Transients). Can be used to increase/decrease the expiration as desired.
-
-**Parameters**
-
-* `$api_expiration` (int)
-
-#### bfa_css_transient_expiration ####
-Applied to the CSS stylesheet data transient [expiration](http://codex.wordpress.org/Transients_API#Using_Transients). Can be used to increase/decrease the expiration as desired.
+#### bfa_release_data_transient_expiration ####
+This value controls how often the plugin will check for the latest updated version of Font Awesome. Can be used to increase/decrease the frequency of this check as desired.
 
 **Parameters**
 
-* `$css_expiration` (int)
+* `$api_expiration` (int) (default: `WEEK_IN_SECONDS`)
 
 #### bfa_icon_list ####
 Applied to the icon array after it has been generated from the Font Awesome stylesheet, and before it is assigned to the Better Font Awesome Library object's `$icons` property.
@@ -233,13 +249,6 @@ Applied to the icon array after it has been generated from the Font Awesome styl
 **Parameters**
 
 * `$icons` (array)
-
-#### bfa_prefix ####
-Applied to the Font Awesome prefix ('fa' or 'icon') before it is assigned to the Better Font Awesome Library object's `$prefix` property.
-
-**Parameters**
-
-* `$prefix` (string)
 
 #### bfa_icon_class ####
 Applied to the classes that are output on each icon's `<i>` element.
@@ -262,13 +271,6 @@ Applied to the entire `<i>` element that is output for each icon.
 
 * `$output` (string)
 
-#### bfa_force_fallback ####
-Applied to the boolean that determines whether or not to force the included fallback version of Font Awesome to load. This can be useful if you're having trouble with delays or timeouts.
-
-**Parameters**
-
-* `$force_fallback` (false)
-
 #### bfa_show_errors ####
 Applied to the boolean that determines whether or not to suppress all Font Awesome warnings that normally display in the admin.
 
@@ -276,6 +278,53 @@ Applied to the boolean that determines whether or not to suppress all Font Aweso
 
 * `$show_errors` (true)
 
+### Deprecated
+
+#### bfa_fallback_directory_path ####
+_This is now replaced by the similar `bfa_fallback_release_data_path` filter._
+Applied to the fallback directory path before setting up any fallback CSS info. Can be used to specify an alternate fallback directory to replace the default fallback directory.
+
+*The path must be to a local, non-remote, directory.*
+
+**Parameters**
+
+* `$path` (string)
+
+#### bfa_api_transient_expiration (2.0.0) ####
+_This data now comes from the GraphQL API. The new `bfa_release_data_transient_expiration` replaces this legacy filter._
+
+Applied to the API (version information) transient [expiration](http://codex.wordpress.org/Transients_API#Using_Transients). Can be used to increase/decrease the expiration as desired.
+
+**Parameters**
+
+* `$api_expiration` (int)
+
+#### bfa_css_transient_expiration (2.0.0) ####
+_This data is now no longer necessary._
+
+Applied to the CSS stylesheet data transient [expiration](http://codex.wordpress.org/Transients_API#Using_Transients). Can be used to increase/decrease the expiration as desired.
+
+**Parameters**
+
+* `$css_expiration` (int)
+
+#### bfa_force_fallback (2.0.0) ####
+_There should no longer be a need to force a fallback._
+
+Applied to the boolean that determines whether or not to force the included fallback version of Font Awesome to load. This can be useful if you're having trouble with delays or timeouts.
+
+**Parameters**
+
+* `$force_fallback` (false)
+
+#### bfa_prefix (2.0.0) ####
+_Given the update to v5+ always, there should be no need to modify the icon prefix._
+
+Applied to the Font Awesome prefix ('fa' or 'icon') before it is assigned to the Better Font Awesome Library object's `$prefix` property.
+
+**Parameters**
+
+* `$prefix` (string)
 
 ## To Do ##
 Ideas? File an issue or add a pull request!

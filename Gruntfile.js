@@ -13,11 +13,10 @@ module.exports = function( grunt ) {
 	grunt.initConfig( {
 		pkg: pkg,
 		copy: {
-			svnAssets: {
+			fontawesome: {
 				cwd: 'node_modules/',
 				src:  [
-					'font-awesome/**',
-					'fontawesome-iconpicker/**'
+					'fontawesome-iconpicker/dist/**'
 				],
 				dest: 'lib/',
 				expand: true,
