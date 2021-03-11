@@ -45,7 +45,7 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @var    string
 	 */
-	const VERSION = '2.0.0';
+	const VERSION = '2.0.1';
 
 	/**
 	 * Font awesome GraphQL url.
