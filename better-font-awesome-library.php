@@ -45,7 +45,7 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @var    string
 	 */
-	const VERSION = '2.0.1';
+	const VERSION = '2.0.2';
 
 	/**
 	 * Font awesome GraphQL url.
@@ -921,13 +921,13 @@ class Better_Font_Awesome_Library {
 
 		ob_start();
 		?>
-		<span class="bfa-iconpicker fontawesome-iconpicker" data-selected="fa-flag">
-			<a href="#" class="button button-secondary iconpicker-component">
+		<div class="bfa-iconpicker" data-selected="fa-flag">
+			<button type="button" class="button iconpicker-component">
 				<span class="fa icon fa-flag icon-flag"></span>&nbsp;
 				<?php esc_html_e( 'Insert Icon', 'better-font-awesome' ); ?>
 				<i class="change-icon-placeholder"></i>
-			</a>
-		</span>
+			</button>
+		</div>
 		<?php
 		echo ob_get_clean();
 
