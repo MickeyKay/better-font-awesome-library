@@ -31,7 +31,7 @@
             var $iconPicker = $( this );
 
             // Initialize if not already initialized.
-            $iconPicker.not( ' .initialized' )
+            $iconPicker.not( '.initialized' )
                 .addClass( 'initialized' )
         		.iconpicker({
         			placement: 'bottomLeft',
