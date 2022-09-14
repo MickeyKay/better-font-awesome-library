@@ -22,40 +22,49 @@
 	}
 
 	$( function() {
-		var $iconPicker = $( '.bfa-iconpicker' );
 
-		// Initialize icon picker.
-		$iconPicker.iconpicker({
-			placement: 'bottomLeft',
-			hideOnSelect: true,
-			icons: icons,
-			fullClassFormatter: function( icon_title ) {
-				var classes = [];
-				var icon = get_icon_by_title( icon_title );
+        // We initialize on click instead of document.ready to ensure
+        // that BFA triggers still work when dynamically loaded later
+        // (e.g. repeatable fields/editors).
+        $( 'body' ).on( 'click', '.bfa-iconpicker', function(e) {
 
-				return icon.base_class;
-			},
-		});
+            var $iconPicker = $( this );
 
-		// Clean up human-readable icon names.
-		$iconPicker.find( '.iconpicker-item' ).each( function() {
-			var $item = $( this );
-			var title = $item.attr( 'title' ).replace( '.', '' );
+            // Initialize if not already initialized.
+            $iconPicker.not( ' .initialized' )
+                .addClass( 'initialized' )
+        		.iconpicker({
+        			placement: 'bottomLeft',
+        			hideOnSelect: true,
+        			icons: icons,
+        			fullClassFormatter: function( icon_title ) {
+        				var classes = [];
+        				var icon = get_icon_by_title( icon_title );
 
-			$item.attr( 'title', title );
-		});
+        				return icon.base_class;
+        			},
+        		})
 
-		// Place cursor focus on the search input.
-		$iconPicker.on( 'iconpickerShown', function( e ) {
-			$iconPicker.find( '.iconpicker-search' ).trigger( 'focus');
-		});
+                // Clean up human-readable icon names.
+        		.find( '.iconpicker-item' ).each( function() {
+        			var $item = $( this );
+        			var title = $item.attr( 'title' ).replace( '.', '' );
 
-		// Handle inserting selected icon into editor.
-		$iconPicker.on( 'iconpickerSelected', function( e ) {
-			var icon_title = e.iconpickerItem.title.replace( '.', '' );
-			var icon = get_icon_by_title( icon_title );
-			wp.media.editor.insert( icon_shortcode( icon ) );
-		});
+        			$item.attr( 'title', title );
+        		});
+
+                // Place cursor focus on the search input.
+                .on( 'iconpickerShown', function( e ) {
+        			$iconPicker.find( '.iconpicker-search' ).trigger( 'focus');
+        		});
+
+        		// Handle inserting selected icon into editor.
+        		.on( 'iconpickerSelected', function( e ) {
+        			var icon_title = e.iconpickerItem.title.replace( '.', '' );
+        			var icon = get_icon_by_title( icon_title );
+        			wp.media.editor.insert( icon_shortcode( icon ) );
+        		});
+        });
 	});
 
 } )( jQuery );
