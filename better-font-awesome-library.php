@@ -693,9 +693,10 @@ class Better_Font_Awesome_Library {
 		 *
 		 * @see https://wordpress.org/plugins/font-awesome-more-icons/
 		 */
-		$title = $title ? 'title="' . $title . '" ' : '';
+		$title = $title ? 'title="' . esc_attr( $title ) . '" ' : '';
 		$space = 'true' == $space ? '&nbsp;' : '';
 		$size = $size ? ' '. $prefix . '-' . $size : '';
+		$size = esc_attr( $size );
 
 		// Santize name.
 		$name = $this->sanitize_shortcode_name_att( $name );
@@ -715,6 +716,7 @@ class Better_Font_Awesome_Library {
 		 * @param  string  $class_string  Classes attached to the icon.
 		 */
 		$class_string = apply_filters( 'bfa_icon_class', $class_string, $name );
+		$class_string = esc_attr( $class_string );
 
 		/**
 		 * Filter the default <i> icon tag.
