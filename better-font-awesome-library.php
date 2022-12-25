@@ -693,7 +693,7 @@ class Better_Font_Awesome_Library {
 		 *
 		 * @see https://wordpress.org/plugins/font-awesome-more-icons/
 		 */
-		$title = $title ? 'title="' . $title . '" ' : '';
+		$title = $title ? 'title="' . esc_attr( $title ) . '" ' : '';
 		$space = 'true' == $space ? '&nbsp;' : '';
 		$size = $size ? ' '. $prefix . '-' . $size : '';
 
@@ -730,7 +730,8 @@ class Better_Font_Awesome_Library {
 			$tag,
 			esc_attr( $class_string ),
 			esc_attr( $size ),
-			esc_attr( $title ),
+			// The esc_attr() call for $title happens earlier because we actually want to conditionally output the full title="" string only if there's a value to output.
+			$title,
 			$space,
 			$tag
 		);
