@@ -728,9 +728,9 @@ class Better_Font_Awesome_Library {
 		// Generate the HTML <i> icon element output.
 		$output = sprintf( '<%s class="%s %s" %s>%s</%s>',
 			$tag,
-			$class_string,
-			$size,
-			$title,
+			esc_attr( $class_string ),
+			esc_attr( $size ),
+			esc_attr( $title ),
 			$space,
 			$tag
 		);
