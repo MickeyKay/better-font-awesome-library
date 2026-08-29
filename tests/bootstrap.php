@@ -24,6 +24,8 @@ class WP_Error {
 
 function bfa_test_reset_wordpress_state() {
 	$GLOBALS['bfa_test_actions']          = array();
+	$GLOBALS['bfa_test_action_callbacks'] = array();
+	$GLOBALS['bfa_test_did_actions']      = array();
 	$GLOBALS['bfa_test_added_filters']    = array();
 	$GLOBALS['bfa_test_applied_filters']  = array();
 	$GLOBALS['bfa_test_editor_styles']    = array();
@@ -39,6 +41,7 @@ function bfa_test_reset_wordpress_state() {
 	$GLOBALS['bfa_test_shortcodes']       = array();
 	$GLOBALS['bfa_test_transients']       = array();
 	$GLOBALS['bfa_test_transient_writes'] = array();
+	$GLOBALS['bfa_test_set_transient_result'] = true;
 }
 
 function add_filter( $tag, $callback, $priority = 10, $accepted_args = 1 ) {
@@ -86,7 +89,37 @@ function add_action( $tag, $callback, $priority = 10, $accepted_args = 1 ) {
 		'priority'      => $priority,
 		'accepted_args' => $accepted_args,
 	);
+	$GLOBALS['bfa_test_action_callbacks'][ $tag ][] = array(
+		'callback'      => $callback,
+		'priority'      => $priority,
+		'accepted_args' => $accepted_args,
+	);
 	return true;
+}
+
+function do_action( $tag ) {
+	$args = func_get_args();
+	array_shift( $args );
+	$GLOBALS['bfa_test_did_actions'][] = array(
+		'tag'       => $tag,
+		'arguments' => $args,
+	);
+
+	if ( empty( $GLOBALS['bfa_test_action_callbacks'][ $tag ] ) ) {
+		return;
+	}
+
+	$callbacks = $GLOBALS['bfa_test_action_callbacks'][ $tag ];
+	usort(
+		$callbacks,
+		function ( $left, $right ) {
+			return $left['priority'] - $right['priority'];
+		}
+	);
+
+	foreach ( $callbacks as $registered ) {
+		call_user_func_array( $registered['callback'], array_slice( $args, 0, $registered['accepted_args'] ) );
+	}
 }
 
 function wp_parse_args( $args, $defaults = array() ) {
@@ -132,6 +165,9 @@ function get_transient( $key ) {
 }
 
 function set_transient( $key, $value, $expiration ) {
+	if ( ! $GLOBALS['bfa_test_set_transient_result'] ) {
+		return false;
+	}
 	$GLOBALS['bfa_test_transients'][ $key ] = $value;
 	$GLOBALS['bfa_test_transient_writes'][] = compact( 'key', 'value', 'expiration' );
 	return true;
@@ -185,6 +221,10 @@ function esc_attr( $value ) {
 
 function esc_html( $value ) {
 	return htmlspecialchars( (string) $value, ENT_QUOTES, 'UTF-8' );
+}
+
+function wp_kses_post( $value ) {
+	return $value;
 }
 
 function esc_html_e( $text, $domain = null ) {

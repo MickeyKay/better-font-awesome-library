@@ -113,12 +113,14 @@ class Better_Font_Awesome_Library {
 	 * @var    array
 	 */
 	private $default_args = array(
-		'include_v4_shim'     => false,
-		'remove_existing_fa'  => false,
-		'load_styles'         => true,
-		'load_admin_styles'   => true,
-		'load_shortcode'      => true,
-		'load_tinymce_plugin' => true,
+		'include_v4_shim'              => false,
+		'remove_existing_fa'           => false,
+		'load_styles'                  => true,
+		'load_admin_styles'            => true,
+		'load_shortcode'               => true,
+		'load_tinymce_plugin'          => true,
+		'release_data_provider'        => null,
+		'release_data_refresh_callback' => null,
 	);
 
 	/**
@@ -138,8 +140,12 @@ class Better_Font_Awesome_Library {
 	 * @var    array
 	 */
 	private $wp_remote_get_args = array(
-		'timeout'   => 3,
-		'sslverify' => false,
+		'timeout'             => 3,
+		'sslverify'           => true,
+		'limit_response_size' => Better_Font_Awesome_Release_Data_Validator::MAX_RESPONSE_BYTES,
+		'redirection'         => 0,
+		'reject_unsafe_urls'  => true,
+		'blocking'            => true,
 	);
 
 	/**
@@ -164,6 +170,20 @@ class Better_Font_Awesome_Library {
 	 * @var array
 	 */
 	private $formatted_icon_array = array();
+
+	/**
+	 * Validated internal release record.
+	 *
+	 * @var array
+	 */
+	private $release_record = array();
+
+	/**
+	 * Whether a refresh request has been emitted during this request.
+	 *
+	 * @var bool
+	 */
+	private $refresh_requested = false;
 
 	/**
 	 * Array to track errors and wp_remote_get() failures.
@@ -334,6 +354,18 @@ class Better_Font_Awesome_Library {
 		 */
 		$this->wp_remote_get_args = apply_filters( 'bfa_wp_remote_get_args', $this->wp_remote_get_args );
 
+		// Security and availability invariants cannot be disabled by filters.
+		$this->wp_remote_get_args['sslverify']          = true;
+		$this->wp_remote_get_args['redirection']        = 0;
+		$this->wp_remote_get_args['reject_unsafe_urls'] = true;
+		$this->wp_remote_get_args['blocking']           = true;
+
+		$timeout = isset( $this->wp_remote_get_args['timeout'] ) ? (float) $this->wp_remote_get_args['timeout'] : 3;
+		$this->wp_remote_get_args['timeout'] = max( 1, min( 5, $timeout ) );
+
+		$response_size = isset( $this->wp_remote_get_args['limit_response_size'] ) ? (int) $this->wp_remote_get_args['limit_response_size'] : Better_Font_Awesome_Release_Data_Validator::MAX_RESPONSE_BYTES;
+		$this->wp_remote_get_args['limit_response_size'] = max( 1, min( Better_Font_Awesome_Release_Data_Validator::MAX_RESPONSE_BYTES, $response_size ) );
+
 	}
 
 	/**
@@ -407,116 +439,255 @@ class Better_Font_Awesome_Library {
 		 */
 		$fallback_release_data_path = apply_filters( 'bfa_fallback_release_data_path', $fallback_release_data_path );
 
-		return json_decode( $this->get_local_file_contents( $fallback_release_data_path ), true )['data']['release'];
+		$fallback_json = $this->get_local_file_contents( $fallback_release_data_path );
+		$result        = Better_Font_Awesome_Release_Data_Validator::parse_fallback_json( $fallback_json );
+
+		if ( ! $result['valid'] ) {
+			$this->set_validation_error( 'fallback', $result );
+			return $this->get_empty_release_data();
+		}
+
+		$this->release_record = $result['record'];
+		return $result['record']['release'];
 	}
 
 	/**
-	 * Get Font Awesome release data from the Font Awesome GraphQL API.
+	 * Get locally available Font Awesome release data.
 	 *
-	 * First check to see if the transient is current. If not, fetch the data.
+	 * Normal request getters never perform remote transport. They resolve data
+	 * from an injected local provider, the existing transient, or the bundled
+	 * fallback. A consumer can schedule asynchronous refresh work through the
+	 * refresh callback or action.
 	 *
 	 * @since   2.0.0
 	 *
 	 * @return  array  Release data.
 	 */
 	private function get_font_awesome_release_data() {
-		// 1. If we've already retrieved/set the instance-level data, use that for performance.
+		// 1. Reuse validated instance data for this request.
 		if ( ! empty( $this->release_data ) ) {
 			return $this->release_data;
 		}
 
-		$transient_slug = self::SLUG . '-release-data';
-		$transient_value = $response = get_transient( $transient_slug );
-		$release_data = array();
-
-		// 2. Short-circuit return the transient value if set.
-		if ( false !== $transient_value ) {
-			$release_data = $transient_value ;
+		// 2. Prefer an explicitly injected, already-resolved local provider.
+		$release_data = $this->get_provider_release_data();
+		if ( ! empty( $release_data ) ) {
+			$this->release_data = $release_data;
+			return $release_data;
 		}
 
-		// 3. Otherwise fetch the release data from the GraphQL API.
-		else {
-			$query_args = array_merge(
-				$this->wp_remote_get_args,
-				[
-					'headers' => [
-						'Content-Type' => 'application/json',
-					],
-					'body' => wp_json_encode([
-						'query' => '
-						{
-							release(version: "latest") {
-								version,
-								icons {
-									id,
-									label,
-									membership {
-										free
-									},
-									styles
-								}
-								srisByLicense {
-									free {
-										path
-										value
-									}
-								}
+		// 3. Preserve and validate the established transient value shape.
+		$transient_value = get_transient( self::SLUG . '-release-data' );
+		if ( false !== $transient_value ) {
+			$result = Better_Font_Awesome_Release_Data_Validator::validate_release( $transient_value, 'transient' );
+			if ( $result['valid'] ) {
+				$this->release_record = $result['record'];
+				$this->release_data   = $result['record']['release'];
+				return $this->release_data;
+			}
+
+			$this->set_validation_error( 'cache', $result );
+		}
+
+		// 4. Return validated bundled data immediately and request async refresh.
+		$release_data       = $this->get_fallback_release_data();
+		$this->release_data = $release_data;
+		$this->request_release_data_refresh();
+
+		return $release_data;
+	}
+
+	/**
+	 * Resolve release data from an optional local provider.
+	 *
+	 * @return array Valid release data, or an empty array.
+	 */
+	private function get_provider_release_data() {
+		$provider = isset( $this->args['release_data_provider'] ) ? $this->args['release_data_provider'] : null;
+		if ( ! is_callable( $provider ) ) {
+			return array();
+		}
+
+		$provided = call_user_func( $provider );
+		if ( is_wp_error( $provided ) ) {
+			$this->set_error( 'provider', 'bfa_provider_error', 'The release data provider could not supply Font Awesome metadata.' );
+			return array();
+		}
+
+		if ( is_array( $provided ) && isset( $provided['schema_version'], $provided['release'] ) ) {
+			$provided = $provided['release'];
+		}
+
+		$result = Better_Font_Awesome_Release_Data_Validator::validate_release( $provided, 'provider' );
+		if ( ! $result['valid'] ) {
+			$this->set_validation_error( 'provider', $result );
+			return array();
+		}
+
+		$this->release_record = $result['record'];
+		return $result['record']['release'];
+	}
+
+	/**
+	 * Return a warning-safe empty release data shape.
+	 *
+	 * @return array Empty release data.
+	 */
+	private function get_empty_release_data() {
+		return array(
+			'version'       => '',
+			'icons'         => array(),
+			'srisByLicense' => array(
+				'free' => array(),
+			),
+		);
+	}
+
+	/**
+	 * Check for an exact validated release asset identity.
+	 *
+	 * @param string $expected_path Expected relative asset path.
+	 * @return bool Whether the release contains the asset.
+	 */
+	private function release_has_asset( $expected_path ) {
+		foreach ( $this->get_release_assets() as $asset ) {
+			if ( isset( $asset['path'] ) && $expected_path === $asset['path'] ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Request asynchronous release data refresh work from a consumer.
+	 *
+	 * The callback or action handler must schedule work and return promptly. BFAL
+	 * does not run remote transport from this method.
+	 *
+	 * @since 2.1.0
+	 */
+	public function request_release_data_refresh() {
+		if ( $this->refresh_requested ) {
+			return;
+		}
+
+		$this->refresh_requested = true;
+		$callback                = isset( $this->args['release_data_refresh_callback'] ) ? $this->args['release_data_refresh_callback'] : null;
+
+		if ( is_callable( $callback ) ) {
+			call_user_func( $callback, Better_Font_Awesome_Release_Data_Validator::RELEASE_CHANNEL, $this );
+			return;
+		}
+
+		/**
+		 * Request that a consumer schedule asynchronous metadata refresh work.
+		 *
+		 * @since 2.1.0
+		 *
+		 * @param string                       $channel Supported release channel.
+		 * @param Better_Font_Awesome_Library $library BFAL instance.
+		 */
+		do_action( 'bfa_release_data_refresh_requested', Better_Font_Awesome_Release_Data_Validator::RELEASE_CHANNEL, $this );
+	}
+
+	/**
+	 * Refresh Font Awesome release data in an explicit worker context.
+	 *
+	 * Consumers own scheduling, locking, retry backoff, and durable last-known-
+	 * good persistence. This method performs one bounded refresh attempt and
+	 * only replaces the established transient after complete validation.
+	 *
+	 * @since 2.1.0
+	 *
+	 * @return array|WP_Error Valid release data or a sanitized failure.
+	 */
+	public function refresh_release_data() {
+		/**
+		 * Filter the selected Font Awesome release channel.
+		 *
+		 * Only the 5.x Free channel is supported in this release.
+		 *
+		 * @since 2.1.0
+		 *
+		 * @param string $channel Font Awesome release channel.
+		 */
+		$channel = apply_filters( 'bfa_font_awesome_release_channel', Better_Font_Awesome_Release_Data_Validator::RELEASE_CHANNEL );
+		if ( Better_Font_Awesome_Release_Data_Validator::RELEASE_CHANNEL !== $channel ) {
+			$this->set_error( 'api', 'bfa_channel_unsupported', 'The selected Font Awesome release channel is not supported.' );
+			return $this->get_error( 'api' );
+		}
+
+		$query_args            = $this->wp_remote_get_args;
+		$query_args['headers'] = array(
+			'Content-Type' => 'application/json',
+		);
+		$query_args['body'] = wp_json_encode(
+			array(
+				'query' => '
+				{
+					release(version: "5.x") {
+						version,
+						icons {
+							id,
+							label,
+							membership {
+								free
+							},
+							styles
+						}
+						srisByLicense {
+							free {
+								path
+								value
 							}
 						}
-						'
-					])
-				]
-			);
+					}
+				}
+				',
+			)
+		);
 
-			$response = wp_remote_post( self::FONT_AWESOME_API_BASE_URL, $query_args );
-
-			$response_code = wp_remote_retrieve_response_code( $response );
-			$response_body = json_decode( wp_remote_retrieve_body( $response ), true );
-
-			// Check for non-200 response.
-			if ( 200 !== $response_code ) {
-				$this->set_error( 'api', wp_remote_retrieve_response_code( $response ), wp_remote_retrieve_response_message( $response ) . " - " . self::FONT_AWESOME_API_BASE_URL );
-			}
-
-			// Check for API errors - GraphQL returns a 200 even with errors.
-			elseif ( ! empty( $response_body['errors'] ) ) {
-				$this->set_error( 'api', 'GraphQL Error', print_r( $response_body['errors'], true ) );
-			}
-
-			// Check for faulty wp_remote_post()
-			elseif ( is_wp_error( $response ) ) {
-				$this->set_error( 'api', $response->get_error_code(), $response->get_error_message() . " - " . self::FONT_AWESOME_API_BASE_URL );
-			}
-
-			// Successful!
-			else {
-				$release_data = $response_body['data']['release'];
-
-				/**
-				 * Filter release data transient expiration.
-				 *
-				 * @since  2.0.0
-				 *
-				 * @param  int  Expiration for release data.
-				 */
-				$transient_expiration = apply_filters( 'bfa_release_data_transient_expiration', $this->get_transient_expiration() );
-
-				// Set the API transient.
-				set_transient( $transient_slug, $release_data, $transient_expiration );
-			}
+		$response = wp_remote_post( self::FONT_AWESOME_API_BASE_URL, $query_args );
+		if ( is_wp_error( $response ) ) {
+			$this->set_error( 'api', 'bfa_transport_error', 'The Font Awesome metadata service could not be reached.' );
+			return $this->get_error( 'api' );
 		}
 
-		// If we've made it this far, it means we:
-		// 1. don't have a valid transient value
-		// 2. don't have a valid fetched value
-		// . . . and we should therefore return the fallback data.
-		if ( empty( $release_data ) ) {
-			$release_data = $this->get_fallback_release_data();
+		$response_code = (int) wp_remote_retrieve_response_code( $response );
+		if ( $response_code < 200 || $response_code >= 300 ) {
+			$this->set_error( 'api', 'bfa_http_error', 'The Font Awesome metadata service returned an unsuccessful HTTP status.' );
+			return $this->get_error( 'api' );
 		}
 
-		// Store an instance level release data for performance
-		// (avoid hitting db each time), and return.
-		$this->release_data = $release_data;
+		$result = Better_Font_Awesome_Release_Data_Validator::parse_api_response( wp_remote_retrieve_body( $response ) );
+		if ( ! $result['valid'] ) {
+			$this->set_validation_error( 'api', $result );
+			return $this->get_error( 'api' );
+		}
+
+		$release_data = $result['record']['release'];
+
+		/**
+		 * Filter release data transient expiration.
+		 *
+		 * @since  2.0.0
+		 *
+		 * @param int $expiration Expiration for release data.
+		 */
+		$transient_expiration = apply_filters( 'bfa_release_data_transient_expiration', $this->get_transient_expiration() );
+		$stored               = set_transient( self::SLUG . '-release-data', $release_data, $transient_expiration );
+
+		if ( false === $stored && $release_data !== get_transient( self::SLUG . '-release-data' ) ) {
+			$this->set_error( 'api', 'bfa_cache_write_failed', 'Validated Font Awesome metadata could not be persisted.' );
+			return $this->get_error( 'api' );
+		}
+
+		$this->release_record       = $result['record'];
+		$this->release_data         = $release_data;
+		$this->formatted_icon_array = array();
+		unset( $this->errors['api'] );
+
 		return $release_data;
 	}
 
@@ -781,10 +952,14 @@ class Better_Font_Awesome_Library {
 	 * Register and enqueue Font Awesome CSS.
 	 */
 	public function register_font_awesome_css() {
+		$stylesheet_url = $this->get_stylesheet_url();
+		if ( '' === $stylesheet_url ) {
+			return;
+		}
 
 		wp_register_style(
 			self::SLUG . '-font-awesome',
-			$this->get_stylesheet_url(),
+			$stylesheet_url,
 			array(),
 			self::VERSION
 		);
@@ -792,10 +967,14 @@ class Better_Font_Awesome_Library {
 
 		// Conditionally include the Font Awesome v4 CSS shim.
 		if ( $this->args['include_v4_shim'] ) {
+			$v4_shim_url = $this->get_stylesheet_url_v4_shim();
+			if ( '' === $v4_shim_url ) {
+				return;
+			}
 
 			wp_register_style(
 				self::SLUG . '-font-awesome-v4-shim',
-				$this->get_stylesheet_url_v4_shim(),
+				$v4_shim_url,
 				array(),
 				self::VERSION
 			);
@@ -858,11 +1037,17 @@ class Better_Font_Awesome_Library {
 	 * @since  1.0.0
 	 */
 	public function add_editor_styles() {
-		add_editor_style( $this->get_stylesheet_url() );
+		$stylesheet_url = $this->get_stylesheet_url();
+		if ( '' !== $stylesheet_url ) {
+			add_editor_style( $stylesheet_url );
+		}
 
 		// Conditionally include the Font Awesome v4 CSS shim.
 		if ( $this->args['include_v4_shim'] ) {
-			add_editor_style( $this->get_stylesheet_url_v4_shim() );
+			$v4_shim_url = $this->get_stylesheet_url_v4_shim();
+			if ( '' !== $v4_shim_url ) {
+				add_editor_style( $v4_shim_url );
+			}
 		}
 	}
 
@@ -947,28 +1132,32 @@ class Better_Font_Awesome_Library {
 			?>
 		<div class="notice notice-error is-dismissible">
 			<p>
-				<b><?php _e( 'Better Font Awesome', 'better-font-awesome' ); ?></b>
+				<b><?php echo esc_html( __( 'Better Font Awesome', 'better-font-awesome' ) ); ?></b>
 			</p>
 
-			<!-- API Error -->
-			<?php if ( is_wp_error ( $this->get_error('api') ) ) : ?>
+			<p><?php echo esc_html( __( 'Font Awesome metadata could not be refreshed or validated:', 'better-font-awesome' ) ); ?></p>
+			<?php foreach ( $this->errors as $error ) : ?>
+				<?php
+				if ( ! is_wp_error( $error ) ) {
+					continue;
+				}
+				?>
 				<p>
-					<?php
-						_e( 'It looks like something went wrong when trying to fetch data from the Font Awesome API:', 'better-font-awesome' );
-					?>
+					<code><?php echo esc_html( $error->get_error_code() . ': ' . $error->get_error_message() ); ?></code>
 				</p>
-				<p>
-					<code><?php echo $this->get_error('api')->get_error_code() . ': ' . $this->get_error('api')->get_error_message(); ?></code>
-				</p>
-			<?php endif; ?>
+			<?php endforeach; ?>
 
 			<!-- Fallback Text -->
 			<p>
 				<?php
-					echo __( 'Don\'t worry! Better Font Awesome will still render using the included fallback version:</b> ', 'better-font-awesome' ) . '<code>' . $this->get_version() . '</code>. ' ;
-					printf( __( 'This may be the result of a temporary server or connectivity issue which will resolve shortly. However if the problem persists please file a support ticket on the %splugin forum%s, citing the errors listed above. ', 'better-font-awesome' ),
-						'<a href="http://wordpress.org/support/plugin/better-font-awesome" target="_blank" title="Better Font Awesome support forum">',
-						'</a>'
+					echo esc_html( __( 'Better Font Awesome will use its validated local metadata when available: ', 'better-font-awesome' ) ) . '<code>' . esc_html( $this->get_version() ) . '</code>. ';
+					/* translators: 1: opening support link, 2: closing support link. */
+					echo wp_kses_post(
+						sprintf(
+							__( 'This may be the result of a temporary server or connectivity issue which will resolve shortly. However if the problem persists please file a support ticket on the %1$splugin forum%2$s, citing the errors listed above. ', 'better-font-awesome' ),
+							'<a href="https://wordpress.org/support/plugin/better-font-awesome" target="_blank" rel="noopener noreferrer" title="Better Font Awesome support forum">',
+							'</a>'
+						)
 					);
 				?>
 			</p>
@@ -991,12 +1180,12 @@ class Better_Font_Awesome_Library {
 	 * @return  string  $contents   Content of local file.
 	 */
 	private function get_local_file_contents( $file_path ) {
+		if ( ! is_string( $file_path ) || ! is_readable( $file_path ) ) {
+			return '';
+		}
 
-		ob_start();
-		include $file_path;
-		$contents = ob_get_clean();
-
-		return $contents;
+		$contents = file_get_contents( $file_path );
+		return false === $contents ? '' : $contents;
 
 	}
 
@@ -1022,7 +1211,30 @@ class Better_Font_Awesome_Library {
 	 * @param  string  $message     Error message.
 	 */
 	private function set_error( $error_type, $code, $message ) {
+		$code = preg_replace( '/[^a-z0-9_-]/i', '_', (string) $code );
+		if ( '' === $code ) {
+			$code = 'bfa_unknown_error';
+		}
+
+		$message = strip_tags( (string) $message );
+		$message = preg_replace( '/[\x00-\x1F\x7F]/', ' ', $message );
+		$message = trim( preg_replace( '/\s+/', ' ', $message ) );
+		$message = substr( $message, 0, 200 );
+
 		$this->errors[ $error_type ] = new WP_Error( $code, $message );
+	}
+
+	/**
+	 * Store a deterministic validator failure.
+	 *
+	 * @param string $error_type Error category.
+	 * @param array  $result     Validator result.
+	 */
+	private function set_validation_error( $error_type, $result ) {
+		$error   = isset( $result['error'] ) && is_array( $result['error'] ) ? $result['error'] : array();
+		$code    = isset( $error['code'] ) ? $error['code'] : 'bfa_validation_error';
+		$message = isset( $error['message'] ) ? $error['message'] : 'Font Awesome metadata validation failed.';
+		$this->set_error( $error_type, $code, $message );
 	}
 
 	/**
@@ -1032,7 +1244,7 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @param   string  $process  Slug of the process to check (e.g. 'api').
 	 *
-	 * @return  WP_ERROR          The error for the specified process.
+	 * @return WP_Error|string The error for the specified process, or an empty string.
 	 */
 	public function get_error( $process ) {
 		return isset( $this->errors[ $process ] ) ? $this->errors[ $process ] : '';
@@ -1050,7 +1262,8 @@ class Better_Font_Awesome_Library {
 	 * @return  string  Release version.
 	 */
 	public function get_version() {
-		return $this->get_font_awesome_release_data()['version'];
+		$release_data = $this->get_font_awesome_release_data();
+		return isset( $release_data['version'] ) && is_string( $release_data['version'] ) ? $release_data['version'] : '';
 	}
 
 	/**
@@ -1061,23 +1274,16 @@ class Better_Font_Awesome_Library {
 	 * @return  string  Stylesheet URL.
 	 */
 	public function get_stylesheet_url() {
-		$release_assets = $this->get_release_assets();
-		$release_css_path = '';
-
-		foreach ( $release_assets as $release_asset ) {
-			$release_asset_path = $release_asset['path'];
-
-			if ( strpos( $release_asset_path, 'all' ) !== false && strpos( $release_asset_path, '.css' ) !== false ) {
-				$release_css_path = $release_asset_path;
-				break;
-			}
+		$version = $this->get_version();
+		if ( '' === $version || ! $this->release_has_asset( 'css/all.css' ) ) {
+			return '';
 		}
 
 		return sprintf(
 			'%s/v%s/%s',
 			self::FONT_AWESOME_CDN_BASE_URL,
-			$this->get_version(),
-			$release_css_path
+			$version,
+			'css/all.css'
 		);
 	}
 
@@ -1089,23 +1295,16 @@ class Better_Font_Awesome_Library {
 	 * @return  string  Stylesheet URL.
 	 */
 	public function get_stylesheet_url_v4_shim() {
-		$release_assets = $this->get_release_assets();
-		$release_css_path = '';
-
-		foreach ( $release_assets as $release_asset ) {
-			$release_asset_path = $release_asset['path'];
-
-			if ( strpos( $release_asset_path, 'shim' ) !== false && strpos( $release_asset_path, '.css' ) !== false ) {
-				$release_css_path = $release_asset_path;
-				break;
-			}
+		$version = $this->get_version();
+		if ( '' === $version || ! $this->release_has_asset( 'css/v4-shims.css' ) ) {
+			return '';
 		}
 
 		return sprintf(
 			'%s/v%s/%s',
 			self::FONT_AWESOME_CDN_BASE_URL,
-			$this->get_version(),
-			$release_css_path
+			$version,
+			'css/v4-shims.css'
 		);
 	}
 
@@ -1131,7 +1330,8 @@ class Better_Font_Awesome_Library {
 	 * @return  array  Release icons.
 	 */
 	public function get_release_icons() {
-		return $this->get_font_awesome_release_data()['icons'];
+		$release_data = $this->get_font_awesome_release_data();
+		return isset( $release_data['icons'] ) && is_array( $release_data['icons'] ) ? $release_data['icons'] : array();
 	}
 
 	/**
@@ -1142,7 +1342,31 @@ class Better_Font_Awesome_Library {
 	 * @return  array  Release assets.
 	 */
 	public function get_release_assets() {
-		return $this->get_font_awesome_release_data()['srisByLicense']['free'];
+		$release_data = $this->get_font_awesome_release_data();
+		return isset( $release_data['srisByLicense']['free'] ) && is_array( $release_data['srisByLicense']['free'] ) ? $release_data['srisByLicense']['free'] : array();
+	}
+
+	/**
+	 * Get the validated internal release record.
+	 *
+	 * @since 2.1.0
+	 *
+	 * @return array Release record.
+	 */
+	public function get_release_record() {
+		$this->get_font_awesome_release_data();
+		return $this->release_record;
+	}
+
+	/**
+	 * Get the supported Font Awesome release channel.
+	 *
+	 * @since 2.1.0
+	 *
+	 * @return string Release channel.
+	 */
+	public function get_release_channel() {
+		return Better_Font_Awesome_Release_Data_Validator::RELEASE_CHANNEL;
 	}
 
 	/**
