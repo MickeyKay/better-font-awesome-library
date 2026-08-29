@@ -32,11 +32,11 @@ return array(
 		'free' => array(
 			array(
 				'path'  => 'css/all.css',
-				'value' => 'sha384-valid-all',
+				'value' => 'sha384-dmFsaWQtYWxs',
 			),
 			array(
 				'path'  => 'css/v4-shims.css',
-				'value' => 'sha384-valid-shim',
+				'value' => 'sha384-dmFsaWQtc2hpbQ==',
 			),
 		),
 	),

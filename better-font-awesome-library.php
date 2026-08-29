@@ -26,6 +26,8 @@
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+require_once __DIR__ . '/inc/class-bfa-release-data-validator.php';
+
 if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 class Better_Font_Awesome_Library {
 
