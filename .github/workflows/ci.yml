@@ -78,5 +78,5 @@ jobs:
       - name: Verify reproducible tracked assets
         run: git diff --exit-code
 
-      - name: Audit production Node dependencies
-        run: npm audit --omit=dev
+      - name: Audit shipped browser asset sources
+        run: npm run audit:runtime-assets

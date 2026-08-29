@@ -13,6 +13,11 @@ BFAL distributes the compiled CSS and JavaScript for
 The unminified files in the same `dist` directories are the human-readable
 maintained source corresponding to the minified runtime assets.
 
+`runtime-assets/package.json` and its lockfile pin the shipped icon picker as a
+production audit target even though the root Node dependency is used only by
+the build. CI verifies that the build and audit locks select the same exact
+version before checking the runtime asset source for published advisories.
+
 ## Font Awesome Free metadata
 
 BFAL bundles Font Awesome Free 5.14.0 release metadata in
