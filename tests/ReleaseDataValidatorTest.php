@@ -25,6 +25,15 @@ class ReleaseDataValidatorTest extends TestCase {
 		$this->assertSame( 'fallback', $result['record']['source'] );
 	}
 
+	public function test_bundled_fallback_checksum_matches() {
+		$json     = file_get_contents( dirname( __DIR__ ) . '/inc/fallback-release-data.json' );
+		$checksum = file_get_contents( dirname( __DIR__ ) . '/inc/fallback-release-data.sha256' );
+		$expected = substr( trim( $checksum ), 0, 64 );
+
+		$this->assertMatchesRegularExpression( '/^[a-f0-9]{64}$/', $expected );
+		$this->assertSame( $expected, hash( 'sha256', $json ) );
+	}
+
 	public function test_valid_api_payload_is_parsed() {
 		$release = require __DIR__ . '/fixtures/valid-release.php';
 		$result  = Better_Font_Awesome_Release_Data_Validator::parse_api_response(

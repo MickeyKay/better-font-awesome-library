@@ -341,7 +341,7 @@ class Better_Font_Awesome_Library {
 		 *
 		 * @since  1.0.0
 		 *
-		 * @param  array  $this->args  BFAL initialization args.
+		 * @param array $args BFAL initialization args.
 		 */
 		$this->args = apply_filters( 'bfa_init_args', $this->args );
 
@@ -350,7 +350,7 @@ class Better_Font_Awesome_Library {
 		 *
 		 * @since  1.0.0
 		 *
-		 * @param  array  $this->wp_remote_get_args  BFAL wp_remote_get_args args.
+		 * @param array $request_args BFAL HTTP request arguments.
 		 */
 		$this->wp_remote_get_args = apply_filters( 'bfa_wp_remote_get_args', $this->wp_remote_get_args );
 
@@ -428,7 +428,8 @@ class Better_Font_Awesome_Library {
 	 */
 	private function get_fallback_release_data() {
 		// Set fallback directory path.
-		$fallback_release_data_path = plugin_dir_path( __FILE__ ) . SELF::FALLBACK_RELEASE_DATA_PATH;
+		$bundled_release_data_path  = plugin_dir_path( __FILE__ ) . self::FALLBACK_RELEASE_DATA_PATH;
+		$fallback_release_data_path = $bundled_release_data_path;
 
 		/**
 		 * Filter the fallback release data path.
@@ -440,6 +441,17 @@ class Better_Font_Awesome_Library {
 		$fallback_release_data_path = apply_filters( 'bfa_fallback_release_data_path', $fallback_release_data_path );
 
 		$fallback_json = $this->get_local_file_contents( $fallback_release_data_path );
+		if ( $bundled_release_data_path === $fallback_release_data_path ) {
+			$checksum_path = plugin_dir_path( __FILE__ ) . 'inc/fallback-release-data.sha256';
+			$checksum      = $this->get_local_file_contents( $checksum_path );
+			$expected_hash = substr( trim( $checksum ), 0, 64 );
+
+			if ( ! preg_match( '/^[a-f0-9]{64}$/', $expected_hash ) || $expected_hash !== hash( 'sha256', $fallback_json ) ) {
+				$this->set_error( 'fallback', 'bfa_fallback_checksum_invalid', 'The bundled Font Awesome metadata checksum is invalid.' );
+				return $this->get_empty_release_data();
+			}
+		}
+
 		$result        = Better_Font_Awesome_Release_Data_Validator::parse_fallback_json( $fallback_json );
 
 		if ( ! $result['valid'] ) {
@@ -696,8 +708,6 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @since   1.0.0
 	 *
-	 * @param   string  CSS for the current version of FA (only used pre-v5)
-	 *
 	 * @return  array   All available icon names (e.g. adjust, car, pencil).
 	 */
 	private function get_formatted_icon_array() {
@@ -886,6 +896,7 @@ class Better_Font_Awesome_Library {
 		 * @since  1.0.0
 		 *
 		 * @param  string  $class_string  Classes attached to the icon.
+		 * @param  string  $name          Sanitized icon name.
 		 */
 		$class_string = apply_filters( 'bfa_icon_class', $class_string, $name );
 
@@ -894,7 +905,7 @@ class Better_Font_Awesome_Library {
 		 *
 		 * @since  1.5.0
 		 *
-		 * @param  string  Tag to use for output icons (default = 'i').
+		 * @param string $tag Tag to use for output icons (default = 'i').
 		 */
 		$tag = apply_filters( 'bfa_icon_tag', 'i' );
 
@@ -926,7 +937,7 @@ class Better_Font_Awesome_Library {
 
 	private function get_icon_style_class( $style = '' ) {
 
-		if ( version_compare( $this->get_version(), 5, '>=' ) ) {
+		if ( version_compare( $this->get_version(), '5', '>=' ) ) {
 			switch ( $style ) {
 				case 'brands':
 				return 'fab';
@@ -1117,6 +1128,7 @@ class Better_Font_Awesome_Library {
 			</button>
 		</div>
 		<?php
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static local markup is escaped when constructed above.
 		echo ob_get_clean();
 
 	}

@@ -1,0 +1,16 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 5
+    paths:
+        - better-font-awesome-library.php
+        - inc/class-bfa-release-data-validator.php
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: true
+
+    ignoreErrors:
+        -
+            identifier: method.unused
+            path: better-font-awesome-library.php
+            count: 1
