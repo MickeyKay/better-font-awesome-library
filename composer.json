@@ -3,5 +3,28 @@
     "description": "Better Font Awesome Library for WordPress",
     "license": "GPL-2.0-or-later",
     "require": {
+    },
+    "require-dev": {
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^9.6",
+        "szepeviktor/phpstan-wordpress": "^2.0.4",
+        "wp-coding-standards/wpcs": "^3.4"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": "phpunit",
+        "phpcs": "phpcs",
+        "phpstan": "phpstan analyse --no-progress",
+        "check": [
+            "@test",
+            "@phpcs",
+            "@phpstan"
+        ]
     }
 }
