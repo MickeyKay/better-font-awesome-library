@@ -16,6 +16,76 @@ class ReleaseDataValidatorTest extends TestCase {
 		$this->assertSame( $release, $result['record']['release'] );
 	}
 
+	public function test_valid_declared_record_is_preserved() {
+		$release = require __DIR__ . '/fixtures/valid-release.php';
+		$record  = Better_Font_Awesome_Release_Data_Validator::validate_release( $release, 'api' )['record'];
+		$result  = Better_Font_Awesome_Release_Data_Validator::validate_record( $record );
+
+		$this->assertTrue( $result['valid'] );
+		$this->assertNull( $result['error'] );
+		$this->assertSame( $record, $result['record'] );
+	}
+
+	/**
+	 * @dataProvider invalid_record_provider
+	 */
+	public function test_invalid_declared_records_are_rejected( $mutator, $expected_code ) {
+		$release = require __DIR__ . '/fixtures/valid-release.php';
+		$record  = Better_Font_Awesome_Release_Data_Validator::validate_release( $release, 'api' )['record'];
+		$record  = call_user_func( $mutator, $record );
+		$result  = Better_Font_Awesome_Release_Data_Validator::validate_record( $record );
+
+		$this->assertFalse( $result['valid'] );
+		$this->assertSame( $expected_code, $result['error']['code'] );
+	}
+
+	public function invalid_record_provider() {
+		return array(
+			'missing schema version' => array(
+				function ( $record ) {
+					unset( $record['schema_version'] );
+					return $record;
+				},
+				'bfa_record_schema_invalid',
+			),
+			'unsupported schema version' => array(
+				function ( $record ) {
+					$record['schema_version'] = 999;
+					return $record;
+				},
+				'bfa_record_schema_unsupported',
+			),
+			'unsupported channel' => array(
+				function ( $record ) {
+					$record['channel'] = '7.x';
+					return $record;
+				},
+				'bfa_record_channel_unsupported',
+			),
+			'unsupported edition' => array(
+				function ( $record ) {
+					$record['edition'] = 'pro';
+					return $record;
+				},
+				'bfa_record_edition_unsupported',
+			),
+			'invalid source' => array(
+				function ( $record ) {
+					$record['source'] = 'external';
+					return $record;
+				},
+				'bfa_record_source_invalid',
+			),
+			'missing release' => array(
+				function ( $record ) {
+					unset( $record['release'] );
+					return $record;
+				},
+				'bfa_record_release_invalid',
+			),
+		);
+	}
+
 	public function test_bundled_fallback_is_valid() {
 		$json   = file_get_contents( dirname( __DIR__ ) . '/inc/fallback-release-data.json' );
 		$result = Better_Font_Awesome_Release_Data_Validator::parse_fallback_json( $json );
@@ -162,6 +232,41 @@ class ReleaseDataValidatorTest extends TestCase {
 				},
 				'bfa_asset_integrity_invalid',
 			),
+			'empty integrity digest' => array(
+				function ( $release ) {
+					$release['srisByLicense']['free'][0]['value'] = 'sha384-=';
+					return $release;
+				},
+				'bfa_asset_integrity_invalid',
+			),
+			'invalid integrity padding' => array(
+				function ( $release ) {
+					$release['srisByLicense']['free'][0]['value'] = 'sha384-' . base64_encode( str_repeat( 'a', 48 ) ) . '=';
+					return $release;
+				},
+				'bfa_asset_integrity_invalid',
+			),
+			'noncanonical integrity encoding' => array(
+				function ( $release ) {
+					$release['srisByLicense']['free'][0]['value'] = 'sha256-' . rtrim( base64_encode( str_repeat( 'a', 32 ) ), '=' );
+					return $release;
+				},
+				'bfa_asset_integrity_invalid',
+			),
+			'invalid integrity digest length' => array(
+				function ( $release ) {
+					$release['srisByLicense']['free'][0]['value'] = 'sha384-' . base64_encode( str_repeat( 'a', 47 ) );
+					return $release;
+				},
+				'bfa_asset_integrity_invalid',
+			),
+			'integrity algorithm length mismatch' => array(
+				function ( $release ) {
+					$release['srisByLicense']['free'][0]['value'] = 'sha256-' . base64_encode( str_repeat( 'a', 48 ) );
+					return $release;
+				},
+				'bfa_asset_integrity_invalid',
+			),
 			'missing main stylesheet' => array(
 				function ( $release ) {
 					$release['srisByLicense']['free'][0]['path'] = 'css/solid.css';
@@ -169,6 +274,30 @@ class ReleaseDataValidatorTest extends TestCase {
 				},
 				'bfa_asset_missing',
 			),
+		);
+	}
+
+	/**
+	 * @dataProvider valid_integrity_provider
+	 */
+	public function test_supported_integrity_algorithms_require_exact_digest_lengths( $algorithm, $digest_length ) {
+		$release = require __DIR__ . '/fixtures/valid-release.php';
+		$value   = $algorithm . '-' . base64_encode( str_repeat( 'a', $digest_length ) );
+
+		foreach ( $release['srisByLicense']['free'] as &$asset ) {
+			$asset['value'] = $value;
+		}
+		unset( $asset );
+
+		$result = Better_Font_Awesome_Release_Data_Validator::validate_release( $release );
+		$this->assertTrue( $result['valid'] );
+	}
+
+	public function valid_integrity_provider() {
+		return array(
+			'SHA-256' => array( 'sha256', 32 ),
+			'SHA-384' => array( 'sha384', 48 ),
+			'SHA-512' => array( 'sha512', 64 ),
 		);
 	}
 

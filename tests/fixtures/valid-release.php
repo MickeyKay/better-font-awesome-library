@@ -32,11 +32,11 @@ return array(
 		'free' => array(
 			array(
 				'path'  => 'css/all.css',
-				'value' => 'sha384-dmFsaWQtYWxs',
+				'value' => 'sha384-M7J8exYiWg22+2feRQ+QQBysM+ot+2l18dT00XfMccTe+f/NuDR0NNct9G9iyPYm',
 			),
 			array(
 				'path'  => 'css/v4-shims.css',
-				'value' => 'sha384-dmFsaWQtc2hpbQ==',
+				'value' => 'sha384-m8iXtR+kTECgkwmpCPpF8TAtjcjdHARnvoLvFQtCXfW0dPFYRgk7HFHoROIkphaN',
 			),
 		),
 	),

@@ -93,6 +93,8 @@ Normal frontend, admin, editor, REST, and cron-triggering requests never call th
 
 When BFAL reaches the fallback, it invokes `release_data_refresh_callback` once if configured. Otherwise it fires `bfa_release_data_refresh_requested` with the supported channel and library instance. The handler must only schedule work and return promptly. Scheduling, locking, durable last-known-good persistence, retry backoff, jitter, and freshness policy belong to the consumer.
 
+A provider may return a release array or a declared BFAL release record. Declared records must use the exact supported `schema_version`, `channel`, and `edition`, an allowed `source`, and a fully valid nested release. BFAL rejects mismatches rather than discarding or normalizing them.
+
 An asynchronous worker can call `refresh_release_data()`. That explicit operation requests the `5.x` Free channel with TLS verification, no redirects, a timeout of at most five seconds, and a response limit of 2 MiB. It stores the established transient shape only after the entire release record validates. It returns the validated release array on success or a sanitized `WP_Error` on failure.
 
 The Font Awesome API and CDN are external services. Consumers should document when they contact those services and apply the consent, privacy, scheduling, and persistence policy appropriate to their application.

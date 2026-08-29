@@ -526,11 +526,10 @@ class Better_Font_Awesome_Library {
 			return array();
 		}
 
-		if ( is_array( $provided ) && isset( $provided['schema_version'], $provided['release'] ) ) {
-			$provided = $provided['release'];
-		}
-
-		$result = Better_Font_Awesome_Release_Data_Validator::validate_release( $provided, 'provider' );
+		$is_record = is_array( $provided ) && ( array_key_exists( 'schema_version', $provided ) || array_key_exists( 'release', $provided ) );
+		$result    = $is_record
+			? Better_Font_Awesome_Release_Data_Validator::validate_record( $provided )
+			: Better_Font_Awesome_Release_Data_Validator::validate_release( $provided, 'provider' );
 		if ( ! $result['valid'] ) {
 			$this->set_validation_error( 'provider', $result );
 			return array();

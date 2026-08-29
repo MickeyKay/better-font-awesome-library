@@ -62,7 +62,7 @@ class ReleaseDataRuntimeTest extends BfalTestCase {
 	}
 
 	public function test_provider_accepts_a_validated_release_record() {
-		$result  = Better_Font_Awesome_Release_Data_Validator::validate_release( $this->get_valid_release(), 'provider' );
+		$result  = Better_Font_Awesome_Release_Data_Validator::validate_release( $this->get_valid_release(), 'api' );
 		$library = Better_Font_Awesome_Library::get_instance(
 			array(
 				'release_data_provider' => function () use ( $result ) {
@@ -72,7 +72,40 @@ class ReleaseDataRuntimeTest extends BfalTestCase {
 		);
 
 		$this->assertSame( '5.15.4', $library->get_version() );
-		$this->assertSame( 'provider', $library->get_release_record()['source'] );
+		$this->assertSame( 'api', $library->get_release_record()['source'] );
+	}
+
+	/**
+	 * @dataProvider invalid_provider_record_provider
+	 */
+	public function test_provider_rejects_invalid_declared_record_fields( $field, $value, $expected_code ) {
+		$record           = Better_Font_Awesome_Release_Data_Validator::validate_release( $this->get_valid_release(), 'api' )['record'];
+		$record[ $field ] = $value;
+		$library          = Better_Font_Awesome_Library::get_instance(
+			array(
+				'release_data_provider' => function () use ( $record ) {
+					return $record;
+				},
+			)
+		);
+
+		$this->assertSame( '5.14.0', $library->get_version() );
+		$this->assertSame( 'fallback', $library->get_release_record()['source'] );
+		$this->assertInstanceOf( WP_Error::class, $library->get_error( 'provider' ) );
+		$this->assertSame( $expected_code, $library->get_error( 'provider' )->get_error_code() );
+	}
+
+	public function invalid_provider_record_provider() {
+		$invalid_release            = $this->get_valid_release();
+		$invalid_release['version'] = '7.0.0';
+
+		return array(
+			'schema version' => array( 'schema_version', 999, 'bfa_record_schema_unsupported' ),
+			'channel'        => array( 'channel', '7.x', 'bfa_record_channel_unsupported' ),
+			'edition'        => array( 'edition', 'pro', 'bfa_record_edition_unsupported' ),
+			'source'         => array( 'source', 'external', 'bfa_record_source_invalid' ),
+			'release'        => array( 'release', $invalid_release, 'bfa_version_unsupported' ),
+		);
 	}
 
 	public function test_valid_transient_is_used_without_refresh() {

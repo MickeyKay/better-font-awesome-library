@@ -66,6 +66,10 @@ if ( ! class_exists( 'Better_Font_Awesome_Release_Data_Validator' ) ) :
 		 * @return array Validation result.
 		 */
 		public static function validate_release( $release, $source = 'unknown' ) {
+			if ( ! self::is_valid_source( $source ) ) {
+				return self::failure( 'bfa_record_source_invalid', 'The Font Awesome release record has an invalid source.' );
+			}
+
 			if ( ! is_array( $release ) ) {
 				return self::failure( 'bfa_release_invalid', 'Font Awesome release data must be an array.' );
 			}
@@ -94,11 +98,6 @@ if ( ! class_exists( 'Better_Font_Awesome_Release_Data_Validator' ) ) :
 				return $assets_result;
 			}
 
-			$allowed_sources = array( 'api', 'fallback', 'provider', 'transient', 'unknown' );
-			if ( ! in_array( $source, $allowed_sources, true ) ) {
-				$source = 'unknown';
-			}
-
 			return array(
 				'valid'  => true,
 				'record' => array(
@@ -110,6 +109,63 @@ if ( ! class_exists( 'Better_Font_Awesome_Release_Data_Validator' ) ) :
 				),
 				'error'  => null,
 			);
+		}
+
+		/**
+		 * Validate a declared internal release record without normalizing it.
+		 *
+		 * @param mixed $record Release record.
+		 * @return array Validation result.
+		 */
+		public static function validate_record( $record ) {
+			if ( ! is_array( $record ) ) {
+				return self::failure( 'bfa_record_invalid', 'The Font Awesome release record must be an array.' );
+			}
+
+			if ( ! array_key_exists( 'schema_version', $record ) || ! is_int( $record['schema_version'] ) ) {
+				return self::failure( 'bfa_record_schema_invalid', 'The Font Awesome release record has an invalid schema version.' );
+			}
+
+			if ( self::SCHEMA_VERSION !== $record['schema_version'] ) {
+				return self::failure( 'bfa_record_schema_unsupported', 'The Font Awesome release record schema version is not supported.' );
+			}
+
+			if ( ! isset( $record['channel'] ) || ! is_string( $record['channel'] ) ) {
+				return self::failure( 'bfa_record_channel_invalid', 'The Font Awesome release record has an invalid channel.' );
+			}
+
+			if ( self::RELEASE_CHANNEL !== $record['channel'] ) {
+				return self::failure( 'bfa_record_channel_unsupported', 'The Font Awesome release record channel is not supported.' );
+			}
+
+			if ( ! isset( $record['edition'] ) || ! is_string( $record['edition'] ) ) {
+				return self::failure( 'bfa_record_edition_invalid', 'The Font Awesome release record has an invalid edition.' );
+			}
+
+			if ( self::EDITION !== $record['edition'] ) {
+				return self::failure( 'bfa_record_edition_unsupported', 'The Font Awesome release record edition is not supported.' );
+			}
+
+			if ( ! isset( $record['source'] ) || ! self::is_valid_source( $record['source'] ) ) {
+				return self::failure( 'bfa_record_source_invalid', 'The Font Awesome release record has an invalid source.' );
+			}
+
+			if ( ! array_key_exists( 'release', $record ) ) {
+				return self::failure( 'bfa_record_release_invalid', 'The Font Awesome release record is missing release data.' );
+			}
+
+			return self::validate_release( $record['release'], $record['source'] );
+		}
+
+		/**
+		 * Check whether a release record source is supported.
+		 *
+		 * @param mixed $source Source identifier.
+		 * @return bool Whether the source is supported.
+		 */
+		private static function is_valid_source( $source ) {
+			$allowed_sources = array( 'api', 'fallback', 'provider', 'transient', 'unknown' );
+			return is_string( $source ) && in_array( $source, $allowed_sources, true );
 		}
 
 		/**
@@ -242,7 +298,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Release_Data_Validator' ) ) :
 				}
 				$paths[ $asset['path'] ] = true;
 
-				if ( ! preg_match( '/^sha(256|384|512)-[A-Za-z0-9+\/=]+$/', $asset['value'] ) ) {
+				if ( ! self::is_valid_integrity_value( $asset['value'] ) ) {
 					return self::failure( 'bfa_asset_integrity_invalid', 'Font Awesome release data contains an invalid asset integrity value.' );
 				}
 			}
@@ -254,6 +310,31 @@ if ( ! class_exists( 'Better_Font_Awesome_Release_Data_Validator' ) ) :
 			}
 
 			return array( 'valid' => true, 'error' => null );
+		}
+
+		/**
+		 * Validate canonical SRI syntax and algorithm-specific digest length.
+		 *
+		 * @param string $value Subresource integrity value.
+		 * @return bool Whether the value is valid.
+		 */
+		private static function is_valid_integrity_value( $value ) {
+			if ( ! preg_match( '/^sha(256|384|512)-([A-Za-z0-9+\/]+={0,2})$/D', $value, $matches ) ) {
+				return false;
+			}
+
+			$digest = base64_decode( $matches[2], true );
+			if ( false === $digest || base64_encode( $digest ) !== $matches[2] ) {
+				return false;
+			}
+
+			$expected_lengths = array(
+				'256' => 32,
+				'384' => 48,
+				'512' => 64,
+			);
+
+			return $expected_lengths[ $matches[1] ] === strlen( $digest );
 		}
 
 		/**
