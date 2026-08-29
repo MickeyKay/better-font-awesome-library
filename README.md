@@ -141,11 +141,9 @@ The following arguments can be used to initialize the library using `Better_Font
 ### Deprecated
 
 #### $args['version'] (2.0.0) ####
-_The library now always defaults to the latest available version of Font Awesome._
+_The library no longer selects a version through this argument. Validated Font Awesome Free 5.x metadata now comes from the configured local provider, compatibility transient, or bundled fallback._
 
-(string) Which version of Font Awesome you want to use.
-* `'latest'` (default) - always use the latest available version.
-* `'3.2.1'` - any existing Font Awesome version number.
+(string) Retained for compatibility. Supplied values are ignored because the validated release record selects the supported 5.x version and its coupled assets.
 
 #### $args['minified'] (2.0.0) ####
 _The library now always defaults to minified CSS._
@@ -221,7 +219,7 @@ Requests asynchronous refresh scheduling through the configured callback or `bfa
 (string) Returns the version-dependent prefix ('fa' or 'icon') that is used in the icons' CSS classes.
 
 #### get_errors() ####
-(array) Returns all library errors, including API and CDN fetch failures.
+(array) Returns sanitized metadata, provider, cache, and fallback errors.
 
 ### Deprecated
 
@@ -287,7 +285,7 @@ This value controls how often the plugin will check for the latest updated versi
 
 **Parameters**
 
-* `$api_expiration` (int) (default: `WEEK_IN_SECONDS`)
+* `$api_expiration` (int) (default: `DAY_IN_SECONDS`)
 
 #### bfa_icon_list ####
 Applied to the icon array after it has been generated from the Font Awesome stylesheet, and before it is assigned to the Better Font Awesome Library object's `$icons` property.
