@@ -35,6 +35,8 @@ function bfa_test_reset_wordpress_state() {
 	$GLOBALS['bfa_test_http_calls']       = 0;
 	$GLOBALS['bfa_test_http_response']    = new WP_Error( 'unexpected_http', 'Unexpected HTTP request.' );
 	$GLOBALS['bfa_test_inline_styles']    = array();
+	$GLOBALS['bfa_test_is_admin']         = false;
+	$GLOBALS['bfa_test_is_block_editor']  = false;
 	$GLOBALS['bfa_test_localized']        = array();
 	$GLOBALS['bfa_test_registered_styles'] = array();
 	$GLOBALS['bfa_test_removed_shortcodes'] = array();
@@ -156,6 +158,18 @@ function trailingslashit( $value ) {
 
 function add_editor_style( $url ) {
 	$GLOBALS['bfa_test_editor_styles'][] = $url;
+}
+
+function is_admin() {
+	return $GLOBALS['bfa_test_is_admin'];
+}
+
+function get_current_screen() {
+	return new class() {
+		public function is_block_editor() {
+			return $GLOBALS['bfa_test_is_block_editor'];
+		}
+	};
 }
 
 function get_transient( $key ) {

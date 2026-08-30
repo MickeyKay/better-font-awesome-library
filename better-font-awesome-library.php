@@ -962,6 +962,13 @@ class Better_Font_Awesome_Library {
 	 * Register and enqueue Font Awesome CSS.
 	 */
 	public function register_font_awesome_css() {
+		if ( is_admin() && function_exists( 'get_current_screen' ) ) {
+			$screen = get_current_screen();
+			if ( $screen && is_callable( array( $screen, 'is_block_editor' ) ) && $screen->is_block_editor() ) {
+				return;
+			}
+		}
+
 		$stylesheet_url = $this->get_stylesheet_url();
 		if ( '' === $stylesheet_url ) {
 			return;
@@ -1047,18 +1054,36 @@ class Better_Font_Awesome_Library {
 	 * @since  1.0.0
 	 */
 	public function add_editor_styles() {
+		$stylesheets    = array();
 		$stylesheet_url = $this->get_stylesheet_url();
 		if ( '' !== $stylesheet_url ) {
-			add_editor_style( $stylesheet_url );
+			$stylesheets[] = $stylesheet_url;
 		}
 
 		// Conditionally include the Font Awesome v4 CSS shim.
 		if ( $this->args['include_v4_shim'] ) {
 			$v4_shim_url = $this->get_stylesheet_url_v4_shim();
 			if ( '' !== $v4_shim_url ) {
-				add_editor_style( $v4_shim_url );
+				$stylesheets[] = $v4_shim_url;
 			}
 		}
+
+		if ( empty( $stylesheets ) ) {
+			return;
+		}
+
+		add_filter(
+			'mce_css',
+			static function ( $mce_css ) use ( $stylesheets ) {
+				$mce_css         = trim( (string) $mce_css, ' ,' );
+				$filtered_styles = $stylesheets;
+				if ( '' !== $mce_css ) {
+					$filtered_styles = array_merge( array( $mce_css ), $filtered_styles );
+				}
+
+				return implode( ',', $filtered_styles );
+			}
+		);
 	}
 
 	/**
