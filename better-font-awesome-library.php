@@ -285,6 +285,7 @@ class Better_Font_Awesome_Library {
 		 * Use priority 15 to make sure styles/scripts load after other plugins.
 		 */
 		if ( $this->args['load_admin_styles'] || $this->args['load_tinymce_plugin'] ) {
+			add_action( 'admin_enqueue_scripts', array( $this, 'disable_block_editor_font_awesome_css' ), 14 );
 			add_action( 'admin_enqueue_scripts', array( $this, 'register_font_awesome_css' ), 15 );
 		}
 
@@ -955,6 +956,26 @@ class Better_Font_Awesome_Library {
 			}
 		} else {
 			return $this->get_prefix();
+		}
+	}
+
+	/**
+	 * Disable BFAL's automatic Font Awesome enqueue on Block Editor screens.
+	 *
+	 * This is an internal lifecycle callback for the admin enqueue hook, not an
+	 * integration API. Direct calls to register_font_awesome_css() are unchanged.
+	 *
+	 * @since  2.1.0
+	 * @internal
+	 */
+	public function disable_block_editor_font_awesome_css() {
+		if ( ! function_exists( 'get_current_screen' ) ) {
+			return;
+		}
+
+		$screen = get_current_screen();
+		if ( $screen && is_callable( array( $screen, 'is_block_editor' ) ) && $screen->is_block_editor() ) {
+			remove_action( 'admin_enqueue_scripts', array( $this, 'register_font_awesome_css' ), 15 );
 		}
 	}
 
