@@ -22,6 +22,12 @@ class WP_Error {
 	}
 }
 
+class BFA_Test_Current_Screen {
+	public function is_block_editor() {
+		return $GLOBALS['bfa_test_is_block_editor'];
+	}
+}
+
 function bfa_test_reset_wordpress_state() {
 	$GLOBALS['bfa_test_actions']          = array();
 	$GLOBALS['bfa_test_action_callbacks'] = array();
@@ -35,7 +41,7 @@ function bfa_test_reset_wordpress_state() {
 	$GLOBALS['bfa_test_http_calls']       = 0;
 	$GLOBALS['bfa_test_http_response']    = new WP_Error( 'unexpected_http', 'Unexpected HTTP request.' );
 	$GLOBALS['bfa_test_inline_styles']    = array();
-	$GLOBALS['bfa_test_is_admin']         = false;
+	$GLOBALS['bfa_test_has_current_screen'] = true;
 	$GLOBALS['bfa_test_is_block_editor']  = false;
 	$GLOBALS['bfa_test_localized']        = array();
 	$GLOBALS['bfa_test_registered_styles'] = array();
@@ -99,6 +105,39 @@ function add_action( $tag, $callback, $priority = 10, $accepted_args = 1 ) {
 	return true;
 }
 
+function has_action( $tag, $callback = false ) {
+	if ( empty( $GLOBALS['bfa_test_action_callbacks'][ $tag ] ) ) {
+		return false;
+	}
+
+	if ( false === $callback ) {
+		return true;
+	}
+
+	foreach ( $GLOBALS['bfa_test_action_callbacks'][ $tag ] as $registered ) {
+		if ( $registered['callback'] === $callback ) {
+			return $registered['priority'];
+		}
+	}
+
+	return false;
+}
+
+function remove_action( $tag, $callback, $priority = 10 ) {
+	if ( empty( $GLOBALS['bfa_test_action_callbacks'][ $tag ] ) ) {
+		return false;
+	}
+
+	foreach ( $GLOBALS['bfa_test_action_callbacks'][ $tag ] as $key => $registered ) {
+		if ( $registered['callback'] === $callback && $registered['priority'] === $priority ) {
+			unset( $GLOBALS['bfa_test_action_callbacks'][ $tag ][ $key ] );
+			return true;
+		}
+	}
+
+	return false;
+}
+
 function do_action( $tag ) {
 	$args = func_get_args();
 	array_shift( $args );
@@ -120,6 +159,16 @@ function do_action( $tag ) {
 	);
 
 	foreach ( $callbacks as $registered ) {
+		$still_registered = false;
+		foreach ( $GLOBALS['bfa_test_action_callbacks'][ $tag ] as $current ) {
+			if ( $current['callback'] === $registered['callback'] && $current['priority'] === $registered['priority'] ) {
+				$still_registered = true;
+				break;
+			}
+		}
+		if ( ! $still_registered ) {
+			continue;
+		}
 		call_user_func_array( $registered['callback'], array_slice( $args, 0, $registered['accepted_args'] ) );
 	}
 }
@@ -160,16 +209,12 @@ function add_editor_style( $url ) {
 	$GLOBALS['bfa_test_editor_styles'][] = $url;
 }
 
-function is_admin() {
-	return $GLOBALS['bfa_test_is_admin'];
+function get_editor_stylesheets() {
+	return array_values( array_unique( array_filter( $GLOBALS['bfa_test_editor_styles'] ) ) );
 }
 
 function get_current_screen() {
-	return new class() {
-		public function is_block_editor() {
-			return $GLOBALS['bfa_test_is_block_editor'];
-		}
-	};
+	return $GLOBALS['bfa_test_has_current_screen'] ? new BFA_Test_Current_Screen() : null;
 }
 
 function get_transient( $key ) {
