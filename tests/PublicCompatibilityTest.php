@@ -5,7 +5,7 @@ require_once __DIR__ . '/BfalTestCase.php';
 class PublicCompatibilityTest extends BfalTestCase {
 	public function test_public_constants_are_preserved() {
 		$this->assertSame( 'bfa', Better_Font_Awesome_Library::SLUG );
-		$this->assertSame( '2.0.3', Better_Font_Awesome_Library::VERSION );
+		$this->assertSame( '2.1.0-rc.1', Better_Font_Awesome_Library::VERSION );
 		$this->assertSame( 'https://api.fontawesome.com', Better_Font_Awesome_Library::FONT_AWESOME_API_BASE_URL );
 		$this->assertSame( 'https://use.fontawesome.com/releases', Better_Font_Awesome_Library::FONT_AWESOME_CDN_BASE_URL );
 		$this->assertSame( 'inc/fallback-release-data.json', Better_Font_Awesome_Library::FALLBACK_RELEASE_DATA_PATH );
