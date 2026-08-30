@@ -1,6 +1,7 @@
 .codex export-ignore
 .context export-ignore
 .github export-ignore
+AGENTS.md export-ignore
 tests export-ignore
 .gitattributes export-ignore
 .gitignore export-ignore
