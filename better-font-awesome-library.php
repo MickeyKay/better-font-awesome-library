@@ -179,13 +179,6 @@ class Better_Font_Awesome_Library {
 	private $release_record = array();
 
 	/**
-	 * Whether the cached release data was resolved from the fallback.
-	 *
-	 * @var bool
-	 */
-	private $release_data_is_fallback = false;
-
-	/**
 	 * Whether a refresh request has been emitted during this request.
 	 *
 	 * @var bool
@@ -491,8 +484,7 @@ class Better_Font_Awesome_Library {
 		// 2. Prefer an explicitly injected, already-resolved local provider.
 		$release_data = $this->get_provider_release_data();
 		if ( ! empty( $release_data ) ) {
-			$this->release_data             = $release_data;
-			$this->release_data_is_fallback = false;
+			$this->release_data = $release_data;
 			return $release_data;
 		}
 
@@ -501,9 +493,8 @@ class Better_Font_Awesome_Library {
 		if ( false !== $transient_value ) {
 			$result = Better_Font_Awesome_Release_Data_Validator::validate_release( $transient_value, 'transient' );
 			if ( $result['valid'] ) {
-				$this->release_record           = $result['record'];
-				$this->release_data             = $result['record']['release'];
-				$this->release_data_is_fallback = false;
+				$this->release_record = $result['record'];
+				$this->release_data   = $result['record']['release'];
 				return $this->release_data;
 			}
 
@@ -511,9 +502,8 @@ class Better_Font_Awesome_Library {
 		}
 
 		// 4. Return validated bundled data immediately and request async refresh.
-		$release_data                   = $this->get_fallback_release_data();
-		$this->release_data             = $release_data;
-		$this->release_data_is_fallback = true;
+		$release_data       = $this->get_fallback_release_data();
+		$this->release_data = $release_data;
 		$this->request_release_data_refresh();
 
 		return $release_data;
@@ -578,80 +568,6 @@ class Better_Font_Awesome_Library {
 		}
 
 		return false;
-	}
-
-	/**
-	 * Register release metadata collaborators after singleton construction.
-	 *
-	 * Only currently empty collaborator slots can be claimed. Repeating the same
-	 * callable identities is a successful no-op. A different existing callable
-	 * causes an atomic conflict without changing any slot. If fallback-derived
-	 * data was already resolved, a successful new claim clears only that request
-	 * cache so the next getter can adopt provider or transient data and request
-	 * asynchronous refresh if fallback remains necessary.
-	 *
-	 * @since 2.1.0
-	 *
-	 * @param array $collaborators Release data provider and/or refresh callback.
-	 * @return true|WP_Error True on success, including an idempotent no-op, or an error.
-	 */
-	public function register_release_data_collaborators( $collaborators ) {
-		$allowed = array(
-			'release_data_provider',
-			'release_data_refresh_callback',
-		);
-
-		if ( ! is_array( $collaborators ) || empty( $collaborators ) || array_diff( array_keys( $collaborators ), $allowed ) ) {
-			return new WP_Error( 'bfa_release_data_collaborators_invalid', 'Release data collaborators must be a nonempty array containing only supported keys.' );
-		}
-
-		foreach ( $collaborators as $key => $collaborator ) {
-			if ( ! is_callable( $collaborator ) ) {
-				$code = 'release_data_provider' === $key
-					? 'bfa_release_data_provider_invalid'
-					: 'bfa_release_data_refresh_callback_invalid';
-
-				return new WP_Error( $code, 'Release data collaborators must be callable.' );
-			}
-		}
-
-		foreach ( $collaborators as $key => $collaborator ) {
-			$current = array_key_exists( $key, $this->args ) ? $this->args[ $key ] : null;
-			if ( null !== $current && $current !== $collaborator ) {
-				$code = 'release_data_provider' === $key
-					? 'bfa_release_data_provider_conflict'
-					: 'bfa_release_data_refresh_callback_conflict';
-
-				return new WP_Error( $code, 'A different release data collaborator already owns this slot.' );
-			}
-		}
-
-		$claimed                  = false;
-		$refresh_callback_claimed = false;
-		foreach ( $collaborators as $key => $collaborator ) {
-			$current = array_key_exists( $key, $this->args ) ? $this->args[ $key ] : null;
-			if ( null === $current ) {
-				$claimed            = true;
-				$this->args[ $key ] = $collaborator;
-				if ( 'release_data_refresh_callback' === $key ) {
-					$refresh_callback_claimed = true;
-				}
-			}
-		}
-
-		if ( $refresh_callback_claimed ) {
-			$this->refresh_requested = false;
-		}
-
-		if ( $claimed && $this->release_data_is_fallback ) {
-			$this->release_data             = array();
-			$this->release_record           = array();
-			$this->formatted_icon_array     = array();
-			$this->release_data_is_fallback = false;
-			$this->refresh_requested        = false;
-		}
-
-		return true;
 	}
 
 	/**
@@ -778,10 +694,9 @@ class Better_Font_Awesome_Library {
 			return $this->get_error( 'api' );
 		}
 
-		$this->release_record           = $result['record'];
-		$this->release_data             = $release_data;
-		$this->release_data_is_fallback = false;
-		$this->formatted_icon_array     = array();
+		$this->release_record       = $result['record'];
+		$this->release_data         = $release_data;
+		$this->formatted_icon_array = array();
 		unset( $this->errors['api'] );
 
 		return $release_data;

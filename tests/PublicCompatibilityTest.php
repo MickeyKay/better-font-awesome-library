@@ -38,7 +38,6 @@ class PublicCompatibilityTest extends BfalTestCase {
 			'get_icons'                        => array( 0, 0 ),
 			'get_release_icons'                => array( 0, 0 ),
 			'get_release_assets'               => array( 0, 0 ),
-			'register_release_data_collaborators' => array( 1, 0 ),
 			'get_prefix'                       => array( 0, 0 ),
 			'get_transient_expiration'         => array( 0, 0 ),
 			'get_errors'                       => array( 0, 0 ),
@@ -53,23 +52,50 @@ class PublicCompatibilityTest extends BfalTestCase {
 	}
 
 	public function test_singleton_keeps_the_first_calls_configuration() {
+		$release               = $this->get_valid_release();
+		$first_provider_calls  = 0;
+		$first_refresh_calls   = 0;
+		$second_provider_calls = 0;
+		$second_refresh_calls  = 0;
 		$first = $this->get_instance(
 			array(
-				'load_styles'    => false,
-				'load_shortcode' => false,
+				'load_styles'                  => false,
+				'load_shortcode'               => false,
+				'release_data_provider'        => function () use ( $release, &$first_provider_calls ) {
+					++$first_provider_calls;
+					return $release;
+				},
+				'release_data_refresh_callback' => function () use ( &$first_refresh_calls ) {
+					++$first_refresh_calls;
+				},
 			)
 		);
 		$action_count = count( $GLOBALS['bfa_test_actions'] );
 
 		$second = Better_Font_Awesome_Library::get_instance(
 			array(
-				'load_styles'    => true,
-				'load_shortcode' => true,
+				'load_styles'                  => true,
+				'load_shortcode'               => true,
+				'release_data_provider'        => function () use ( &$second_provider_calls ) {
+					++$second_provider_calls;
+					return array();
+				},
+				'release_data_refresh_callback' => function () use ( &$second_refresh_calls ) {
+					++$second_refresh_calls;
+				},
 			)
 		);
 
 		$this->assertSame( $first, $second );
 		$this->assertSame( $action_count, count( $GLOBALS['bfa_test_actions'] ) );
+		$this->assertSame( '5.15.4', $first->get_version() );
+		$first->request_release_data_refresh();
+		$this->assertSame( 1, $first_provider_calls );
+		$this->assertSame( 1, $first_refresh_calls );
+		$this->assertSame( 0, $second_provider_calls );
+		$this->assertSame( 0, $second_refresh_calls );
+		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
+		$this->assertSame( array(), $GLOBALS['bfa_test_transient_writes'] );
 	}
 
 	public function test_established_return_shapes_and_urls_are_preserved() {
