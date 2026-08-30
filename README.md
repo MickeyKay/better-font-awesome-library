@@ -8,6 +8,8 @@ Better Font Awesome Library
 1. [Features](https://github.com/MickeyKay/better-font-awesome-library#features)
 1. [Installation](https://github.com/MickeyKay/better-font-awesome-library#installation)
 1. [Usage](https://github.com/MickeyKay/better-font-awesome-library#usage)
+1. [Metadata lifecycle](https://github.com/MickeyKay/better-font-awesome-library#metadata-lifecycle)
+1. [Compatibility notes](https://github.com/MickeyKay/better-font-awesome-library#compatibility-notes)
 1. [Initialization Parameters](https://github.com/MickeyKay/better-font-awesome-library#initialization-parameters-args)
 1. [Shortcode](https://github.com/MickeyKay/better-font-awesome-library#shortcode)
 1. [The Better Font Awesome Library Object](https://github.com/MickeyKay/better-font-awesome-library#the-better-font-awesome-library-object)
@@ -16,15 +18,16 @@ Better Font Awesome Library
 1. [Credits](https://github.com/MickeyKay/better-font-awesome-library#credits)
 
 ## Introduction ##
-The Better Font Awesome Library allows you to automatically integrate the latest available version of [Font Awesome](http://fontawesome.io/) into your WordPress project, along with accompanying CSS, shortcode, and TinyMCE icon shortcode generator. Furthermore, it generates all the data you need to create new functionality of your own.
+The Better Font Awesome Library integrates validated Font Awesome Free 5.x metadata and version-coupled CDN assets into WordPress projects, along with CSS registration, a shortcode, and a TinyMCE icon shortcode generator. Consumers can supply locally resolved metadata and schedule asynchronous refresh work without making normal requests wait on the Font Awesome service.
 
 ## Features ##
-* Automatically fetches the most recent available version of Font Awesome, meaning you no longer need to manually update the version included in your theme/plugin.
+* Returns validated local metadata immediately from a provider, transient, or bundled fallback.
+* Exposes an explicit, bounded refresh operation for consumer-controlled asynchronous workers.
 * Generates an easy-to-use [PHP object](#the-better-font-awesome-library-object) that contains all relevant info for the version of Font Awesome you're using, including: version, stylesheet URL, array of available icons, and prefix used (`icon` or `fa`).
-* CDN speeds - Font Awesome CSS is pulled from the super-fast and reliable [jsDelivr CDN](http://www.jsdelivr.com/#!fontawesome).
+* Loads exact-version Font Awesome Free 5 CSS and webfonts from the Font Awesome CDN.
 * Includes a TinyMCE drop-down shortcode generator.
-* Includes a local copy of Font Awesome to use as a fallback in case the remote fetch fails (or you can specify your own with the [`bfa_fallback_directory_path`](https://github.com/MickeyKay/better-font-awesome-library#bfa_fallback_directory_path) filter).
-* Utilizes transients to optimize for speed and performance.
+* Includes checksummed Font Awesome Free 5.14.0 metadata as a validated fallback. You can specify validated custom fallback JSON with the `bfa_fallback_release_data_path` filter.
+* Preserves the established `bfa-release-data` transient for backward compatibility.
 
 ## Installation ##
 The Better Font Awesome Library should ideally be installed via Composer:
@@ -63,6 +66,8 @@ add_action( 'init', 'my_prefix_load_bfa' );
       'load_admin_styles'   => true,
       'load_shortcode'      => true,
       'load_tinymce_plugin' => true,
+      'release_data_provider' => null,
+      'release_data_refresh_callback' => null,
     );
 
     // Initialize the Better Font Awesome Library.
@@ -75,8 +80,33 @@ add_action( 'init', 'my_prefix_load_bfa' );
 #### Usage Notes ####
 The Better Font Awesome Library is designed to work in conjunction with the [Better Font Awesome](https://wordpress.org/plugins/better-font-awesome/) WordPress plugin. The plugin initializes this library (with its own initialization args) on the `init` hook, priority `5`. When using the Better Font Awesome Library in your project, you have two options:
 
-1. Initialize later, to ensure that any Better Font Awesome plugin settings override yours (this is the default behavior, shown above by initializing the library on the `init` hook with default priority `10`.
-1. Initialize earlier, to "take over" and prevent Better Font Awesome settings from having an effect.
+1. Initialize later so Better Font Awesome reaches the singleton first. Your later arguments are ignored, and Better Font Awesome owns the configuration. This is the default behavior shown above by initializing on the `init` hook at priority `10`.
+1. Initialize earlier to take ownership. Better Font Awesome's later arguments are ignored and cannot override yours.
+
+This first-caller contract is intentional and applies to every initialization argument, including the release-data provider and refresh callback. Hook priority determines ownership. BFAL does not provide post-construction registration, reset, mutation, or ownership transfer.
+
+## Metadata lifecycle ##
+
+Normal frontend, admin, editor, REST, and cron-triggering requests never call the Font Awesome metadata service synchronously. BFAL resolves release data in this order:
+
+1. The per-request validated value.
+2. An optional `release_data_provider` callable that returns already-resolved local data.
+3. A validated value from the established `bfa-release-data` transient.
+4. The checksummed and validated bundled Font Awesome Free 5.14.0 fallback.
+
+When BFAL reaches the fallback, it invokes `release_data_refresh_callback` once if configured. Otherwise it fires `bfa_release_data_refresh_requested` with the supported channel and library instance. The handler must only schedule work and return promptly. Scheduling, locking, durable last-known-good persistence, retry backoff, jitter, and freshness policy belong to the consumer.
+
+A provider may return a release array or a declared BFAL release record. Declared records must use the exact supported `schema_version`, `channel`, and `edition`, an allowed `source`, and a fully valid nested release. BFAL rejects mismatches rather than discarding or normalizing them.
+
+An asynchronous worker can call `refresh_release_data()`. That explicit operation requests the `5.x` Free channel with TLS verification, no redirects, a timeout of at most five seconds, and a response limit of 2 MiB. It stores the established transient shape only after the entire release record validates. It returns the validated release array on success or a sanitized `WP_Error` on failure.
+
+The Font Awesome API and CDN are external services. Consumers should document when they contact those services and apply the consent, privacy, scheduling, and persistence policy appropriate to their application.
+
+## Compatibility notes ##
+
+`Better_Font_Awesome_Library::get_instance( $args )` retains its established first-call contract. The first caller owns initialization, and arguments passed to later calls are ignored. An earlier plugin or theme can therefore intentionally own BFAL before Better Font Awesome initializes. Better Font Awesome is not guaranteed to override that owner.
+
+This precedence is supported compatibility behavior. BFAL remains safe when another consumer owns it: normal metadata resolution performs no synchronous HTTP, release data is validated before adoption, and validated transient or bundled fallback data remains available. A new public ownership API would require a demonstrated interoperability need and explicit repository owner approval.
 
 ## Initialization Parameters ($args) ##
 The following arguments can be used to initialize the library using `Better_Font_Awesome_Library::get_instance( $args )`:
@@ -111,14 +141,22 @@ The following arguments can be used to initialize the library using `Better_Font
 * `true` (default)
 * `false`
 
+#### $args['release_data_provider'] ####
+
+(callable|null) Optional callable that returns an already-resolved release array or BFAL release record. Providers used by normal getters must not perform remote I/O.
+
+#### $args['release_data_refresh_callback'] ####
+
+(callable|null) Optional callback invoked once when BFAL falls back to bundled data. It receives the supported channel and BFAL instance and must schedule asynchronous work rather than perform transport inline.
+
+These metadata collaborators are initialization arguments and therefore follow the same first-caller ownership contract. They cannot be added or replaced through a later `get_instance()` call.
+
 ### Deprecated
 
 #### $args['version'] (2.0.0) ####
-_The library now always defaults to the latest available version of Font Awesome._
+_The library no longer selects a version through this argument. Validated Font Awesome Free 5.x metadata now comes from the configured local provider, compatibility transient, or bundled fallback._
 
-(string) Which version of Font Awesome you want to use.
-* `'latest'` (default) - always use the latest available version.
-* `'3.2.1'` - any existing Font Awesome version number.
+(string) Retained for compatibility. Supplied values are ignored because the validated release record selects the supported 5.x version and its coupled assets.
 
 #### $args['minified'] (2.0.0) ####
 _The library now always defaults to minified CSS._
@@ -176,13 +214,25 @@ The object has the following public methods:
 (array) Returns icon data in the exact format provided by the Font Awesome GraphQL API.
 
 #### get_release_assets() ####
-(array) Returns icon asset (CSS/JS) data for the latest Font Awesome version.
+(array) Returns validated Free release asset data for the selected Font Awesome version.
+
+#### get_release_record() ####
+(array) Returns the validated internal record with `schema_version`, `channel`, `edition`, `source`, and the compatibility-preserving `release` array.
+
+#### get_release_channel() ####
+(string) Returns the supported Font Awesome channel, currently `5.x`.
+
+#### request_release_data_refresh() ####
+Requests asynchronous refresh scheduling through the configured callback or `bfa_release_data_refresh_requested` action. This method performs no remote transport.
+
+#### refresh_release_data() ####
+(array|WP_Error) Performs one bounded refresh attempt in an explicit worker context. Consumers own locking, retry, and durable persistence policy.
 
 #### get_prefix() ####
 (string) Returns the version-dependent prefix ('fa' or 'icon') that is used in the icons' CSS classes.
 
 #### get_errors() ####
-(array) Returns all library errors, including API and CDN fetch failures.
+(array) Returns sanitized metadata, provider, cache, and fallback errors.
 
 ### Deprecated
 
@@ -223,11 +273,18 @@ Applied to the initialization arguments after they have been parsed with default
 * `$init_args` (array)
 
 #### bfa_wp_remote_get_args ####
-Applied to arguments passed to all `wp_remote_get()` calls (useful for adjusting the timeout if needed).
+Applied to arguments passed to the explicit metadata refresh request. TLS verification, blocking worker transport, no redirects, the maximum timeout, and the maximum response size remain enforced after this filter.
 
 **Parameters**
 
 * `$wp_remote_get_args` (array)
+
+#### bfa_font_awesome_release_channel ####
+Applied to the release channel used by explicit refresh. BFAL currently accepts only `5.x`; unsupported filtered values fail before transport.
+
+**Parameters**
+
+* `$channel` (string)
 
 #### bfa_fallback_release_data_path ####
 Applied to the path for the fallback release data JSON file. Can be used to specify an alternate fallback data file.
@@ -241,10 +298,17 @@ This value controls how often the plugin will check for the latest updated versi
 
 **Parameters**
 
-* `$api_expiration` (int) (default: `WEEK_IN_SECONDS`)
+* `$api_expiration` (int) (default: `DAY_IN_SECONDS`)
 
 #### bfa_icon_list ####
 Applied to the icon array after it has been generated from the Font Awesome stylesheet, and before it is assigned to the Better Font Awesome Library object's `$icons` property.
+
+**Parameters**
+
+* `$icons` (array)
+
+#### bfa_icon_array ####
+Applied to the normalized icon array after the deprecated `bfa_icon_list` filter.
 
 **Parameters**
 
@@ -277,6 +341,11 @@ Applied to the boolean that determines whether or not to suppress all Font Aweso
 **Parameters**
 
 * `$show_errors` (true)
+
+## Actions ##
+
+#### bfa_release_data_refresh_requested ####
+Fires once per BFAL request when no valid provider or transient value is available and bundled fallback data is selected. Handlers receive the `5.x` channel and BFAL instance. Handlers must schedule asynchronous work and return promptly.
 
 ### Deprecated
 

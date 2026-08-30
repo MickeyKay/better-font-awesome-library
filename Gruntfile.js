@@ -16,7 +16,8 @@ module.exports = function( grunt ) {
 			fontawesome: {
 				cwd: 'node_modules/',
 				src:  [
-					'fontawesome-iconpicker/dist/**'
+					'fontawesome-iconpicker/dist/**',
+					'fontawesome-iconpicker/LICENSE'
 				],
 				dest: 'lib/',
 				expand: true,
@@ -30,5 +31,4 @@ module.exports = function( grunt ) {
 
 	grunt.util.linefeed = '\n';
 };
-
 

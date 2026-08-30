@@ -1,0 +1,17 @@
+.codex export-ignore
+.context export-ignore
+.github export-ignore
+AGENTS.md export-ignore
+tests export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
+.gitmodules export-ignore
+phpcs.xml.dist export-ignore
+phpstan.neon.dist export-ignore
+phpunit.xml.dist export-ignore
+composer.lock export-ignore
+Gruntfile.js export-ignore
+package.json export-ignore
+package-lock.json export-ignore
+runtime-assets export-ignore
+scripts export-ignore
