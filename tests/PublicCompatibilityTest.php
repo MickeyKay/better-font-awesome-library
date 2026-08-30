@@ -38,6 +38,7 @@ class PublicCompatibilityTest extends BfalTestCase {
 			'get_icons'                        => array( 0, 0 ),
 			'get_release_icons'                => array( 0, 0 ),
 			'get_release_assets'               => array( 0, 0 ),
+			'register_release_data_collaborators' => array( 1, 0 ),
 			'get_prefix'                       => array( 0, 0 ),
 			'get_transient_expiration'         => array( 0, 0 ),
 			'get_errors'                       => array( 0, 0 ),

@@ -9,10 +9,12 @@ Better Font Awesome Library
 1. [Installation](https://github.com/MickeyKay/better-font-awesome-library#installation)
 1. [Usage](https://github.com/MickeyKay/better-font-awesome-library#usage)
 1. [Metadata lifecycle](https://github.com/MickeyKay/better-font-awesome-library#metadata-lifecycle)
+1. [Compatibility notes](https://github.com/MickeyKay/better-font-awesome-library#compatibility-notes)
 1. [Initialization Parameters](https://github.com/MickeyKay/better-font-awesome-library#initialization-parameters-args)
 1. [Shortcode](https://github.com/MickeyKay/better-font-awesome-library#shortcode)
 1. [The Better Font Awesome Library Object](https://github.com/MickeyKay/better-font-awesome-library#the-better-font-awesome-library-object)
 1. [Filters](https://github.com/MickeyKay/better-font-awesome-library#filters)
+1. [Unreleased release notes](https://github.com/MickeyKay/better-font-awesome-library#unreleased-release-notes)
 1. [To Do](https://github.com/MickeyKay/better-font-awesome-library#to-do)
 1. [Credits](https://github.com/MickeyKay/better-font-awesome-library#credits)
 
@@ -82,6 +84,8 @@ The Better Font Awesome Library is designed to work in conjunction with the [Bet
 1. Initialize later, to ensure that any Better Font Awesome plugin settings override yours (this is the default behavior, shown above by initializing the library on the `init` hook with default priority `10`.
 1. Initialize earlier, to "take over" and prevent Better Font Awesome settings from having an effect.
 
+Those priority rules remain the compatibility contract for legacy initialization arguments. A metadata consumer that encounters an accidentally constructed singleton can call `register_release_data_collaborators()` to claim collaborator slots that are still empty. Registration never replaces a different collaborator deliberately installed by the first caller.
+
 ## Metadata lifecycle ##
 
 Normal frontend, admin, editor, REST, and cron-triggering requests never call the Font Awesome metadata service synchronously. BFAL resolves release data in this order:
@@ -95,9 +99,19 @@ When BFAL reaches the fallback, it invokes `release_data_refresh_callback` once 
 
 A provider may return a release array or a declared BFAL release record. Declared records must use the exact supported `schema_version`, `channel`, and `edition`, an allowed `source`, and a fully valid nested release. BFAL rejects mismatches rather than discarding or normalizing them.
 
+Metadata collaborators can claim empty slots after the singleton is constructed with `register_release_data_collaborators()`. If another consumer already owns a supplied slot with a different non-null collaborator, registration fails atomically without claiming any other supplied slot. If BFAL already cached bundled fallback data and registration successfully fills at least one empty slot, BFAL clears only that fallback-derived request cache. The next metadata getter can then adopt a valid provider or transient value. If fallback is still needed, a newly claimed refresh callback receives the new scheduling request. Valid provider, transient, or API-derived request data is not discarded.
+
 An asynchronous worker can call `refresh_release_data()`. That explicit operation requests the `5.x` Free channel with TLS verification, no redirects, a timeout of at most five seconds, and a response limit of 2 MiB. It stores the established transient shape only after the entire release record validates. It returns the validated release array on success or a sanitized `WP_Error` on failure.
 
 The Font Awesome API and CDN are external services. Consumers should document when they contact those services and apply the consent, privacy, scheduling, and persistence policy appropriate to their application.
+
+## Compatibility notes ##
+
+`Better_Font_Awesome_Library::get_instance( $args )` retains its established first-call contract. Arguments passed to later `get_instance()` calls are ignored, and BFAL does not reset or reconstruct the singleton.
+
+`register_release_data_collaborators()` is a claim mechanism for the two metadata collaborator slots only. It does not create a last-caller-wins precedence model. It does not reparse initialization arguments, register hooks again, replace a different non-null collaborator, or change any other first-call setting. Registration performs only in-memory validation and assignment. It makes no HTTP request and writes no transient, option, cron event, or other persistent state.
+
+When registration successfully claims an empty slot after fallback resolution, only fallback-derived in-memory data is reopened for resolution. Invalid, conflicting, and identical registrations do not reopen it. Valid non-fallback data remains stable for the rest of the request. A new WordPress request constructs a new BFAL singleton as usual.
 
 ## Initialization Parameters ($args) ##
 The following arguments can be used to initialize the library using `Better_Font_Awesome_Library::get_instance( $args )`:
@@ -139,6 +153,8 @@ The following arguments can be used to initialize the library using `Better_Font
 #### $args['release_data_refresh_callback'] ####
 
 (callable|null) Optional callback invoked once when BFAL falls back to bundled data. It receives the supported channel and BFAL instance and must schedule asynchronous work rather than perform transport inline.
+
+The two metadata initialization arguments still follow `get_instance()` first-call semantics. Consumers that cannot guarantee they are the first caller may pass them to `register_release_data_collaborators()` after obtaining the singleton, but only while the corresponding slots remain unclaimed.
 
 ### Deprecated
 
@@ -210,6 +226,17 @@ The object has the following public methods:
 
 #### get_release_channel() ####
 (string) Returns the supported Font Awesome channel, currently `5.x`.
+
+#### register_release_data_collaborators( $collaborators ) ####
+
+(true|WP_Error) Claims currently empty metadata collaborator slots after singleton construction. `$collaborators` must be a nonempty array containing one or both supported keys:
+
+* `release_data_provider` - a callable provider.
+* `release_data_refresh_callback` - a callable scheduler callback.
+
+Only supplied empty slots are claimed. BFAL validates every supplied key and value, then checks every supplied slot for ownership conflicts before applying any change. Unknown keys return `bfa_release_data_collaborators_invalid`; invalid provider and callback values, including `null`, return `bfa_release_data_provider_invalid` and `bfa_release_data_refresh_callback_invalid` respectively. This method does not remove collaborators.
+
+Repeating the exact same callable instances is a successful idempotent no-op. If a supplied slot already contains a different non-null collaborator, BFAL returns `bfa_release_data_provider_conflict` or `bfa_release_data_refresh_callback_conflict` and makes no mutation, including to other supplied empty slots. A successful new claim after fallback resolution clears only fallback-derived per-request data. The next metadata getter can adopt valid local data or emit a new asynchronous scheduling request. Valid already-resolved non-fallback data is retained. Registration itself performs no HTTP request or persistent write.
 
 #### request_release_data_refresh() ####
 Requests asynchronous refresh scheduling through the configured callback or `bfa_release_data_refresh_requested` action. This method performs no remote transport.
@@ -383,6 +410,15 @@ Applied to the Font Awesome prefix ('fa' or 'icon') before it is assigned to the
 **Parameters**
 
 * `$prefix` (string)
+
+## Unreleased release notes ##
+
+* Adds `register_release_data_collaborators( $collaborators )` so reusable-library consumers can claim empty local-provider and asynchronous-refresh slots after another plugin or theme has merely constructed the singleton.
+* Preserves the legacy `get_instance()` first-call ownership contract by rejecting attempts to replace different non-null collaborators.
+* Rejects collaborator removal through registration and prevents mixed ownership when any supplied slot conflicts.
+* Reopens only fallback-derived request data after a successful new claim, allowing a valid durable provider value to supersede bundled fallback metadata without discarding valid provider, transient, or API-derived data.
+* Adds atomic validation, stable invalid-input and conflict errors, exact-callable idempotence, and no-HTTP regression coverage for the post-construction path.
+* Does not change the public BFAL version constant or publish a release.
 
 ## To Do ##
 Ideas? File an issue or add a pull request!
