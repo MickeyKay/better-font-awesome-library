@@ -7,6 +7,8 @@ Better Font Awesome Library
 1. [Introduction](https://github.com/MickeyKay/better-font-awesome-library#introduction)
 1. [Features](https://github.com/MickeyKay/better-font-awesome-library#features)
 1. [Installation](https://github.com/MickeyKay/better-font-awesome-library#installation)
+1. [Release candidate and rollback](https://github.com/MickeyKay/better-font-awesome-library#release-candidate-and-rollback)
+1. [Changelog](https://github.com/MickeyKay/better-font-awesome-library/blob/master/CHANGELOG.md)
 1. [Usage](https://github.com/MickeyKay/better-font-awesome-library#usage)
 1. [Metadata lifecycle](https://github.com/MickeyKay/better-font-awesome-library#metadata-lifecycle)
 1. [Compatibility notes](https://github.com/MickeyKay/better-font-awesome-library#compatibility-notes)
@@ -41,6 +43,22 @@ git clone https://github.com/MickeyKay/better-font-awesome-library.git
 cd better-font-awesome-library
 npm run build
 ```
+
+## Release candidate and rollback ##
+
+After the `2.1.0-rc.1` tag is published, Composer users can test this exact candidate with an explicit stability-qualified constraint:
+
+```
+composer require mickey-kay/better-font-awesome-library:2.1.0-rc.1
+```
+
+To roll back, restore the last stable BFAL release and redeploy the resulting lockfile:
+
+```
+composer require mickey-kay/better-font-awesome-library:2.0.3 --with-all-dependencies
+```
+
+BFAL follows versions published from repository tags. The release candidate does not change the first-caller singleton ownership contract or introduce a post-construction registration API.
 
 ## Usage ##
 1. Copy the /better-font-awesome-library folder into your project.

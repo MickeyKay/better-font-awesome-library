@@ -13,5 +13,6 @@ composer.lock export-ignore
 Gruntfile.js export-ignore
 package.json export-ignore
 package-lock.json export-ignore
+RELEASING.md export-ignore
 runtime-assets export-ignore
 scripts export-ignore
