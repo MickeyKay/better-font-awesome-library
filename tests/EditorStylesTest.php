@@ -61,6 +61,50 @@ class EditorStylesTest extends BfalTestCase {
 		$this->assertArrayNotHasKey( 'bfa-font-awesome-v4-shim', $GLOBALS['bfa_test_enqueued_styles'] );
 	}
 
+	public function test_picker_receives_parent_document_stylesheet_dependencies_with_v4_shim() {
+		$this->get_instance( array( 'include_v4_shim' => true ) );
+		$GLOBALS['bfa_test_is_block_editor'] = true;
+
+		do_action( 'admin_enqueue_scripts', 'post.php' );
+
+		$this->assertSame(
+			array(
+				array(
+					'id'  => 'bfa-font-awesome-css',
+					'url' => 'https://use.fontawesome.com/releases/v5.15.4/css/all.css',
+				),
+				array(
+					'id'  => 'bfa-font-awesome-v4-shim-css',
+					'url' => 'https://use.fontawesome.com/releases/v5.15.4/css/v4-shims.css',
+				),
+			),
+			$GLOBALS['bfa_test_localized']['bfa-admin']['data']['fa_picker_stylesheets']
+		);
+		$this->assertSame( 'before', $GLOBALS['bfa_test_inline_scripts']['bfa-admin']['position'] );
+		$this->assertTrue( $GLOBALS['bfa_test_localized']['bfa-admin']['data']['is_block_editor'] );
+		$this->assertStringContainsString(
+			'data-bfa-styles-loading',
+			$GLOBALS['bfa_test_inline_scripts']['bfa-admin']['data']
+		);
+	}
+
+	public function test_picker_receives_only_main_parent_document_stylesheet_when_v4_shim_is_disabled() {
+		$this->get_instance( array( 'include_v4_shim' => false ) );
+		$GLOBALS['bfa_test_is_block_editor'] = true;
+
+		do_action( 'admin_enqueue_scripts', 'post.php' );
+
+		$this->assertSame(
+			array(
+				array(
+					'id'  => 'bfa-font-awesome-css',
+					'url' => 'https://use.fontawesome.com/releases/v5.15.4/css/all.css',
+				),
+			),
+			$GLOBALS['bfa_test_localized']['bfa-admin']['data']['fa_picker_stylesheets']
+		);
+	}
+
 	public function test_editor_styles_preserve_existing_entries_and_wordpress_deduplication() {
 		$GLOBALS['bfa_test_editor_styles'][] = 'theme-editor.css';
 		$library = $this->get_instance( array( 'include_v4_shim' => true ) );

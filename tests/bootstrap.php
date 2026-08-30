@@ -41,6 +41,7 @@ function bfa_test_reset_wordpress_state() {
 	$GLOBALS['bfa_test_http_calls']       = 0;
 	$GLOBALS['bfa_test_http_response']    = new WP_Error( 'unexpected_http', 'Unexpected HTTP request.' );
 	$GLOBALS['bfa_test_inline_styles']    = array();
+	$GLOBALS['bfa_test_inline_scripts']   = array();
 	$GLOBALS['bfa_test_has_current_screen'] = true;
 	$GLOBALS['bfa_test_is_block_editor']  = false;
 	$GLOBALS['bfa_test_localized']        = array();
@@ -312,6 +313,10 @@ function wp_enqueue_script( $handle, $src = '', $dependencies = array(), $versio
 
 function wp_add_inline_style( $handle, $css ) {
 	$GLOBALS['bfa_test_inline_styles'][ $handle ] = $css;
+}
+
+function wp_add_inline_script( $handle, $data, $position = 'after' ) {
+	$GLOBALS['bfa_test_inline_scripts'][ $handle ] = compact( 'data', 'position' );
 }
 
 function wp_localize_script( $handle, $name, $data ) {

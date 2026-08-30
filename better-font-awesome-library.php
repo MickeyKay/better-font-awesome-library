@@ -969,14 +969,23 @@ class Better_Font_Awesome_Library {
 	 * @internal
 	 */
 	public function disable_block_editor_font_awesome_css() {
+		if ( $this->is_block_editor_screen() ) {
+			remove_action( 'admin_enqueue_scripts', array( $this, 'register_font_awesome_css' ), 15 );
+		}
+	}
+
+	/**
+	 * Determine whether the current admin screen uses the Block Editor.
+	 *
+	 * @return bool Whether this is a Block Editor screen.
+	 */
+	private function is_block_editor_screen() {
 		if ( ! function_exists( 'get_current_screen' ) ) {
-			return;
+			return false;
 		}
 
 		$screen = get_current_screen();
-		if ( $screen && is_callable( array( $screen, 'is_block_editor' ) ) && $screen->is_block_editor() ) {
-			remove_action( 'admin_enqueue_scripts', array( $this, 'register_font_awesome_css' ), 15 );
-		}
+		return $screen && is_callable( array( $screen, 'is_block_editor' ) ) && $screen->is_block_editor();
 	}
 
 	/**
@@ -1123,12 +1132,147 @@ class Better_Font_Awesome_Library {
 		);
 
 		// Output PHP variables to JS.
+		$picker_stylesheets = array(
+			array(
+				'id'  => self::SLUG . '-font-awesome-css',
+				'url' => $this->get_stylesheet_url(),
+			),
+		);
+		if ( $this->args['include_v4_shim'] ) {
+			$picker_stylesheets[] = array(
+				'id'  => self::SLUG . '-font-awesome-v4-shim-css',
+				'url' => $this->get_stylesheet_url_v4_shim(),
+			);
+		}
+
 		$bfa_vars = array(
-			'fa_prefix'   => $this->get_prefix(),
-			'fa_icons'    => $this->get_icons(),
+			'fa_prefix'             => $this->get_prefix(),
+			'fa_icons'              => $this->get_icons(),
+			'fa_picker_stylesheets' => $picker_stylesheets,
+			'is_block_editor'       => $this->is_block_editor_screen(),
 		);
 		wp_localize_script( self::SLUG . '-admin', 'bfa_vars', $bfa_vars );
+		wp_add_inline_script( self::SLUG . '-admin', $this->get_picker_stylesheet_loader_script(), 'before' );
 
+	}
+
+	/**
+	 * Return the parent-document stylesheet loader used before picker setup.
+	 *
+	 * Loading after the editor canvas is ready keeps the styles out of the Block
+	 * Editor iframe compatibility scan. The interaction guard also covers picker
+	 * markup introduced after the initial document render.
+	 *
+	 * @return string Picker stylesheet loader.
+	 */
+	private function get_picker_stylesheet_loader_script() {
+		return <<<'JS'
+( function() {
+	var pickerPreparationAttempts = 0;
+
+	function findStylesheet( stylesheet ) {
+		return document.getElementById( stylesheet.id );
+	}
+
+	function stylesheetReady( stylesheet ) {
+		var link = findStylesheet( stylesheet );
+		return !! ( link && link.sheet );
+	}
+
+	function loadStylesheet( stylesheet ) {
+		return new Promise( function( resolve, reject ) {
+			var link = findStylesheet( stylesheet );
+			if ( link && link.sheet ) {
+				resolve();
+				return;
+			}
+			if ( ! link ) {
+				link = document.createElement( 'link' );
+				link.id = stylesheet.id;
+				link.rel = 'stylesheet';
+				link.href = stylesheet.url;
+				link.addEventListener( 'load', resolve, { once: true } );
+				link.addEventListener( 'error', reject, { once: true } );
+				document.head.appendChild( link );
+				return;
+			}
+			link.addEventListener( 'load', resolve, { once: true } );
+			link.addEventListener( 'error', reject, { once: true } );
+		} );
+	}
+
+	function loadPickerStylesheets() {
+		var stylesheets = window.bfa_vars.fa_picker_stylesheets || [];
+		return Promise.all( stylesheets.map( loadStylesheet ) );
+	}
+
+	function editorCanvasReady() {
+		var canvas;
+		if ( ! window.bfa_vars.is_block_editor ) {
+			return true;
+		}
+		canvas = document.querySelector( 'iframe[name="editor-canvas"]' );
+		if ( canvas ) {
+			return !! ( canvas.contentDocument && canvas.contentDocument.documentElement.classList.contains( 'block-editor-iframe__html' ) );
+		}
+		return !! document.querySelector( '.block-editor-writing-flow' );
+	}
+
+	function prepareRenderedPickers() {
+		pickerPreparationAttempts++;
+		if ( ! document.querySelector( '.bfa-iconpicker' ) || ! editorCanvasReady() ) {
+			if ( pickerPreparationAttempts < 200 ) {
+				window.setTimeout( prepareRenderedPickers, 50 );
+			}
+			return;
+		}
+		loadPickerStylesheets().catch( function() {} );
+	}
+
+	document.addEventListener( 'mousedown', function( event ) {
+		var picker;
+		var stylesheets;
+		if ( event.bfalPickerStylesReady || ! event.target.closest ) {
+			return;
+		}
+		picker = event.target.closest( '.bfa-iconpicker' );
+		if ( ! picker || ! window.bfa_vars ) {
+			return;
+		}
+		stylesheets = window.bfa_vars.fa_picker_stylesheets || [];
+		if ( stylesheets.every( stylesheetReady ) ) {
+			return;
+		}
+		event.preventDefault();
+		event.stopImmediatePropagation();
+		if ( picker.getAttribute( 'data-bfa-styles-loading' ) ) {
+			return;
+		}
+		picker.setAttribute( 'data-bfa-styles-loading', 'true' );
+		loadPickerStylesheets().then( function() {
+			var component;
+			var replay = new MouseEvent( 'mousedown', { bubbles: true, cancelable: true, view: window } );
+			replay.bfalPickerStylesReady = true;
+			picker.removeAttribute( 'data-bfa-styles-loading' );
+			picker.dispatchEvent( replay );
+			if ( ! picker.classList.contains( 'initialized' ) ) {
+				component = picker.querySelector( '.iconpicker-component' );
+				if ( component ) {
+					component.click();
+				}
+			}
+		}, function() {
+			picker.removeAttribute( 'data-bfa-styles-loading' );
+		} );
+	}, true );
+
+	if ( document.readyState === 'loading' ) {
+		document.addEventListener( 'DOMContentLoaded', prepareRenderedPickers );
+	} else {
+		prepareRenderedPickers();
+	}
+} )();
+JS;
 	}
 
 	/**
