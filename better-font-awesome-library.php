@@ -249,6 +249,20 @@ class Better_Font_Awesome_Library {
 		// Initialize library properties and actions as needed.
 		$this->initialize( $this->args );
 
+		/*
+		 * Keep BFAL's CDN styles in anonymous CORS mode on every normal load.
+		 * This prevents a non-CORS response for the immutable URL from being
+		 * cached before WordPress requests the same URL in an isolated editor.
+		 */
+		add_filter(
+			'style_loader_tag',
+			function ( $html, $handle ) {
+				return $this->add_font_awesome_crossorigin_attribute( $html, $handle );
+			},
+			10,
+			2
+		);
+
 		// Add Font Awesome and/or custom CSS to the editor.
 		$this->add_editor_styles();
 
@@ -285,7 +299,6 @@ class Better_Font_Awesome_Library {
 		 * Use priority 15 to make sure styles/scripts load after other plugins.
 		 */
 		if ( $this->args['load_admin_styles'] || $this->args['load_tinymce_plugin'] ) {
-			add_action( 'admin_enqueue_scripts', array( $this, 'disable_block_editor_font_awesome_css' ), 14 );
 			add_action( 'admin_enqueue_scripts', array( $this, 'register_font_awesome_css' ), 15 );
 		}
 
@@ -960,23 +973,39 @@ class Better_Font_Awesome_Library {
 	}
 
 	/**
-	 * Disable BFAL's automatic Font Awesome enqueue on Block Editor screens.
-	 *
-	 * This is an internal lifecycle callback for the admin enqueue hook, not an
-	 * integration API. Direct calls to register_font_awesome_css() are unchanged.
+	 * Add anonymous CORS mode to BFAL's enqueued Font Awesome stylesheets.
 	 *
 	 * @since  2.1.0
-	 * @internal
+	 *
+	 * @param  string  $html    The stylesheet link tag.
+	 * @param  string  $handle  The stylesheet handle.
+	 * @return string  The filtered stylesheet link tag.
 	 */
-	public function disable_block_editor_font_awesome_css() {
-		if ( ! function_exists( 'get_current_screen' ) ) {
-			return;
+	private function add_font_awesome_crossorigin_attribute( $html, $handle ) {
+		$font_awesome_handles = array(
+			self::SLUG . '-font-awesome'         => self::SLUG . '-font-awesome-css',
+			self::SLUG . '-font-awesome-v4-shim' => self::SLUG . '-font-awesome-v4-shim-css',
+		);
+
+		if ( ! isset( $font_awesome_handles[ $handle ] ) || ! class_exists( 'WP_HTML_Tag_Processor' ) ) {
+			return $html;
 		}
 
-		$screen = get_current_screen();
-		if ( $screen && is_callable( array( $screen, 'is_block_editor' ) ) && $screen->is_block_editor() ) {
-			remove_action( 'admin_enqueue_scripts', array( $this, 'register_font_awesome_css' ), 15 );
+		$processor   = new WP_HTML_Tag_Processor( $html );
+		$expected_id = $font_awesome_handles[ $handle ];
+		while ( $processor->next_tag( array( 'tag_name' => 'LINK' ) ) ) {
+			if ( $expected_id !== $processor->get_attribute( 'id' ) ) {
+				continue;
+			}
+
+			if ( ! $processor->set_attribute( 'crossorigin', 'anonymous' ) ) {
+				return $html;
+			}
+
+			return $processor->get_updated_html();
 		}
+
+		return $html;
 	}
 
 	/**
