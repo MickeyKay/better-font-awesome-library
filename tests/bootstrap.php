@@ -22,6 +22,52 @@ class WP_Error {
 	}
 }
 
+class WP_HTML_Tag_Processor {
+	private $html;
+	private $link_offset;
+	private $link_length;
+	private $link_tag;
+
+	public function __construct( $html ) {
+		$this->html = $html;
+	}
+
+	public function next_tag( $query = null ) {
+		if ( is_array( $query ) && isset( $query['tag_name'] ) && 'LINK' !== strtoupper( $query['tag_name'] ) ) {
+			return false;
+		}
+
+		if ( ! preg_match( '/<link(?:\s[^<>]*)?\s*\/?>/i', $this->html, $matches, PREG_OFFSET_CAPTURE ) ) {
+			return false;
+		}
+
+		$this->link_tag    = $matches[0][0];
+		$this->link_offset = $matches[0][1];
+		$this->link_length = strlen( $matches[0][0] );
+		return true;
+	}
+
+	public function set_attribute( $name, $value ) {
+		if ( null === $this->link_tag ) {
+			return false;
+		}
+
+		$attribute = $name . '="' . $value . '"';
+		$pattern   = '/(?<=\s)' . preg_quote( $name, '/' ) . '(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+))?/i';
+		if ( preg_match( $pattern, $this->link_tag ) ) {
+			$this->link_tag = preg_replace( $pattern, $attribute, $this->link_tag, 1 );
+		} else {
+			$this->link_tag = preg_replace( '/(\s*\/?>)$/', ' ' . $attribute . '$1', $this->link_tag, 1 );
+		}
+
+		return true;
+	}
+
+	public function get_updated_html() {
+		return substr_replace( $this->html, $this->link_tag, $this->link_offset, $this->link_length );
+	}
+}
+
 class BFA_Test_Current_Screen {
 	public function is_block_editor() {
 		return $GLOBALS['bfa_test_is_block_editor'];
@@ -103,6 +149,24 @@ function add_action( $tag, $callback, $priority = 10, $accepted_args = 1 ) {
 		'accepted_args' => $accepted_args,
 	);
 	return true;
+}
+
+function has_filter( $tag, $callback = false ) {
+	if ( empty( $GLOBALS['bfa_test_filter_callbacks'][ $tag ] ) ) {
+		return false;
+	}
+
+	if ( false === $callback ) {
+		return true;
+	}
+
+	foreach ( $GLOBALS['bfa_test_filter_callbacks'][ $tag ] as $registered ) {
+		if ( $registered['callback'] === $callback ) {
+			return $registered['priority'];
+		}
+	}
+
+	return false;
 }
 
 function has_action( $tag, $callback = false ) {

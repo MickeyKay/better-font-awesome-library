@@ -3,14 +3,76 @@
 require_once __DIR__ . '/BfalTestCase.php';
 
 class EditorStylesTest extends BfalTestCase {
-	public function test_automatic_admin_enqueue_skips_block_editor_screens() {
+	public function test_automatic_admin_enqueue_remains_active_on_block_editor_screens() {
 		$this->get_instance( array( 'include_v4_shim' => true ) );
 		$GLOBALS['bfa_test_is_block_editor'] = true;
 
 		do_action( 'admin_enqueue_scripts', 'post.php' );
 
-		$this->assertArrayNotHasKey( 'bfa-font-awesome', $GLOBALS['bfa_test_enqueued_styles'] );
-		$this->assertArrayNotHasKey( 'bfa-font-awesome-v4-shim', $GLOBALS['bfa_test_enqueued_styles'] );
+		$this->assertArrayHasKey( 'bfa-font-awesome', $GLOBALS['bfa_test_enqueued_styles'] );
+		$this->assertArrayHasKey( 'bfa-font-awesome-v4-shim', $GLOBALS['bfa_test_enqueued_styles'] );
+	}
+
+	public function test_font_awesome_stylesheet_tags_use_anonymous_cors() {
+		$this->get_instance();
+		$main = '<link rel="stylesheet" id="bfa-font-awesome-css" href="https://use.fontawesome.com/all.css" media="all" />';
+		$shim = '<link rel="stylesheet" id="bfa-font-awesome-v4-shim-css" href="https://use.fontawesome.com/v4-shims.css" media="all" />';
+
+		$this->assertSame( 1, substr_count( apply_filters( 'style_loader_tag', $main, 'bfa-font-awesome' ), 'crossorigin="anonymous"' ) );
+		$this->assertSame( 1, substr_count( apply_filters( 'style_loader_tag', $shim, 'bfa-font-awesome-v4-shim' ), 'crossorigin="anonymous"' ) );
+	}
+
+	public function test_unrelated_stylesheet_tag_is_byte_for_byte_unchanged() {
+		$this->get_instance();
+		$tag = "<link data-example='one' rel=\"stylesheet\" href=\"theme.css\" />\n";
+
+		$this->assertSame( $tag, apply_filters( 'style_loader_tag', $tag, 'theme-style' ) );
+	}
+
+	public function test_existing_anonymous_cors_attribute_is_idempotent() {
+		$this->get_instance();
+		$tag  = '<link rel="stylesheet" crossorigin="anonymous" href="all.css" />';
+		$once = apply_filters( 'style_loader_tag', $tag, 'bfa-font-awesome' );
+
+		$this->assertSame( 1, substr_count( $once, 'crossorigin="anonymous"' ) );
+		$this->assertSame( $once, apply_filters( 'style_loader_tag', $once, 'bfa-font-awesome' ) );
+	}
+
+	public function test_other_cors_value_is_normalized_without_changing_other_attributes() {
+		$this->get_instance();
+		$tag = '<link data-before="kept" crossorigin="use-credentials" rel="stylesheet" href="all.css" data-after="also-kept">';
+
+		$this->assertSame(
+			'<link data-before="kept" crossorigin="anonymous" rel="stylesheet" href="all.css" data-after="also-kept">',
+			apply_filters( 'style_loader_tag', $tag, 'bfa-font-awesome' )
+		);
+	}
+
+	/**
+	 * @dataProvider unexpected_stylesheet_markup_provider
+	 */
+	public function test_unexpected_markup_fails_safely( $markup ) {
+		$this->get_instance();
+
+		$this->assertSame( $markup, apply_filters( 'style_loader_tag', $markup, 'bfa-font-awesome' ) );
+	}
+
+	public function unexpected_stylesheet_markup_provider() {
+		return array(
+			'empty'          => array( '' ),
+			'plain text'     => array( 'not a link tag' ),
+			'incomplete tag' => array( '<link rel="stylesheet"' ),
+			'other tag'      => array( '<style>.fa { display: block; }</style>' ),
+		);
+	}
+
+	public function test_cors_filter_is_registered_once_at_priority_ten_for_two_arguments() {
+		$this->get_instance();
+
+		$this->assertTrue( has_filter( 'style_loader_tag' ) );
+		$this->assertCount( 1, $GLOBALS['bfa_test_filter_callbacks']['style_loader_tag'] );
+		$this->assertSame( 10, $GLOBALS['bfa_test_filter_callbacks']['style_loader_tag'][0]['priority'] );
+		$this->assertSame( 2, $GLOBALS['bfa_test_filter_callbacks']['style_loader_tag'][0]['accepted_args'] );
 	}
 
 	public function test_direct_registration_remains_available_on_block_editor_screens() {
