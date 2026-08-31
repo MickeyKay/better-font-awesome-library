@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.1.0
+
+- Promoted the accepted 2.1.0-rc.2 implementation to stable with validated live Font Awesome Free 5.x metadata and no metadata HTTP on ordinary frontend, admin, editor, REST, or other request paths.
+- Preserved BFAL's asynchronous refresh contract and WordPress-owned orchestration in the Better Font Awesome consumer, including durable last-known-good storage, retry, locking, migration, and multisite behavior. BFAL retains its checksummed bundled fallback.
+- Preserved normal static Font Awesome stylesheet registration with anonymous CORS mode on BFAL's exact main and optional v4 shim handles. Block Editor, Classic Editor, hybrid `wp_editor()` screens, the TinyMCE picker, frontend rendering, and v4 compatibility remain supported.
+- Kept the validated provider contract, first-caller singleton ownership, live Font Awesome CDN architecture, PHP 7.4 compatibility, and public API unchanged from rc.2.
+- Recorded manual release-candidate acceptance of Better Font Awesome PR #52 at commit `3351b5e4c02aaf1694bdb7638cc663f398a5c7a4`. The accepted BFA candidate ZIP SHA-256 is `41e37852f70d1ee5d00cf3260a7da45e950f89755ee184e97a1a50a270333e15`.
+
+To install the stable release after its tag is published:
+
+```console
+composer require mickey-kay/better-font-awesome-library:2.1.0
+```
+
+To roll back to the previous stable release:
+
+```console
+composer require mickey-kay/better-font-awesome-library:2.0.3 --with-all-dependencies
+```
+
 ## 2.1.0-rc.2
 
 - Restored BFAL's normal static Font Awesome enqueue in the parent document, including WordPress 7.1 Block Editor screens that also contain traditional `wp_editor()` instances.

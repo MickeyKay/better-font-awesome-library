@@ -7,7 +7,7 @@ Better Font Awesome Library
 1. [Introduction](https://github.com/MickeyKay/better-font-awesome-library#introduction)
 1. [Features](https://github.com/MickeyKay/better-font-awesome-library#features)
 1. [Installation](https://github.com/MickeyKay/better-font-awesome-library#installation)
-1. [Release candidate and rollback](https://github.com/MickeyKay/better-font-awesome-library#release-candidate-and-rollback)
+1. [Stable release and rollback](https://github.com/MickeyKay/better-font-awesome-library#stable-release-and-rollback)
 1. [Changelog](https://github.com/MickeyKay/better-font-awesome-library/blob/master/CHANGELOG.md)
 1. [Usage](https://github.com/MickeyKay/better-font-awesome-library#usage)
 1. [Metadata lifecycle](https://github.com/MickeyKay/better-font-awesome-library#metadata-lifecycle)
@@ -34,7 +34,7 @@ The Better Font Awesome Library integrates validated Font Awesome Free 5.x metad
 ## Installation ##
 The Better Font Awesome Library should ideally be installed via Composer:
 ```
-composer require mickey-kay/better-font-awesome-library
+composer require mickey-kay/better-font-awesome-library:2.1.0
 ```
 
 Alternately, you can install the library manually, which can be useful for development and/or custom builds:
@@ -44,17 +44,19 @@ cd better-font-awesome-library
 npm run build
 ```
 
-## Release candidate and rollback ##
+## Stable release and rollback ##
 
-After the `2.1.0-rc.2` tag is published, Composer users can test this exact candidate with an explicit stability-qualified constraint:
+After the `2.1.0` tag is published, Composer users can install the exact stable release with:
 
 ```
-composer require mickey-kay/better-font-awesome-library:2.1.0-rc.2
+composer require mickey-kay/better-font-awesome-library:2.1.0
 ```
 
-The rc.2 candidate restores BFAL's normal static Font Awesome enqueue in the parent document and adds anonymous CORS mode only to BFAL's exact main and optional v4 shim stylesheet links. This fixes WordPress 7.1 Block Editor screens that also contain traditional `wp_editor()` instances while preserving picker glyphs, TinyMCE styling, frontend CSS, and the validated live Font Awesome Free 5.x metadata architecture. It supersedes the rc.1 Block Editor suppression behavior and contains no delayed JavaScript loader or CDN change.
+BFAL 2.1.0 provides validated live Font Awesome Free 5.x metadata with no metadata HTTP on ordinary requests. It supports consumer-controlled asynchronous refresh orchestration, durable last-known-good data in the Better Font Awesome consumer, and a checksummed bundled fallback. The accepted BFA integration supplies WordPress-owned scheduling, retry, locking, migration, and multisite behavior.
 
-The runtime version change makes WordPress request `?ver=2.1.0-rc.2`. The correction must not be republished as rc.1 because browsers may retain incompatible one-year rc.1 stylesheet responses without the required CORS headers.
+Normal static Font Awesome stylesheet registration uses anonymous CORS mode on BFAL's exact main and optional v4 shim handles. This preserves Block Editor, Classic Editor, hybrid `wp_editor()` screens, TinyMCE picker, frontend, and v4 compatibility behavior. The runtime version makes WordPress request `?ver=2.1.0` for those handles.
+
+Better Font Awesome PR #52 passed manual release-candidate acceptance at exact BFA commit `3351b5e4c02aaf1694bdb7638cc663f398a5c7a4`. The accepted BFA candidate ZIP SHA-256 is `41e37852f70d1ee5d00cf3260a7da45e950f89755ee184e97a1a50a270333e15`.
 
 To roll back, restore the last stable BFAL release and redeploy the resulting lockfile:
 
@@ -62,7 +64,7 @@ To roll back, restore the last stable BFAL release and redeploy the resulting lo
 composer require mickey-kay/better-font-awesome-library:2.0.3 --with-all-dependencies
 ```
 
-BFAL follows versions published from repository tags. The release candidate does not change the first-caller singleton ownership contract, introduce a post-construction registration API, or alter metadata transport, validation, caching, fallback, or ownership behavior.
+BFAL follows versions published from repository tags. The stable release does not change the first-caller singleton ownership contract, introduce a post-construction registration API, or alter metadata transport, validation, caching, fallback, or ownership behavior from the accepted rc.2 implementation.
 
 ## Usage ##
 1. Copy the /better-font-awesome-library folder into your project.
