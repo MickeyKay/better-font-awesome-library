@@ -983,24 +983,29 @@ class Better_Font_Awesome_Library {
 	 */
 	private function add_font_awesome_crossorigin_attribute( $html, $handle ) {
 		$font_awesome_handles = array(
-			self::SLUG . '-font-awesome',
-			self::SLUG . '-font-awesome-v4-shim',
+			self::SLUG . '-font-awesome'         => self::SLUG . '-font-awesome-css',
+			self::SLUG . '-font-awesome-v4-shim' => self::SLUG . '-font-awesome-v4-shim-css',
 		);
 
-		if ( ! in_array( $handle, $font_awesome_handles, true ) || ! class_exists( 'WP_HTML_Tag_Processor' ) ) {
+		if ( ! isset( $font_awesome_handles[ $handle ] ) || ! class_exists( 'WP_HTML_Tag_Processor' ) ) {
 			return $html;
 		}
 
-		$processor = new WP_HTML_Tag_Processor( $html );
-		if ( ! $processor->next_tag( array( 'tag_name' => 'LINK' ) ) ) {
-			return $html;
+		$processor   = new WP_HTML_Tag_Processor( $html );
+		$expected_id = $font_awesome_handles[ $handle ];
+		while ( $processor->next_tag( array( 'tag_name' => 'LINK' ) ) ) {
+			if ( $expected_id !== $processor->get_attribute( 'id' ) ) {
+				continue;
+			}
+
+			if ( ! $processor->set_attribute( 'crossorigin', 'anonymous' ) ) {
+				return $html;
+			}
+
+			return $processor->get_updated_html();
 		}
 
-		if ( ! $processor->set_attribute( 'crossorigin', 'anonymous' ) ) {
-			return $html;
-		}
-
-		return $processor->get_updated_html();
+		return $html;
 	}
 
 	/**

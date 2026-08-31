@@ -29,9 +29,66 @@ class EditorStylesTest extends BfalTestCase {
 		$this->assertSame( $tag, apply_filters( 'style_loader_tag', $tag, 'theme-style' ) );
 	}
 
+	public function test_preceding_preload_link_is_unchanged_and_main_stylesheet_is_targeted() {
+		$this->get_instance();
+		$preload = '<link rel="preload" href="https://optimizer.test/font.css" as="font">' . "\n";
+		$main    = '<link rel="stylesheet" id="bfa-font-awesome-css" href="https://use.fontawesome.com/all.css">';
+
+		$this->assertSame(
+			$preload . '<link rel="stylesheet" id="bfa-font-awesome-css" href="https://use.fontawesome.com/all.css" crossorigin="anonymous">',
+			apply_filters( 'style_loader_tag', $preload . $main, 'bfa-font-awesome' )
+		);
+	}
+
+	public function test_preceding_stylesheet_link_is_unchanged_and_main_stylesheet_is_targeted() {
+		$this->get_instance();
+		$theme = '<link data-optimizer="kept" rel="stylesheet" id="theme-css" href="theme.css">' . "\n";
+		$main  = '<link rel="stylesheet" id="bfa-font-awesome-css" href="https://use.fontawesome.com/all.css">';
+
+		$this->assertSame(
+			$theme . '<link rel="stylesheet" id="bfa-font-awesome-css" href="https://use.fontawesome.com/all.css" crossorigin="anonymous">',
+			apply_filters( 'style_loader_tag', $theme . $main, 'bfa-font-awesome' )
+		);
+	}
+
+	public function test_following_link_is_unchanged_when_main_stylesheet_is_targeted() {
+		$this->get_instance();
+		$main      = '<link rel="stylesheet" id="bfa-font-awesome-css" href="https://use.fontawesome.com/all.css">';
+		$following = "\n" . '<link rel="stylesheet" id="theme-css" href="theme.css" data-after="kept">';
+
+		$this->assertSame(
+			'<link rel="stylesheet" id="bfa-font-awesome-css" href="https://use.fontawesome.com/all.css" crossorigin="anonymous">' . $following,
+			apply_filters( 'style_loader_tag', $main . $following, 'bfa-font-awesome' )
+		);
+	}
+
+	public function test_only_exact_expected_id_is_changed_among_multiple_links() {
+		$this->get_instance();
+		$input = '<link rel="preload" id="optimizer-preload" href="preload.css">' . "\n"
+			. '<link rel="stylesheet" id="bfa-font-awesome-css-copy" crossorigin="use-credentials" href="copy.css">' . "\n"
+			. '<link rel="stylesheet" id="bfa-font-awesome-css" crossorigin="use-credentials" href="all.css">' . "\n"
+			. '<link rel="stylesheet" id="theme-css" href="theme.css">';
+		$expected = '<link rel="preload" id="optimizer-preload" href="preload.css">' . "\n"
+			. '<link rel="stylesheet" id="bfa-font-awesome-css-copy" crossorigin="use-credentials" href="copy.css">' . "\n"
+			. '<link rel="stylesheet" id="bfa-font-awesome-css" crossorigin="anonymous" href="all.css">' . "\n"
+			. '<link rel="stylesheet" id="theme-css" href="theme.css">';
+
+		$this->assertSame( $expected, apply_filters( 'style_loader_tag', $input, 'bfa-font-awesome' ) );
+	}
+
+	public function test_allowed_handle_without_expected_id_returns_complete_markup_unchanged() {
+		$this->get_instance();
+		$input = '<link rel="preload" id="optimizer-preload" href="preload.css">' . "\n"
+			. '<link rel="stylesheet" id="different-css" href="all.css">' . "\n"
+			. '<link rel="stylesheet" id="theme-css" href="theme.css">';
+
+		$this->assertSame( $input, apply_filters( 'style_loader_tag', $input, 'bfa-font-awesome' ) );
+		$this->assertSame( $input, apply_filters( 'style_loader_tag', $input, 'bfa-font-awesome-v4-shim' ) );
+	}
+
 	public function test_existing_anonymous_cors_attribute_is_idempotent() {
 		$this->get_instance();
-		$tag  = '<link rel="stylesheet" crossorigin="anonymous" href="all.css" />';
+		$tag  = '<link rel="stylesheet" id="bfa-font-awesome-css" crossorigin="anonymous" href="all.css" />';
 		$once = apply_filters( 'style_loader_tag', $tag, 'bfa-font-awesome' );
 
 		$this->assertSame( 1, substr_count( $once, 'crossorigin="anonymous"' ) );
@@ -40,12 +97,24 @@ class EditorStylesTest extends BfalTestCase {
 
 	public function test_other_cors_value_is_normalized_without_changing_other_attributes() {
 		$this->get_instance();
-		$tag = '<link data-before="kept" crossorigin="use-credentials" rel="stylesheet" href="all.css" data-after="also-kept">';
+		$tag = '<link data-before="kept" id="bfa-font-awesome-css" crossorigin="use-credentials" rel="stylesheet" href="all.css" data-after="also-kept">';
 
 		$this->assertSame(
-			'<link data-before="kept" crossorigin="anonymous" rel="stylesheet" href="all.css" data-after="also-kept">',
+			'<link data-before="kept" id="bfa-font-awesome-css" crossorigin="anonymous" rel="stylesheet" href="all.css" data-after="also-kept">',
 			apply_filters( 'style_loader_tag', $tag, 'bfa-font-awesome' )
 		);
+	}
+
+	public function test_v4_shim_exact_target_normalizes_and_remains_idempotent() {
+		$this->get_instance();
+		$tag  = '<link id="bfa-font-awesome-v4-shim-css" rel="stylesheet" crossorigin="use-credentials" href="v4-shims.css">';
+		$once = apply_filters( 'style_loader_tag', $tag, 'bfa-font-awesome-v4-shim' );
+
+		$this->assertSame(
+			'<link id="bfa-font-awesome-v4-shim-css" rel="stylesheet" crossorigin="anonymous" href="v4-shims.css">',
+			$once
+		);
+		$this->assertSame( $once, apply_filters( 'style_loader_tag', $once, 'bfa-font-awesome-v4-shim' ) );
 	}
 
 	/**

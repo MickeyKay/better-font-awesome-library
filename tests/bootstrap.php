@@ -24,6 +24,7 @@ class WP_Error {
 
 class WP_HTML_Tag_Processor {
 	private $html;
+	private $cursor = 0;
 	private $link_offset;
 	private $link_length;
 	private $link_tag;
@@ -37,13 +38,33 @@ class WP_HTML_Tag_Processor {
 			return false;
 		}
 
-		if ( ! preg_match( '/<link(?:\s[^<>]*)?\s*\/?>/i', $this->html, $matches, PREG_OFFSET_CAPTURE ) ) {
+		if ( ! preg_match( '/<link(?:\s[^<>]*)?\s*\/?>/i', $this->html, $matches, PREG_OFFSET_CAPTURE, $this->cursor ) ) {
 			return false;
 		}
 
 		$this->link_tag    = $matches[0][0];
 		$this->link_offset = $matches[0][1];
 		$this->link_length = strlen( $matches[0][0] );
+		$this->cursor      = $this->link_offset + $this->link_length;
+		return true;
+	}
+
+	public function get_attribute( $name ) {
+		if ( null === $this->link_tag ) {
+			return null;
+		}
+
+		$pattern = '/(?<=\s)' . preg_quote( $name, '/' ) . '(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s>]+)))?/i';
+		if ( ! preg_match( $pattern, $this->link_tag, $matches, PREG_UNMATCHED_AS_NULL ) ) {
+			return null;
+		}
+
+		foreach ( array_slice( $matches, 1 ) as $value ) {
+			if ( null !== $value ) {
+				return html_entity_decode( $value, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+			}
+		}
+
 		return true;
 	}
 
