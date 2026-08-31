@@ -46,11 +46,15 @@ npm run build
 
 ## Release candidate and rollback ##
 
-After the `2.1.0-rc.1` tag is published, Composer users can test this exact candidate with an explicit stability-qualified constraint:
+After the `2.1.0-rc.2` tag is published, Composer users can test this exact candidate with an explicit stability-qualified constraint:
 
 ```
-composer require mickey-kay/better-font-awesome-library:2.1.0-rc.1
+composer require mickey-kay/better-font-awesome-library:2.1.0-rc.2
 ```
+
+The rc.2 candidate restores BFAL's normal static Font Awesome enqueue in the parent document and adds anonymous CORS mode only to BFAL's exact main and optional v4 shim stylesheet links. This fixes WordPress 7.1 Block Editor screens that also contain traditional `wp_editor()` instances while preserving picker glyphs, TinyMCE styling, frontend CSS, and the validated live Font Awesome Free 5.x metadata architecture. It supersedes the rc.1 Block Editor suppression behavior and contains no delayed JavaScript loader or CDN change.
+
+The runtime version change makes WordPress request `?ver=2.1.0-rc.2`. The correction must not be republished as rc.1 because browsers may retain incompatible one-year rc.1 stylesheet responses without the required CORS headers.
 
 To roll back, restore the last stable BFAL release and redeploy the resulting lockfile:
 
@@ -58,7 +62,7 @@ To roll back, restore the last stable BFAL release and redeploy the resulting lo
 composer require mickey-kay/better-font-awesome-library:2.0.3 --with-all-dependencies
 ```
 
-BFAL follows versions published from repository tags. The release candidate does not change the first-caller singleton ownership contract or introduce a post-construction registration API.
+BFAL follows versions published from repository tags. The release candidate does not change the first-caller singleton ownership contract, introduce a post-construction registration API, or alter metadata transport, validation, caching, fallback, or ownership behavior.
 
 ## Usage ##
 1. Copy the /better-font-awesome-library folder into your project.
