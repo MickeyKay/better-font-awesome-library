@@ -47,6 +47,34 @@ class ReleaseDataV2ValidatorTest extends TestCase {
 
 	public function invalid_release_provider() {
 		return array(
+			'version with final line feed' => array(
+				function ( $release ) {
+					$release['version'] .= "\n";
+					return $release;
+				},
+				'bfa_v2_version_invalid',
+			),
+			'canonical ID with final line feed' => array(
+				function ( $release ) {
+					$release['icons'][0]['id'] .= "\n";
+					return $release;
+				},
+				'bfa_v2_icon_invalid',
+			),
+			'alias with final line feed' => array(
+				function ( $release ) {
+					$release['icons'][0]['aliases']['names'][0] .= "\n";
+					return $release;
+				},
+				'bfa_v2_alias_invalid',
+			),
+			'SRI with final line feed' => array(
+				function ( $release ) {
+					$release['srisByLicense']['free'][0]['value'] .= "\n";
+					return $release;
+				},
+				'bfa_v2_asset_integrity_invalid',
+			),
 			'partial icon' => array(
 				function ( $release ) {
 					unset( $release['icons'][0]['label'] );

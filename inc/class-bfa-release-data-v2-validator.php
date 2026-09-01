@@ -90,8 +90,8 @@ if ( ! class_exists( 'Better_Font_Awesome_Release_Data_V2_Validator' ) ) :
 				return self::failure( 'bfa_v2_version_invalid', 'Font Awesome 7 release data has an invalid version.' );
 			}
 
-			if ( ! preg_match( '/^7\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/', $release['version'] ) ) {
-				if ( preg_match( '/^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/', $release['version'] ) ) {
+			if ( ! preg_match( '/^7\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\z/', $release['version'] ) ) {
+				if ( preg_match( '/^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\z/', $release['version'] ) ) {
 					return self::failure( 'bfa_v2_version_unsupported', 'The Font Awesome release is outside the internal 7.x channel.' );
 				}
 
@@ -312,7 +312,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Release_Data_V2_Validator' ) ) :
 		 * @return bool Whether the value is valid.
 		 */
 		private static function is_valid_integrity_value( $value ) {
-			if ( ! preg_match( '/^(sha256|sha384|sha512)-([A-Za-z0-9+\/]+={0,2})$/', $value, $matches ) ) {
+			if ( ! preg_match( '/^(sha256|sha384|sha512)-([A-Za-z0-9+\/]+={0,2})\z/', $value, $matches ) ) {
 				return false;
 			}
 
@@ -353,7 +353,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Release_Data_V2_Validator' ) ) :
 		 * @return bool Whether the name is valid.
 		 */
 		private static function is_valid_name( $name ) {
-			return strlen( $name ) <= 128 && 1 === preg_match( '/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $name );
+			return strlen( $name ) <= 128 && 1 === preg_match( '/^[a-z0-9]+(?:-[a-z0-9]+)*\z/', $name );
 		}
 
 		/**
