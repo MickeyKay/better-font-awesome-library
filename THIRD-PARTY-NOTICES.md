@@ -18,7 +18,7 @@ production audit target even though the root Node dependency is used only by
 the build. CI verifies that the build and audit locks select the same exact
 version before checking the runtime asset source for published advisories.
 
-## Font Awesome Free metadata
+## Font Awesome Free 5 metadata
 
 BFAL bundles Font Awesome Free 5.14.0 release metadata in
 `inc/fallback-release-data.json`. Font Awesome Free uses the following
@@ -30,5 +30,26 @@ licenses by asset category:
 
 License details: https://fontawesome.com/license/free
 
-BFAL bundles metadata only. Browser CSS and webfonts are fetched from the
-Font Awesome Free v5 CDN when consumers enable those existing BFAL features.
+For the active Font Awesome 5 channel, BFAL bundles metadata only. Browser CSS
+and webfonts are fetched from the Font Awesome Free v5 CDN when consumers
+enable those existing BFAL features.
+
+## Font Awesome Free 7.3.1 inactive fallback
+
+BFAL also packages an inactive cold-start and recovery baseline generated from
+the exact official npm release `@fortawesome/fontawesome-free@7.3.1`. Its
+reduced Free metadata, four required minified stylesheets, and four WOFF2
+webfonts are under `inc/font-awesome-7-fallback`.
+
+- Package: `@fortawesome/fontawesome-free@7.3.1`
+- Source: https://registry.npmjs.org/@fortawesome/fontawesome-free/-/fontawesome-free-7.3.1.tgz
+- npm integrity: `sha512-wmglKKPDIkgV3aWlZzWECCPoGIkYCulzBwxG9+w7rc5BGapZ6cPMpoPOT8k36J0Ni7PPX6c/rsoMWfS4d1MUMg==`
+- Icons: CC BY 4.0
+- Fonts: SIL OFL 1.1
+- Code: MIT
+- Bundled license: `inc/font-awesome-7-fallback/LICENSE.txt`
+- Reproducible provenance: `inc/font-awesome-7-fallback/provenance.json`
+
+This baseline is not selected by the production runtime in this release. The
+existing Font Awesome 5 fallback remains active and retains its established
+lowest-precedence behavior.

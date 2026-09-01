@@ -27,6 +27,9 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 require_once __DIR__ . '/inc/class-bfa-release-data-validator.php';
+require_once __DIR__ . '/inc/class-bfa-release-channel.php';
+require_once __DIR__ . '/inc/class-bfa-release-data-v2-validator.php';
+require_once __DIR__ . '/inc/class-bfa-release-data-v2-adapter.php';
 
 if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 class Better_Font_Awesome_Library {

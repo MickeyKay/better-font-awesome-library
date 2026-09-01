@@ -4,6 +4,9 @@
 
     <file>better-font-awesome-library.php</file>
     <file>inc/class-bfa-release-data-validator.php</file>
+    <file>inc/class-bfa-release-channel.php</file>
+    <file>inc/class-bfa-release-data-v2-validator.php</file>
+    <file>inc/class-bfa-release-data-v2-adapter.php</file>
 
     <arg name="extensions" value="php"/>
     <arg name="colors"/>
