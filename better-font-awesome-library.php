@@ -225,6 +225,16 @@ class Better_Font_Awesome_Library {
 	private $release_record = array();
 
 	/**
+	 * Whether BFAL loaded the active record from its own packaged FA7 fallback.
+	 *
+	 * Record source is provenance supplied by the record and is not trusted for
+	 * local asset routing.
+	 *
+	 * @var bool
+	 */
+	private $using_bundled_font_awesome_7_fallback = false;
+
+	/**
 	 * Whether a refresh request has been emitted during this request.
 	 *
 	 * @var bool
@@ -512,6 +522,8 @@ class Better_Font_Awesome_Library {
 			return $this->get_font_awesome_7_fallback_release_data();
 		}
 
+		$this->using_bundled_font_awesome_7_fallback = false;
+
 		// Set fallback directory path.
 		$bundled_release_data_path  = plugin_dir_path( __FILE__ ) . self::FALLBACK_RELEASE_DATA_PATH;
 		$fallback_release_data_path = $bundled_release_data_path;
@@ -554,6 +566,7 @@ class Better_Font_Awesome_Library {
 	 * @return array Valid release data or an empty release shape.
 	 */
 	private function get_font_awesome_7_fallback_release_data() {
+		$this->using_bundled_font_awesome_7_fallback = false;
 		$path   = plugin_dir_path( __FILE__ ) . self::FONT_AWESOME_7_FALLBACK_PATH . 'metadata.json';
 		$result = Better_Font_Awesome_Release_Data_V2_Validator::parse_record_json( $this->get_local_file_contents( $path ) );
 
@@ -563,6 +576,7 @@ class Better_Font_Awesome_Library {
 		}
 
 		$this->release_record = $result['record'];
+		$this->using_bundled_font_awesome_7_fallback = true;
 		return $result['record']['release'];
 	}
 
@@ -596,8 +610,9 @@ class Better_Font_Awesome_Library {
 		if ( false !== $transient_value ) {
 			$result = $this->validate_selected_release_data( $transient_value, 'transient' );
 			if ( $result['valid'] ) {
-				$this->release_record = $result['record'];
-				$this->release_data   = $result['record']['release'];
+				$this->using_bundled_font_awesome_7_fallback = false;
+				$this->release_record                           = $result['record'];
+				$this->release_data                             = $result['record']['release'];
 				return $this->release_data;
 			}
 
@@ -635,7 +650,8 @@ class Better_Font_Awesome_Library {
 			return array();
 		}
 
-		$this->release_record = $result['record'];
+		$this->using_bundled_font_awesome_7_fallback = false;
+		$this->release_record                           = $result['record'];
 		return $result['record']['release'];
 	}
 
@@ -726,7 +742,7 @@ class Better_Font_Awesome_Library {
 			return sprintf( '%s/v%s/%s', self::FONT_AWESOME_CDN_BASE_URL, $version, $path );
 		}
 
-		if ( isset( $this->release_record['source'] ) && 'fallback' === $this->release_record['source'] ) {
+		if ( $this->using_bundled_font_awesome_7_fallback ) {
 			return $this->root_url . self::FONT_AWESOME_7_FALLBACK_PATH . $path;
 		}
 
@@ -851,9 +867,10 @@ class Better_Font_Awesome_Library {
 			return $this->get_error( 'api' );
 		}
 
-		$this->release_record       = $result['record'];
-		$this->release_data         = $release_data;
-		$this->formatted_icon_array = array();
+		$this->using_bundled_font_awesome_7_fallback = false;
+		$this->release_record                           = $result['record'];
+		$this->release_data                             = $release_data;
+		$this->formatted_icon_array                     = array();
 		unset( $this->errors['api'] );
 
 		return $release_data;
@@ -882,11 +899,12 @@ class Better_Font_Awesome_Library {
 			return $this->get_error( 'api' );
 		}
 
-		$this->release_record       = $validated['record'];
-		$this->release_data         = $validated['record']['release'];
-		$this->formatted_icon_array = array();
-		$this->icon_name_map        = array();
-		$this->icon_alias_map       = array();
+		$this->using_bundled_font_awesome_7_fallback = false;
+		$this->release_record                           = $validated['record'];
+		$this->release_data                             = $validated['record']['release'];
+		$this->formatted_icon_array                     = array();
+		$this->icon_name_map                            = array();
+		$this->icon_alias_map                           = array();
 		unset( $this->errors['api'] );
 
 		return $validated['record'];

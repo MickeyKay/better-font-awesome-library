@@ -23,10 +23,17 @@ class FontAwesome7RefreshTest extends BfalTestCase {
 		$this->assertSame( 18, $GLOBALS['bfa_test_http_calls'] );
 		$this->assertSame( array(), $GLOBALS['bfa_test_transient_writes'] );
 		$this->assertSame( array(), $GLOBALS['bfa_test_transients'] );
+		$this->assertSame( $result, $library->get_release_record() );
+		$this->assertSame( $result['release']['srisByLicense']['free'], $library->get_release_assets() );
 		$this->assertSame( '7.3.2', $library->get_version() );
 		$this->assertSame(
 			'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.2/css/all.min.css',
 			$library->get_stylesheet_url()
+		);
+		$tag = '<link rel="stylesheet" id="bfa-font-awesome-css" href="remote.css" />';
+		$this->assertStringContainsString(
+			'integrity="' . $result['release']['srisByLicense']['free'][0]['value'] . '"',
+			apply_filters( 'style_loader_tag', $tag, 'bfa-font-awesome' )
 		);
 	}
 
@@ -37,6 +44,10 @@ class FontAwesome7RefreshTest extends BfalTestCase {
 			return $this->http_response( 200, $this->metadata_body( '7.3.1' ) );
 		};
 		$library = Better_Font_Awesome_Library::get_instance();
+		$this->assertSame(
+			'https://example.test/plugin/inc/font-awesome-7-fallback/css/all.min.css',
+			$library->get_stylesheet_url()
+		);
 
 		$result = $library->refresh_release_data();
 
@@ -44,6 +55,11 @@ class FontAwesome7RefreshTest extends BfalTestCase {
 		$this->assertSame( 'fallback', $result['source'] );
 		$this->assertSame( 1, $GLOBALS['bfa_test_http_calls'] );
 		$this->assertSame( array(), $GLOBALS['bfa_test_transient_writes'] );
+		$this->assertSame(
+			'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css',
+			$library->get_stylesheet_url()
+		);
+		$this->assertSame( $result['release']['srisByLicense']['free'], $library->get_release_assets() );
 	}
 
 	public function test_worker_enforces_exact_request_and_resource_budget_contract() {

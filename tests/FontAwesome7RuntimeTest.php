@@ -104,6 +104,45 @@ class FontAwesome7RuntimeTest extends BfalTestCase {
 		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
 	}
 
+	public function test_provider_fallback_provenance_does_not_select_packaged_assets() {
+		$record = $this->get_schema_two_record( '7.4.0', 'provider-record' );
+		$library = Better_Font_Awesome_Library::get_instance(
+			array(
+				'release_data_provider' => function () use ( $record ) {
+					return $record;
+				},
+			)
+		);
+		$integrity = $record['release']['srisByLicense']['free'][0]['value'];
+		$tag       = '<link rel="stylesheet" id="bfa-font-awesome-css" href="remote.css" />';
+
+		$this->assertSame( 'fallback', $library->get_release_record()['source'] );
+		$this->assertSame( '7.4.0', $library->get_version() );
+		$this->assertSame(
+			'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.4.0/css/all.min.css',
+			$library->get_stylesheet_url()
+		);
+		$this->assertSame( $record['release']['srisByLicense']['free'], $library->get_release_assets() );
+		$this->assertStringContainsString( 'integrity="' . $integrity . '"', apply_filters( 'style_loader_tag', $tag, 'bfa-font-awesome' ) );
+		$this->assertStringNotContainsString( '/font-awesome-7-fallback/', $library->get_stylesheet_url() );
+	}
+
+	public function test_transient_fallback_provenance_does_not_select_packaged_assets() {
+		$record = $this->get_schema_two_record( '7.4.1', 'transient-record' );
+		$GLOBALS['bfa_test_transients']['bfa-release-data'] = $record;
+
+		$library = Better_Font_Awesome_Library::get_instance();
+
+		$this->assertSame( 'fallback', $library->get_release_record()['source'] );
+		$this->assertSame( '7.4.1', $library->get_version() );
+		$this->assertSame(
+			'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.4.1/css/all.min.css',
+			$library->get_stylesheet_url()
+		);
+		$this->assertSame( $record['release']['srisByLicense']['free'], $library->get_release_assets() );
+		$this->assertStringNotContainsString( '/font-awesome-7-fallback/', $library->get_stylesheet_url() );
+	}
+
 	public function test_explicit_five_rejects_a_schema_two_provider_record() {
 		$record = Better_Font_Awesome_Release_Data_V2_Validator::parse_record_json(
 			file_get_contents( dirname( __DIR__ ) . '/inc/font-awesome-7-fallback/metadata.json' )
@@ -229,6 +268,19 @@ class FontAwesome7RuntimeTest extends BfalTestCase {
 			'v4'      => $library->get_stylesheet_url_v4_shim(),
 			'assets'  => $library->get_release_assets(),
 		);
+	}
+
+	private function get_schema_two_record( $version, $seed ) {
+		$record = Better_Font_Awesome_Release_Data_V2_Validator::parse_record_json(
+			file_get_contents( dirname( __DIR__ ) . '/inc/font-awesome-7-fallback/metadata.json' )
+		)['record'];
+		$record['release']['version'] = $version;
+		foreach ( $record['release']['srisByLicense']['free'] as &$asset ) {
+			$asset['value'] = 'sha512-' . base64_encode( hash( 'sha512', $seed . ':' . $asset['path'], true ) );
+		}
+		unset( $asset );
+
+		return $record;
 	}
 
 	private function reset_library_singleton() {
