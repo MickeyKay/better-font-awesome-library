@@ -4,6 +4,21 @@ BFAL versions are published from repository tags and discovered automatically by
 
 ## Prepare and verify
 
+When updating the inactive Font Awesome 7 fallback, select one exact official
+npm version and regenerate it with:
+
+```console
+npm ci
+npm run generate:font-awesome-7-fallback -- 7.3.1
+npm run verify:font-awesome-7-fallback
+git diff --exit-code inc/font-awesome-7-fallback
+```
+
+Run the generation command a second time and require an empty diff to verify
+byte-identical output. The generator verifies the npm registry identity and
+tarball integrity before extracting its fixed allowlist. The `scripts`
+directory and root Node manifests are excluded from production archives.
+
 Set the intended version and start from a clean checkout of its candidate commit:
 
 ```console
@@ -45,7 +60,7 @@ cat "$CHECKSUM_PATH"
 unzip -l "$ARTIFACT_PATH"
 ```
 
-The two archives must be byte-identical. Before publication, manually confirm the archive contains exactly 18 production files under the single `better-font-awesome-library-2.1.0/` root directory. Confirm every required runtime file, the internal version surfaces, and the final SHA-256 checksum. Confirm tests, agent files, development dependencies, build sources, `node_modules`, and `vendor` are absent.
+The two archives must be byte-identical. Before publication, manually confirm the archive contains exactly 34 regular production files under the single `better-font-awesome-library-2.1.0/` root directory, including all 13 files under `inc/font-awesome-7-fallback`. Confirm every required runtime file, the internal version surfaces, and the final SHA-256 checksum. Confirm tests, agent files, development dependencies, build sources, `node_modules`, and `vendor` are absent.
 
 ## Publish
 

@@ -6,6 +6,9 @@ parameters:
     paths:
         - better-font-awesome-library.php
         - inc/class-bfa-release-data-validator.php
+        - inc/class-bfa-release-channel.php
+        - inc/class-bfa-release-data-v2-validator.php
+        - inc/class-bfa-release-data-v2-adapter.php
     treatPhpDocTypesAsCertain: false
     reportUnmatchedIgnoredErrors: true
 

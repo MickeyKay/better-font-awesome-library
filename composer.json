@@ -23,7 +23,7 @@
     "scripts": {
         "test": "phpunit",
         "phpcs": "phpcs",
-        "phpstan": "phpstan analyse --no-progress",
+        "phpstan": "phpstan analyse --no-progress --memory-limit=1G",
         "check": [
             "@test",
             "@phpcs",

@@ -1,0 +1,61 @@
+{
+  "version": "5.15.4",
+  "icons": [
+    {
+      "id": "flag",
+      "label": "Flag",
+      "membership": {
+        "free": [
+          "solid"
+        ]
+      },
+      "styles": [
+        "solid",
+        "regular",
+        "light",
+        "duotone"
+      ]
+    },
+    {
+      "id": "address-book",
+      "label": "Address Book",
+      "membership": {
+        "free": [
+          "solid",
+          "regular"
+        ]
+      },
+      "styles": [
+        "solid",
+        "regular",
+        "light",
+        "duotone"
+      ]
+    },
+    {
+      "id": "pro-only",
+      "label": "Pro Only",
+      "membership": {
+        "free": []
+      },
+      "styles": [
+        "solid",
+        "regular",
+        "light",
+        "duotone"
+      ]
+    }
+  ],
+  "srisByLicense": {
+    "free": [
+      {
+        "path": "css/all.css",
+        "value": "sha384-M7J8exYiWg22+2feRQ+QQBysM+ot+2l18dT00XfMccTe+f/NuDR0NNct9G9iyPYm"
+      },
+      {
+        "path": "css/v4-shims.css",
+        "value": "sha384-m8iXtR+kTECgkwmpCPpF8TAtjcjdHARnvoLvFQtCXfW0dPFYRgk7HFHoROIkphaN"
+      }
+    ]
+  }
+}

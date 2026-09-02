@@ -7,12 +7,15 @@
     "fontawesome-iconpicker": "3.2.0",
     "grunt": "^1.0.1",
     "grunt-contrib-copy": "^1.0.0",
-    "load-grunt-tasks": "^3.5.2"
+    "load-grunt-tasks": "^3.5.2",
+    "tar": "7.5.22"
   },
   "scripts": {
     "audit:runtime-assets": "node scripts/verify-runtime-assets.mjs && npm audit --prefix runtime-assets --omit=dev",
     "clean": "rm -rf lib",
-    "build": "npm run clean && npm ci && grunt"
+    "build": "npm run clean && npm ci && grunt",
+    "generate:font-awesome-7-fallback": "node scripts/generate-font-awesome-7-fallback.mjs",
+    "verify:font-awesome-7-fallback": "node scripts/verify-font-awesome-7-fallback.mjs"
   },
   "repository": {
     "type": "git",

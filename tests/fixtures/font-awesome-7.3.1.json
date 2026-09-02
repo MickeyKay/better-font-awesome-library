@@ -1,0 +1,85 @@
+{
+  "data": {
+    "release": {
+      "version": "7.3.1",
+      "icons": [
+        {
+          "id": "address-book",
+          "label": "Address Book",
+          "aliases": {
+            "names": [
+              "contact-book"
+            ]
+          },
+          "familyStylesByLicense": {
+            "free": [
+              {
+                "family": "classic",
+                "style": "regular"
+              },
+              {
+                "family": "classic",
+                "style": "solid"
+              }
+            ]
+          }
+        },
+        {
+          "id": "github",
+          "label": "GitHub",
+          "aliases": {
+            "names": []
+          },
+          "familyStylesByLicense": {
+            "free": [
+              {
+                "family": "classic",
+                "style": "brands"
+              }
+            ]
+          }
+        },
+        {
+          "id": "xmark",
+          "label": "Xmark",
+          "aliases": {
+            "names": [
+              "close",
+              "multiply",
+              "remove",
+              "times"
+            ]
+          },
+          "familyStylesByLicense": {
+            "free": [
+              {
+                "family": "classic",
+                "style": "solid"
+              }
+            ]
+          }
+        }
+      ],
+      "srisByLicense": {
+        "free": [
+          {
+            "path": "css/all.min.css",
+            "value": "sha512-YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQ=="
+          },
+          {
+            "path": "css/v4-font-face.min.css",
+            "value": "sha512-YmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYg=="
+          },
+          {
+            "path": "css/v4-shims.min.css",
+            "value": "sha512-Y2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjYw=="
+          },
+          {
+            "path": "css/v5-font-face.min.css",
+            "value": "sha512-ZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZA=="
+          }
+        ]
+      }
+    }
+  }
+}

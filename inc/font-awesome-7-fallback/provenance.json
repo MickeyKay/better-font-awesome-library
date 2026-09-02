@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "package": {
+    "name": "@fortawesome/fontawesome-free",
+    "version": "7.3.1",
+    "license": "(CC-BY-4.0 AND OFL-1.1 AND MIT)",
+    "registry_url": "https://registry.npmjs.org/%40fortawesome%2Ffontawesome-free/7.3.1",
+    "tarball_url": "https://registry.npmjs.org/@fortawesome/fontawesome-free/-/fontawesome-free-7.3.1.tgz",
+    "integrity": "sha512-wmglKKPDIkgV3aWlZzWECCPoGIkYCulzBwxG9+w7rc5BGapZ6cPMpoPOT8k36J0Ni7PPX6c/rsoMWfS4d1MUMg==",
+    "shasum": "9d7d7df8f850637e001d24e6cd901422b4b09099"
+  },
+  "generator": {
+    "command": "npm run generate:font-awesome-7-fallback -- 7.3.1",
+    "extracted_paths": [
+      "package/LICENSE.txt",
+      "package/css/all.min.css",
+      "package/css/v4-font-face.min.css",
+      "package/css/v4-shims.min.css",
+      "package/css/v5-font-face.min.css",
+      "package/metadata/icon-families.json",
+      "package/package.json",
+      "package/webfonts/fa-brands-400.woff2",
+      "package/webfonts/fa-regular-400.woff2",
+      "package/webfonts/fa-solid-900.woff2",
+      "package/webfonts/fa-v4compatibility.woff2"
+    ]
+  },
+  "files": [
+    {
+      "path": "ATTRIBUTION.md",
+      "bytes": 317,
+      "sha256": "6409b41e5dde1b2961e53ec134fa0a9fc38c8487d57db5694d94ef9921dbb5af",
+      "sha512": "6658d40ef1d7b49dc4d9ad258c0e7ce7246dfde3af871475786bc3729f379ce4f47501bddda2fc752b1d370001f01adc4014b73c5e05498d743f395008c85778"
+    },
+    {
+      "path": "LICENSE.txt",
+      "bytes": 7427,
+      "sha256": "20c6f40715a567c97b80f6944beb8bb325835cab47ea7dcab89ee3b8e077eced",
+      "sha512": "f8cd9c8398f91ca9221228bf15869a47c1bccfde6d06b57b7c27b5a7ac17e509cbf5da02760e1841f2ac4be5eaf8da63be39ea94e8193dee89451c655faa0c07"
+    },
+    {
+      "path": "css/all.min.css",
+      "bytes": 90336,
+      "sha256": "e0b69df26e19596d4b81bf7eb0c54b6047e7221ec18d5d4d40c11eefd3ef8a4b",
+      "sha512": "41e476547fa5b011392d201ed50e449d305b7bb5d306e6edf1d1bddd8ee089d4a074c0abf2756a29c7ca00cc8df7a495f0a0db6554c35c285ab6ee46d8a406ce"
+    },
+    {
+      "path": "css/v4-font-face.min.css",
+      "bytes": 1515,
+      "sha256": "33290981f7b41ec7a8edb198c00941b84f3521aa3144d5dad2373af2221e1c59",
+      "sha512": "08c53fc4facc0846e31b7237626c8064850b930b940a4052044215e461b9ee05c3d446b532dea6f02e0f34f35ada5133d7dcd0f7fa5c2098b9ab78a692fac5f4"
+    },
+    {
+      "path": "css/v4-shims.min.css",
+      "bytes": 21210,
+      "sha256": "1b5c5b035e37ff0a128238e2cf18eeb7df588cb440cb543ba3ff983a04953d72",
+      "sha512": "b0313679c6ffc5833693b6c07292672c768faaebbc0472e362368b5feb9ae1dfebc132c53fbfa0810b956f8281782b37677ff0e5eab02c9e01eefb9f43e32de7"
+    },
+    {
+      "path": "css/v5-font-face.min.css",
+      "bytes": 632,
+      "sha256": "dfed7e31a076b182b9ca0cb1e545d93db01145f71927bf4e1147f83b13515c22",
+      "sha512": "7ccddab294a52f9a3a49ebcbc0f9d789c81070acbf297181b8270d3dda8592010185754288f8982f0f1c03b4d6a2c8651c7777a58e933bc1b6be78aa71dcda4a"
+    },
+    {
+      "path": "metadata.json",
+      "bytes": 641685,
+      "sha256": "b371f897066efcfe740d8cf54e88c9cc80c0050fb0d6549b012bb9e393012b0c",
+      "sha512": "151ce40950f6e882a7df2238c760a04107b1c120b207ef094e1db5bf236f664a90d2a52201641dc3436116618ca3875f879e8056fe883d86f0f14a52c3d074bd"
+    },
+    {
+      "path": "webfonts/fa-brands-400.woff2",
+      "bytes": 115420,
+      "sha256": "ff66d1cfb67dbe3da432bbe36572cabfa4eef0e591303c2cba111474ba1d15bc",
+      "sha512": "6607d2e6a2603e9277b178261fbccaa999caba569a20ee74557df7996aedd5b7a3499f5fb0b750e1e6406de410ccdaa9d48233ec1e674a672acbbdb8fb9971f9"
+    },
+    {
+      "path": "webfonts/fa-regular-400.woff2",
+      "bytes": 19512,
+      "sha256": "f4722d10b9e1b41eefe3b51a026312ee1970edb7782f94b0080d3d475945734c",
+      "sha512": "53bc825966fbecb1040c787f7752b595750824223b00cd713a277e32996850ceabc76450e3e8c381ff35613f5dee90d2d0e8fc08cb0e0b23e8a992414ba41abf"
+    },
+    {
+      "path": "webfonts/fa-solid-900.woff2",
+      "bytes": 119488,
+      "sha256": "24e5fae26b41c08b2df81c91669f5aaae71d81a84a4713fc56b5c621b78dd456",
+      "sha512": "a10f167201ad7697656e9407e28a08972cfaea6587517fd194723a5cef86751c5e33457f801f6095e0edd34002af7e4fe9b4f9d91e0a6467b5db534dde835cc2"
+    },
+    {
+      "path": "webfonts/fa-v4compatibility.woff2",
+      "bytes": 4168,
+      "sha256": "c776ee1f1fe21cd72195e91de7afd5c9dbd007e9d06016254d65fbcc091398ca",
+      "sha512": "657ec775b97b6f893889cd94d6e48a9fff016abef06e082bbe17a505c15f89aeaabe152d83b16d3f626c4077c22a4586bbbbf65890d2cba9943ad2c0f8d99988"
+    }
+  ]
+}
