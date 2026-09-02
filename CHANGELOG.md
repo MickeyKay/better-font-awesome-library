@@ -1,5 +1,26 @@
 # Changelog
 
+## 3.0.0-rc.1
+
+- Prepared the BFAL 3 next-major release candidate for integration testing. BFAL now defaults to Font Awesome 7 Free when the first caller omits `release_channel`; no channel argument is required for the default.
+- Added explicit `release_channel => '5.x'` selection for consumers that need the legacy Font Awesome 5 channel. The first caller owns the selected channel for the singleton lifetime, and later callers cannot change it.
+- Made the packaged and verified Font Awesome Free 7.3.1 CSS, WOFF2, metadata, licensing, attribution, and provenance the immediate default baseline. Activation and ordinary frontend, admin, editor, REST, shortcode, picker, and getter paths require no metadata HTTP, cron run, migration, or delayed activation.
+- Added a bounded explicit 7.x background refresh operation that follows only newer, completely validated Font Awesome 7 Free releases. BFAL does not persist refresh results or own consumer scheduling, cron, locking, retry, backoff, freshness, or migration policy, and it will not select Font Awesome 8 automatically.
+- Preserved the existing public API, shortcode output, stylesheet behavior, editor compatibility, optional v4 compatibility, first-caller singleton contract, and explicit Font Awesome 5 behavior. The BFAL version change updates WordPress stylesheet and script cache keys to `3.0.0-rc.1`.
+- Kept BFAL 2.1.0 as the stable rollback release. Better Font Awesome integration and browser acceptance remain pending and are required before BFAL 3.0.0 stable publication.
+
+To install this release candidate after its tag is published:
+
+```console
+composer require mickey-kay/better-font-awesome-library:3.0.0-rc.1
+```
+
+To roll back to the stable Font Awesome 5 release:
+
+```console
+composer require mickey-kay/better-font-awesome-library:2.1.0 --with-all-dependencies
+```
+
 ## 2.1.0
 
 - Promoted the accepted 2.1.0-rc.2 implementation to stable with validated live Font Awesome Free 5.x metadata and no metadata HTTP on ordinary frontend, admin, editor, REST, or other request paths.
