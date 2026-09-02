@@ -383,10 +383,19 @@ class ReleaseDataRuntimeTest extends BfalTestCase {
 				return '6.x';
 			}
 		);
-		$result = Better_Font_Awesome_Library::get_instance()->refresh_release_data();
+		$library = Better_Font_Awesome_Library::get_instance();
+		$later   = Better_Font_Awesome_Library::get_instance( array( 'release_channel' => '5.x' ) );
+		$error   = $library->get_error( 'channel' );
 
-		$this->assertInstanceOf( WP_Error::class, $result );
-		$this->assertSame( 'bfa_channel_unsupported', $result->get_error_code() );
+		$this->assertSame( $library, $later );
+		$this->assertSame( '', $library->get_release_channel() );
+		$this->assertSame( '', $library->get_version() );
+		$this->assertSame( '', $library->get_stylesheet_url() );
+		$this->assertSame( array(), $library->get_release_record() );
+		$this->assertSame( array(), $GLOBALS['bfa_test_editor_styles'] );
+		$this->assertInstanceOf( WP_Error::class, $error );
+		$this->assertSame( 'bfa_channel_unsupported', $error->get_error_code() );
+		$this->assertSame( $error, $library->refresh_release_data() );
 		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
 	}
 

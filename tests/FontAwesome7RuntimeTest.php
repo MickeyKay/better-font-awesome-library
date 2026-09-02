@@ -87,6 +87,59 @@ class FontAwesome7RuntimeTest extends BfalTestCase {
 		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
 	}
 
+	/**
+	 * @dataProvider invalid_release_channel_provider
+	 */
+	public function test_invalid_release_channel_argument_fails_closed_and_remains_immutable( $invalid_channel ) {
+		$provider_calls   = 0;
+		$refresh_requests = 0;
+		$this->prime_valid_transient();
+		$first = Better_Font_Awesome_Library::get_instance(
+			array(
+				'release_channel'               => $invalid_channel,
+				'release_data_provider'         => function () use ( &$provider_calls ) {
+					++$provider_calls;
+					return array();
+				},
+				'release_data_refresh_callback' => function () use ( &$refresh_requests ) {
+					++$refresh_requests;
+				},
+			)
+		);
+		$later = Better_Font_Awesome_Library::get_instance( array( 'release_channel' => '5.x' ) );
+
+		$this->assertSame( $first, $later );
+		$this->assertSame( '', $first->get_release_channel() );
+		$this->assertSame( '', $first->get_version() );
+		$this->assertSame( '', $first->get_stylesheet_url() );
+		$this->assertSame( '', $first->get_stylesheet_url_v4_shim() );
+		$this->assertSame( array(), $first->get_release_record() );
+		$this->assertSame( array(), $first->get_release_icons() );
+		$this->assertSame( array(), $first->get_release_assets() );
+		$this->assertSame( array(), $first->get_icons() );
+		$this->assertSame( array(), $GLOBALS['bfa_test_editor_styles'] );
+
+		$first->request_release_data_refresh();
+		do_action( 'wp_enqueue_scripts' );
+		$this->assertSame( array(), $GLOBALS['bfa_test_enqueued_styles'] );
+		$this->assertSame( 0, $provider_calls );
+		$this->assertSame( 0, $refresh_requests );
+		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
+
+		$error = $first->get_error( 'channel' );
+		$this->assertInstanceOf( WP_Error::class, $error );
+		$this->assertSame( 'bfa_channel_unsupported', $error->get_error_code() );
+		$this->assertSame( $error, $first->refresh_release_data() );
+	}
+
+	public function invalid_release_channel_provider() {
+		return array(
+			'wrong case'        => array( '5.X' ),
+			'unsupported major' => array( '6.x' ),
+			'null'              => array( null ),
+		);
+	}
+
 	public function test_wrong_channel_provider_cannot_mix_metadata_and_assets() {
 		$fa5 = $this->get_valid_release();
 		$library = Better_Font_Awesome_Library::get_instance(

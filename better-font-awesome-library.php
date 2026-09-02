@@ -421,14 +421,15 @@ class Better_Font_Awesome_Library {
 		 * mutate the first caller's selection.
 		 */
 		if ( ! $this->release_channel_resolved ) {
-			$selected = isset( $this->args['release_channel'] ) ? $this->args['release_channel'] : Better_Font_Awesome_Release_Channel::FONT_AWESOME_7;
+			$selected = array_key_exists( 'release_channel', $this->args ) ? $this->args['release_channel'] : null;
 			$selected = apply_filters( 'bfa_font_awesome_release_channel', $selected );
 
 			if ( Better_Font_Awesome_Release_Channel::is_supported( $selected ) ) {
 				$this->release_channel = $selected;
 			} else {
-				$this->release_channel         = Better_Font_Awesome_Release_Channel::FONT_AWESOME_7;
+				$this->release_channel         = '';
 				$this->release_channel_invalid = true;
+				$this->set_error( 'channel', 'bfa_channel_unsupported', 'The selected Font Awesome release channel is not supported.' );
 			}
 
 			$this->release_channel_resolved = true;
@@ -593,6 +594,10 @@ class Better_Font_Awesome_Library {
 	 * @return  array  Release data.
 	 */
 	private function get_font_awesome_release_data() {
+		if ( $this->release_channel_invalid ) {
+			return $this->get_empty_release_data();
+		}
+
 		// 1. Reuse validated instance data for this request.
 		if ( ! empty( $this->release_data ) ) {
 			return $this->release_data;
@@ -758,7 +763,7 @@ class Better_Font_Awesome_Library {
 	 * @since 2.1.0
 	 */
 	public function request_release_data_refresh() {
-		if ( $this->refresh_requested ) {
+		if ( $this->release_channel_invalid || $this->refresh_requested ) {
 			return;
 		}
 
@@ -794,8 +799,7 @@ class Better_Font_Awesome_Library {
 	 */
 	public function refresh_release_data() {
 		if ( $this->release_channel_invalid ) {
-			$this->set_error( 'api', 'bfa_channel_unsupported', 'The selected Font Awesome release channel is not supported.' );
-			return $this->get_error( 'api' );
+			return $this->get_error( 'channel' );
 		}
 
 		if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ) {

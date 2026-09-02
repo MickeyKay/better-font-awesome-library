@@ -195,6 +195,8 @@ The following arguments can be used to initialize the library using `Better_Font
 
 The selected 7.x channel follows completely validated 7.x releases only. It will not update across a future Font Awesome major.
 
+An unsupported first-caller channel value fails closed. BFAL records a sanitized `bfa_channel_unsupported` error and returns no release metadata or stylesheet URLs. Because first-caller ownership remains immutable, a later caller cannot replace that invalid selection.
+
 These metadata collaborators are initialization arguments and therefore follow the same first-caller ownership contract. They cannot be added or replaced through a later `get_instance()` call.
 
 ### Deprecated
@@ -266,7 +268,7 @@ The object has the following public methods:
 (array) Returns the validated internal record with `schema_version`, `channel`, `edition`, `source`, and the compatibility-preserving `release` array.
 
 #### get_release_channel() ####
-(string) Returns the immutable selected Font Awesome channel, `7.x` by default or explicit `5.x`.
+(string) Returns the immutable selected Font Awesome channel, `7.x` by default or explicit `5.x`. Returns an empty string when an unsupported first-caller value has caused the runtime to fail closed.
 
 #### request_release_data_refresh() ####
 Requests asynchronous refresh scheduling through the configured callback or `bfa_release_data_refresh_requested` action. This method performs no remote transport.
@@ -283,7 +285,7 @@ Requests asynchronous refresh scheduling through the configured callback or `bfa
 ### Deprecated
 
 #### get_api_data() (2.0.0) ####
-_The library no longe relies on the jsDelivr CDN._
+_This deprecated method is no longer used for ordinary release discovery. The explicit Font Awesome 7 refresh worker uses exact-version jsDelivr files only for mandatory cross-provider byte validation._
 
 (object) Returns version data for the remote jsDelivr CDN (uses [jsDelivr API](https://github.com/jsdelivr/api)). Includes all available versions and latest version.
 
@@ -326,7 +328,7 @@ Applied to arguments passed to the explicit metadata refresh request. TLS verifi
 * `$wp_remote_get_args` (array)
 
 #### bfa_font_awesome_release_channel ####
-Applied once while the first singleton caller's release channel is initialized. BFAL accepts only `5.x` and `7.x`. The resolved value is immutable for the lifetime of that instance, so later calls and later filter changes cannot switch metadata or assets.
+Applied once while the first singleton caller's release channel is initialized. BFAL accepts only `5.x` and `7.x`. The resolved value is immutable for the lifetime of that instance, so later calls and later filter changes cannot switch metadata or assets. An unsupported result fails closed with no release metadata or stylesheet URLs.
 
 **Parameters**
 
@@ -391,7 +393,7 @@ Applied to the boolean that determines whether or not to suppress all Font Aweso
 ## Actions ##
 
 #### bfa_release_data_refresh_requested ####
-Fires once per BFAL request when no valid provider or transient value is available and bundled fallback data is selected. Handlers receive the `5.x` channel and BFAL instance. Handlers must schedule asynchronous work and return promptly.
+Fires once per BFAL request when no valid provider or transient value is available and bundled fallback data is selected. Handlers receive the immutable selected channel (`5.x` or `7.x`) and BFAL instance. Handlers must schedule asynchronous work and return promptly.
 
 ### Deprecated
 
