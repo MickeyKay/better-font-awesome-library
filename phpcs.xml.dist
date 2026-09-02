@@ -7,6 +7,7 @@
     <file>inc/class-bfa-release-channel.php</file>
     <file>inc/class-bfa-release-data-v2-validator.php</file>
     <file>inc/class-bfa-release-data-v2-adapter.php</file>
+    <file>inc/class-bfa-release-data-v2-refresher.php</file>
 
     <arg name="extensions" value="php"/>
     <arg name="colors"/>

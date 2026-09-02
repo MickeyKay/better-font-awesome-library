@@ -2,9 +2,13 @@
 
 BFAL versions are published from repository tags and discovered automatically by Packagist. Do not add a `version` field to `composer.json`.
 
+The active Font Awesome 7 runtime foundation changes the implicit channel default and therefore must not be published on the BFAL 2.x release line. BFAL 2.x remains the Font Awesome 5-compatible line. Before publication, prepare and review a separate BFAL 3.0.0 release change that updates every version surface, compatibility note, archive expectation, and consumer integration requirement. Do not publish the Font Awesome 7 runtime under a 2.x tag.
+
+For development-only archive verification, this foundation adds `inc/class-bfa-release-data-v2-refresher.php` to the 34-file BFAL 2.1.0 inventory, producing 35 regular production files. The future 3.0.0 release-preparation change must replace the historical 2.1.0 archive instructions below with the final reviewed version, root directory, inventory, and checksum expectations.
+
 ## Prepare and verify
 
-When updating the inactive Font Awesome 7 fallback, select one exact official
+When updating the Font Awesome 7 fallback, select one exact official
 npm version and regenerate it with:
 
 ```console

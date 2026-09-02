@@ -3,6 +3,16 @@
 require_once __DIR__ . '/BfalTestCase.php';
 
 class ReleaseDataRuntimeTest extends BfalTestCase {
+	protected function setUp(): void {
+		parent::setUp();
+		add_filter(
+			'bfa_font_awesome_release_channel',
+			function () {
+				return '5.x';
+			}
+		);
+	}
+
 	public function test_missing_data_returns_fallback_without_transport_and_requests_refresh() {
 		$requests = array();
 		$library  = Better_Font_Awesome_Library::get_instance(

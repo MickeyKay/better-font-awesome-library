@@ -30,6 +30,7 @@ require_once __DIR__ . '/inc/class-bfa-release-data-validator.php';
 require_once __DIR__ . '/inc/class-bfa-release-channel.php';
 require_once __DIR__ . '/inc/class-bfa-release-data-v2-validator.php';
 require_once __DIR__ . '/inc/class-bfa-release-data-v2-adapter.php';
+require_once __DIR__ . '/inc/class-bfa-release-data-v2-refresher.php';
 
 if ( ! class_exists( 'Better_Font_Awesome_Library' ) ) :
 class Better_Font_Awesome_Library {
@@ -79,6 +80,12 @@ class Better_Font_Awesome_Library {
 	 */
 	const FALLBACK_RELEASE_DATA_PATH = 'inc/fallback-release-data.json';
 
+	/** Font Awesome 7 fallback root path. */
+	const FONT_AWESOME_7_FALLBACK_PATH = 'inc/font-awesome-7-fallback/';
+
+	/** Exact-version cdnjs runtime base URL. */
+	const FONT_AWESOME_7_CDN_BASE_URL = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome';
+
 	/**
 	 * Icon prefix.
 	 *
@@ -124,7 +131,29 @@ class Better_Font_Awesome_Library {
 		'load_tinymce_plugin'          => true,
 		'release_data_provider'        => null,
 		'release_data_refresh_callback' => null,
+		'release_channel'              => '7.x',
 	);
+
+	/**
+	 * Immutable release channel selected by the first caller.
+	 *
+	 * @var string
+	 */
+	private $release_channel = '';
+
+	/**
+	 * Whether the immutable release channel has been resolved.
+	 *
+	 * @var bool
+	 */
+	private $release_channel_resolved = false;
+
+	/**
+	 * Whether initialization received an unsupported filtered channel.
+	 *
+	 * @var bool
+	 */
+	private $release_channel_invalid = false;
 
 	/**
 	 * Root URL of the library.
@@ -173,6 +202,20 @@ class Better_Font_Awesome_Library {
 	 * @var array
 	 */
 	private $formatted_icon_array = array();
+
+	/**
+	 * Canonical and alias name map for the selected schema-2 record.
+	 *
+	 * @var array
+	 */
+	private $icon_name_map = array();
+
+	/**
+	 * Validated aliases keyed by schema-2 canonical name.
+	 *
+	 * @var array
+	 */
+	private $icon_alias_map = array();
 
 	/**
 	 * Validated internal release record.
@@ -362,6 +405,27 @@ class Better_Font_Awesome_Library {
 		 */
 		$this->args = apply_filters( 'bfa_init_args', $this->args );
 
+		/*
+		 * Resolve the selected channel exactly once. The established filter remains
+		 * available, but later calls to load() and later singleton callers cannot
+		 * mutate the first caller's selection.
+		 */
+		if ( ! $this->release_channel_resolved ) {
+			$selected = isset( $this->args['release_channel'] ) ? $this->args['release_channel'] : Better_Font_Awesome_Release_Channel::FONT_AWESOME_7;
+			$selected = apply_filters( 'bfa_font_awesome_release_channel', $selected );
+
+			if ( Better_Font_Awesome_Release_Channel::is_supported( $selected ) ) {
+				$this->release_channel = $selected;
+			} else {
+				$this->release_channel         = Better_Font_Awesome_Release_Channel::FONT_AWESOME_7;
+				$this->release_channel_invalid = true;
+			}
+
+			$this->release_channel_resolved = true;
+		}
+
+		$this->args['release_channel'] = $this->release_channel;
+
 		/**
 		 * Filter the wp_remote_get args.
 		 *
@@ -444,6 +508,10 @@ class Better_Font_Awesome_Library {
 	 * @return array Fallback release data.
 	 */
 	private function get_fallback_release_data() {
+		if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ) {
+			return $this->get_font_awesome_7_fallback_release_data();
+		}
+
 		// Set fallback directory path.
 		$bundled_release_data_path  = plugin_dir_path( __FILE__ ) . self::FALLBACK_RELEASE_DATA_PATH;
 		$fallback_release_data_path = $bundled_release_data_path;
@@ -470,6 +538,24 @@ class Better_Font_Awesome_Library {
 		}
 
 		$result        = Better_Font_Awesome_Release_Data_Validator::parse_fallback_json( $fallback_json );
+
+		if ( ! $result['valid'] ) {
+			$this->set_validation_error( 'fallback', $result );
+			return $this->get_empty_release_data();
+		}
+
+		$this->release_record = $result['record'];
+		return $result['record']['release'];
+	}
+
+	/**
+	 * Load and validate the packaged Font Awesome 7 Free baseline.
+	 *
+	 * @return array Valid release data or an empty release shape.
+	 */
+	private function get_font_awesome_7_fallback_release_data() {
+		$path   = plugin_dir_path( __FILE__ ) . self::FONT_AWESOME_7_FALLBACK_PATH . 'metadata.json';
+		$result = Better_Font_Awesome_Release_Data_V2_Validator::parse_record_json( $this->get_local_file_contents( $path ) );
 
 		if ( ! $result['valid'] ) {
 			$this->set_validation_error( 'fallback', $result );
@@ -508,7 +594,7 @@ class Better_Font_Awesome_Library {
 		// 3. Preserve and validate the established transient value shape.
 		$transient_value = get_transient( self::SLUG . '-release-data' );
 		if ( false !== $transient_value ) {
-			$result = Better_Font_Awesome_Release_Data_Validator::validate_release( $transient_value, 'transient' );
+			$result = $this->validate_selected_release_data( $transient_value, 'transient' );
 			if ( $result['valid'] ) {
 				$this->release_record = $result['record'];
 				$this->release_data   = $result['record']['release'];
@@ -543,10 +629,7 @@ class Better_Font_Awesome_Library {
 			return array();
 		}
 
-		$is_record = is_array( $provided ) && ( array_key_exists( 'schema_version', $provided ) || array_key_exists( 'release', $provided ) );
-		$result    = $is_record
-			? Better_Font_Awesome_Release_Data_Validator::validate_record( $provided )
-			: Better_Font_Awesome_Release_Data_Validator::validate_release( $provided, 'provider' );
+		$result = $this->validate_selected_release_data( $provided, 'provider' );
 		if ( ! $result['valid'] ) {
 			$this->set_validation_error( 'provider', $result );
 			return array();
@@ -554,6 +637,27 @@ class Better_Font_Awesome_Library {
 
 		$this->release_record = $result['record'];
 		return $result['record']['release'];
+	}
+
+	/**
+	 * Validate local data against only the immutable selected channel.
+	 *
+	 * @param mixed  $data   Release data or a declared release record.
+	 * @param string $source Local source identifier.
+	 * @return array Validation result.
+	 */
+	private function validate_selected_release_data( $data, $source ) {
+		$is_record = is_array( $data ) && ( array_key_exists( 'schema_version', $data ) || array_key_exists( 'release', $data ) );
+
+		if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ) {
+			return $is_record
+				? Better_Font_Awesome_Release_Data_V2_Validator::validate_record( $data )
+				: Better_Font_Awesome_Release_Data_V2_Validator::validate_release( $data, $source );
+		}
+
+		return $is_record
+			? Better_Font_Awesome_Release_Data_Validator::validate_record( $data )
+			: Better_Font_Awesome_Release_Data_Validator::validate_release( $data, $source );
 	}
 
 	/**
@@ -588,6 +692,48 @@ class Better_Font_Awesome_Library {
 	}
 
 	/**
+	 * Get a validated release asset integrity value.
+	 *
+	 * @param string $expected_path Expected relative asset path.
+	 * @return string Integrity value, or an empty string.
+	 */
+	private function get_release_asset_integrity( $expected_path ) {
+		foreach ( $this->get_release_assets() as $asset ) {
+			if ( isset( $asset['path'], $asset['value'] ) && $expected_path === $asset['path'] ) {
+				return $asset['value'];
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Build a URL for an exact validated stylesheet path.
+	 *
+	 * Packaged fallback assets are used only for the bundled schema-2 record.
+	 * Completely validated newer records use exact-version cdnjs URLs.
+	 *
+	 * @param string $path Relative stylesheet path.
+	 * @return string Asset URL, or an empty string.
+	 */
+	private function get_release_asset_url( $path ) {
+		$version = $this->get_version();
+		if ( '' === $version || ! $this->release_has_asset( $path ) ) {
+			return '';
+		}
+
+		if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 !== $this->release_channel ) {
+			return sprintf( '%s/v%s/%s', self::FONT_AWESOME_CDN_BASE_URL, $version, $path );
+		}
+
+		if ( isset( $this->release_record['source'] ) && 'fallback' === $this->release_record['source'] ) {
+			return $this->root_url . self::FONT_AWESOME_7_FALLBACK_PATH . $path;
+		}
+
+		return sprintf( '%s/%s/%s', self::FONT_AWESOME_7_CDN_BASE_URL, $version, $path );
+	}
+
+	/**
 	 * Request asynchronous release data refresh work from a consumer.
 	 *
 	 * The callback or action handler must schedule work and return promptly. BFAL
@@ -604,7 +750,7 @@ class Better_Font_Awesome_Library {
 		$callback                = isset( $this->args['release_data_refresh_callback'] ) ? $this->args['release_data_refresh_callback'] : null;
 
 		if ( is_callable( $callback ) ) {
-			call_user_func( $callback, Better_Font_Awesome_Release_Data_Validator::RELEASE_CHANNEL, $this );
+			call_user_func( $callback, $this->release_channel, $this );
 			return;
 		}
 
@@ -616,7 +762,7 @@ class Better_Font_Awesome_Library {
 		 * @param string                       $channel Supported release channel.
 		 * @param Better_Font_Awesome_Library $library BFAL instance.
 		 */
-		do_action( 'bfa_release_data_refresh_requested', Better_Font_Awesome_Release_Data_Validator::RELEASE_CHANNEL, $this );
+		do_action( 'bfa_release_data_refresh_requested', $this->release_channel, $this );
 	}
 
 	/**
@@ -631,19 +777,13 @@ class Better_Font_Awesome_Library {
 	 * @return array|WP_Error Valid release data or a sanitized failure.
 	 */
 	public function refresh_release_data() {
-		/**
-		 * Filter the selected Font Awesome release channel.
-		 *
-		 * Only the 5.x Free channel is supported in this release.
-		 *
-		 * @since 2.1.0
-		 *
-		 * @param string $channel Font Awesome release channel.
-		 */
-		$channel = apply_filters( 'bfa_font_awesome_release_channel', Better_Font_Awesome_Release_Data_Validator::RELEASE_CHANNEL );
-		if ( Better_Font_Awesome_Release_Data_Validator::RELEASE_CHANNEL !== $channel ) {
+		if ( $this->release_channel_invalid ) {
 			$this->set_error( 'api', 'bfa_channel_unsupported', 'The selected Font Awesome release channel is not supported.' );
 			return $this->get_error( 'api' );
+		}
+
+		if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ) {
+			return $this->refresh_font_awesome_7_release_data();
 		}
 
 		$query_args            = $this->wp_remote_get_args;
@@ -720,6 +860,39 @@ class Better_Font_Awesome_Library {
 	}
 
 	/**
+	 * Refresh the selected Font Awesome 7 channel without BFAL persistence.
+	 *
+	 * The consumer owns durable last-known-good storage. A successful attempt
+	 * returns a complete schema-2 record and updates only this request's instance.
+	 *
+	 * @return array|WP_Error Complete schema-2 record or sanitized failure.
+	 */
+	private function refresh_font_awesome_7_release_data() {
+		$this->get_font_awesome_release_data();
+		$result = Better_Font_Awesome_Release_Data_V2_Refresher::refresh( $this->wp_remote_get_args, $this->release_record );
+
+		if ( is_wp_error( $result ) ) {
+			$this->set_error( 'api', $result->get_error_code(), $result->get_error_message() );
+			return $this->get_error( 'api' );
+		}
+
+		$validated = Better_Font_Awesome_Release_Data_V2_Validator::validate_record( $result );
+		if ( ! $validated['valid'] ) {
+			$this->set_validation_error( 'api', $validated );
+			return $this->get_error( 'api' );
+		}
+
+		$this->release_record       = $validated['record'];
+		$this->release_data         = $validated['record']['release'];
+		$this->formatted_icon_array = array();
+		$this->icon_name_map        = array();
+		$this->icon_alias_map       = array();
+		unset( $this->errors['api'] );
+
+		return $validated['record'];
+	}
+
+	/**
 	 * Get array of icons for the current version.
 	 *
 	 * @since   1.0.0
@@ -747,12 +920,18 @@ class Better_Font_Awesome_Library {
 			}
 
 			foreach ( $icon_styles as $icon_style ) {
+				$search_terms = $icon_metadata['id'];
+				if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ) {
+					$aliases      = $this->get_font_awesome_7_icon_aliases( $icon_metadata['id'] );
+					$search_terms = implode( ' ', array_merge( array( $icon_metadata['id'] ), $aliases ) );
+				}
+
 				$icons[] = [
 					'title'       => "{$icon_metadata['label']} ({$icon_style})",
 					'slug'        => $icon_metadata['id'],
 					'style'       => $icon_style,
 					'base_class'  => $this->get_icon_base_class( $icon_metadata['id'], $icon_style ),
-					'searchTerms' => $icon_metadata['id'],
+					'searchTerms' => $search_terms,
 				];
 			}
 		}
@@ -779,6 +958,17 @@ class Better_Font_Awesome_Library {
 		$this->formatted_icon_array = $icons;
 
 		return $icons;
+	}
+
+	/**
+	 * Get validated aliases for one schema-2 canonical icon.
+	 *
+	 * @param string $canonical_id Canonical icon ID.
+	 * @return array Name aliases.
+	 */
+	private function get_font_awesome_7_icon_aliases( $canonical_id ) {
+		$this->initialize_font_awesome_7_icon_name_maps();
+		return isset( $this->icon_alias_map[ $canonical_id ] ) ? $this->icon_alias_map[ $canonical_id ] : array();
 	}
 
 	/**
@@ -839,7 +1029,46 @@ class Better_Font_Awesome_Library {
 
 		}
 
+		if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ) {
+			$resolved = $this->resolve_font_awesome_7_icon_name( $name );
+			if ( null !== $resolved ) {
+				$name = $resolved;
+			}
+		}
+
 		return $name;
+	}
+
+	/**
+	 * Resolve a schema-2 canonical icon name or validated alias.
+	 *
+	 * @param string $name Canonical name or alias.
+	 * @return string|null Canonical name, or null when unknown.
+	 */
+	private function resolve_font_awesome_7_icon_name( $name ) {
+		$this->initialize_font_awesome_7_icon_name_maps();
+
+		return isset( $this->icon_name_map[ $name ] ) ? $this->icon_name_map[ $name ] : null;
+	}
+
+	/**
+	 * Build canonical and alias lookup maps once per validated schema-2 record.
+	 */
+	private function initialize_font_awesome_7_icon_name_maps() {
+		if ( ! empty( $this->icon_name_map ) ) {
+			return;
+		}
+
+		foreach ( $this->get_font_awesome_release_data()['icons'] as $icon ) {
+			$this->icon_name_map[ $icon['id'] ]  = $icon['id'];
+			$this->icon_alias_map[ $icon['id'] ] = $icon['aliases']['names'];
+		}
+
+		foreach ( $this->get_font_awesome_release_data()['icons'] as $icon ) {
+			foreach ( $icon['aliases']['names'] as $alias ) {
+				$this->icon_name_map[ $alias ] = $icon['id'];
+			}
+		}
 	}
 
 	public function sanitize_shortcode_class_att( $class ) {
@@ -986,8 +1215,10 @@ class Better_Font_Awesome_Library {
 	 */
 	private function add_font_awesome_crossorigin_attribute( $html, $handle ) {
 		$font_awesome_handles = array(
-			self::SLUG . '-font-awesome'         => self::SLUG . '-font-awesome-css',
-			self::SLUG . '-font-awesome-v4-shim' => self::SLUG . '-font-awesome-v4-shim-css',
+			self::SLUG . '-font-awesome'              => array( self::SLUG . '-font-awesome-css', 'css/all.min.css' ),
+			self::SLUG . '-font-awesome-v5-compat'    => array( self::SLUG . '-font-awesome-v5-compat-css', 'css/v5-font-face.min.css' ),
+			self::SLUG . '-font-awesome-v4-font-face' => array( self::SLUG . '-font-awesome-v4-font-face-css', 'css/v4-font-face.min.css' ),
+			self::SLUG . '-font-awesome-v4-shim'      => array( self::SLUG . '-font-awesome-v4-shim-css', 'css/v4-shims.min.css' ),
 		);
 
 		if ( ! isset( $font_awesome_handles[ $handle ] ) || ! class_exists( 'WP_HTML_Tag_Processor' ) ) {
@@ -995,7 +1226,7 @@ class Better_Font_Awesome_Library {
 		}
 
 		$processor   = new WP_HTML_Tag_Processor( $html );
-		$expected_id = $font_awesome_handles[ $handle ];
+		$expected_id = $font_awesome_handles[ $handle ][0];
 		while ( $processor->next_tag( array( 'tag_name' => 'LINK' ) ) ) {
 			if ( $expected_id !== $processor->get_attribute( 'id' ) ) {
 				continue;
@@ -1003,6 +1234,13 @@ class Better_Font_Awesome_Library {
 
 			if ( ! $processor->set_attribute( 'crossorigin', 'anonymous' ) ) {
 				return $html;
+			}
+
+			if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ) {
+				$integrity = $this->get_release_asset_integrity( $font_awesome_handles[ $handle ][1] );
+				if ( '' === $integrity || ! $processor->set_attribute( 'integrity', $integrity ) ) {
+					return $html;
+				}
 			}
 
 			return $processor->get_updated_html();
@@ -1015,6 +1253,11 @@ class Better_Font_Awesome_Library {
 	 * Register and enqueue Font Awesome CSS.
 	 */
 	public function register_font_awesome_css() {
+		if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ) {
+			$this->register_font_awesome_7_css();
+			return;
+		}
+
 		$stylesheet_url = $this->get_stylesheet_url();
 		if ( '' === $stylesheet_url ) {
 			return;
@@ -1050,11 +1293,45 @@ class Better_Font_Awesome_Library {
 	}
 
 	/**
+	 * Register the minimal Font Awesome 7 runtime and compatibility styles.
+	 */
+	private function register_font_awesome_7_css() {
+		$styles = array(
+			self::SLUG . '-font-awesome'           => array( $this->get_stylesheet_url(), array() ),
+			self::SLUG . '-font-awesome-v5-compat' => array( $this->get_release_asset_url( 'css/v5-font-face.min.css' ), array( self::SLUG . '-font-awesome' ) ),
+		);
+
+		if ( $this->args['include_v4_shim'] ) {
+			$styles[ self::SLUG . '-font-awesome-v4-font-face' ] = array(
+				$this->get_release_asset_url( 'css/v4-font-face.min.css' ),
+				array( self::SLUG . '-font-awesome' ),
+			);
+			$styles[ self::SLUG . '-font-awesome-v4-shim' ] = array(
+				$this->get_stylesheet_url_v4_shim(),
+				array( self::SLUG . '-font-awesome', self::SLUG . '-font-awesome-v4-font-face' ),
+			);
+		}
+
+		foreach ( $styles as $handle => $style ) {
+			if ( '' === $style[0] ) {
+				return;
+			}
+
+			wp_register_style( $handle, $style[0], $style[1], self::VERSION );
+			wp_enqueue_style( $handle );
+		}
+	}
+
+	/**
 	 * Enqueue inline v4 shim CSS to alias legacy @font-face declarations.
 	 *
 	 * @since  2.0.1
 	 */
 	public function register_v4_shim_inline_css () {
+		if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ) {
+			return;
+		}
+
 		$v4_shim_font_face = "
 			@font-face {
 				font-family: 'FontAwesome';
@@ -1103,6 +1380,20 @@ class Better_Font_Awesome_Library {
 		$stylesheet_url = $this->get_stylesheet_url();
 		if ( '' !== $stylesheet_url ) {
 			add_editor_style( $stylesheet_url );
+		}
+
+		if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ) {
+			$v5_compat_url = $this->get_release_asset_url( 'css/v5-font-face.min.css' );
+			if ( '' !== $v5_compat_url ) {
+				add_editor_style( $v5_compat_url );
+			}
+
+			if ( $this->args['include_v4_shim'] ) {
+				$v4_font_face_url = $this->get_release_asset_url( 'css/v4-font-face.min.css' );
+				if ( '' !== $v4_font_face_url ) {
+					add_editor_style( $v4_font_face_url );
+				}
+			}
 		}
 
 		// Conditionally include the Font Awesome v4 CSS shim.
@@ -1338,17 +1629,8 @@ class Better_Font_Awesome_Library {
 	 * @return  string  Stylesheet URL.
 	 */
 	public function get_stylesheet_url() {
-		$version = $this->get_version();
-		if ( '' === $version || ! $this->release_has_asset( 'css/all.css' ) ) {
-			return '';
-		}
-
-		return sprintf(
-			'%s/v%s/%s',
-			self::FONT_AWESOME_CDN_BASE_URL,
-			$version,
-			'css/all.css'
-		);
+		$path = Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ? 'css/all.min.css' : 'css/all.css';
+		return $this->get_release_asset_url( $path );
 	}
 
 	/**
@@ -1359,17 +1641,8 @@ class Better_Font_Awesome_Library {
 	 * @return  string  Stylesheet URL.
 	 */
 	public function get_stylesheet_url_v4_shim() {
-		$version = $this->get_version();
-		if ( '' === $version || ! $this->release_has_asset( 'css/v4-shims.css' ) ) {
-			return '';
-		}
-
-		return sprintf(
-			'%s/v%s/%s',
-			self::FONT_AWESOME_CDN_BASE_URL,
-			$version,
-			'css/v4-shims.css'
-		);
+		$path = Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ? 'css/v4-shims.min.css' : 'css/v4-shims.css';
+		return $this->get_release_asset_url( $path );
 	}
 
 	/**
@@ -1395,7 +1668,27 @@ class Better_Font_Awesome_Library {
 	 */
 	public function get_release_icons() {
 		$release_data = $this->get_font_awesome_release_data();
-		return isset( $release_data['icons'] ) && is_array( $release_data['icons'] ) ? $release_data['icons'] : array();
+		$icons        = isset( $release_data['icons'] ) && is_array( $release_data['icons'] ) ? $release_data['icons'] : array();
+		if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 !== $this->release_channel ) {
+			return $icons;
+		}
+
+		$adapted = array();
+		foreach ( $icons as $icon ) {
+			$styles = array();
+			foreach ( $icon['familyStylesByLicense']['free'] as $membership ) {
+				$styles[] = $membership['style'];
+			}
+
+			$adapted[] = array(
+				'id'         => $icon['id'],
+				'label'      => $icon['label'],
+				'membership' => array( 'free' => $styles ),
+				'styles'     => $styles,
+			);
+		}
+
+		return $adapted;
 	}
 
 	/**
@@ -1430,7 +1723,7 @@ class Better_Font_Awesome_Library {
 	 * @return string Release channel.
 	 */
 	public function get_release_channel() {
-		return Better_Font_Awesome_Release_Data_Validator::RELEASE_CHANNEL;
+		return $this->release_channel;
 	}
 
 	/**

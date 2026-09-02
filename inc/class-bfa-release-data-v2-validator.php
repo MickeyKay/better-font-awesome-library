@@ -7,7 +7,7 @@
 
 if ( ! class_exists( 'Better_Font_Awesome_Release_Data_V2_Validator' ) ) :
 	/**
-	 * Validate the internal family-aware schema without activating it.
+	 * Validate the internal family-aware schema used by the 7.x channel.
 	 *
 	 * @internal
 	 */
@@ -16,7 +16,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Release_Data_V2_Validator' ) ) :
 		/** Version of the family-aware release record shape. */
 		const SCHEMA_VERSION = 2;
 
-		/** Inactive foundation channel represented by this schema. */
+		/** Release channel represented by this schema. */
 		const RELEASE_CHANNEL = '7.x';
 
 		/** Supported Font Awesome edition. */
@@ -386,7 +386,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Release_Data_V2_Validator' ) ) :
 		 * @return bool Whether the source is valid.
 		 */
 		private static function is_valid_source( $source ) {
-			return is_string( $source ) && in_array( $source, array( 'fallback', 'fixture', 'provider', 'unknown' ), true );
+			return is_string( $source ) && in_array( $source, array( 'api', 'fallback', 'fixture', 'provider', 'transient', 'unknown' ), true );
 		}
 
 		/**

@@ -29,7 +29,7 @@ class FallbackBaselineTest extends TestCase {
 		$this->assertSame( $expected, $this->get_inventory() );
 	}
 
-	public function test_fallback_metadata_is_a_valid_inactive_schema_2_record() {
+	public function test_fallback_metadata_is_a_valid_schema_2_record() {
 		$result = Better_Font_Awesome_Release_Data_V2_Validator::parse_record_json(
 			file_get_contents( $this->fallback_root . '/metadata.json' )
 		);
@@ -149,12 +149,12 @@ class FallbackBaselineTest extends TestCase {
 		$this->assertStringEndsWith( "\n", file_get_contents( $this->fallback_root . '/provenance.json' ) );
 	}
 
-	public function test_inactive_fallback_does_not_replace_font_awesome_5_runtime_fallback() {
+	public function test_packaged_fallback_is_the_default_font_awesome_7_runtime_baseline() {
 		$runtime = file_get_contents( dirname( __DIR__ ) . '/better-font-awesome-library.php' );
 
 		$this->assertSame( 'inc/fallback-release-data.json', Better_Font_Awesome_Library::FALLBACK_RELEASE_DATA_PATH );
-		$this->assertSame( '5.x', Better_Font_Awesome_Library::get_instance()->get_release_channel() );
-		$this->assertStringNotContainsString( 'font-awesome-7-fallback', $runtime );
+		$this->assertSame( '7.x', Better_Font_Awesome_Library::get_instance()->get_release_channel() );
+		$this->assertStringContainsString( 'font-awesome-7-fallback', $runtime );
 		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
 	}
 

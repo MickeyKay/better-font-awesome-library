@@ -9,6 +9,7 @@ parameters:
         - inc/class-bfa-release-channel.php
         - inc/class-bfa-release-data-v2-validator.php
         - inc/class-bfa-release-data-v2-adapter.php
+        - inc/class-bfa-release-data-v2-refresher.php
     treatPhpDocTypesAsCertain: false
     reportUnmatchedIgnoredErrors: true
 
