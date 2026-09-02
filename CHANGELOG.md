@@ -1,5 +1,25 @@
 # Changelog
 
+## 3.0.0
+
+- Promoted the accepted 3.0.0-rc.1 implementation to stable without production behavior changes beyond the BFAL version identity and resulting asset cache keys.
+- Made Font Awesome 7 the stable default while preserving explicit `release_channel => '5.x'` behavior, the first-caller singleton contract, existing public APIs, and channel-specific asset and metadata precedence.
+- Preserved the no-HTTP ordinary-request contract. Metadata transport remains limited to explicit asynchronous refresh work, and BFAL continues not to own WordPress persistence, scheduling, locking, retry, freshness, or migration policy.
+- Kept the packaged Font Awesome Free 7.3.1 fallback unchanged from the accepted release candidate.
+- Updated BFAL stylesheet and script cache keys from `3.0.0-rc.1` to `3.0.0`.
+
+To install the stable release after its tag is published:
+
+```console
+composer require mickey-kay/better-font-awesome-library:3.0.0
+```
+
+To roll back to the stable Font Awesome 5 release:
+
+```console
+composer require mickey-kay/better-font-awesome-library:2.1.0 --with-all-dependencies
+```
+
 ## 3.0.0-rc.1
 
 - Prepared the BFAL 3 next-major release candidate for integration testing. BFAL now defaults to Font Awesome 7 Free when the first caller omits `release_channel`; no channel argument is required for the default.

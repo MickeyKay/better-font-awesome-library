@@ -7,7 +7,7 @@ Better Font Awesome Library
 1. [Introduction](https://github.com/MickeyKay/better-font-awesome-library#introduction)
 1. [Features](https://github.com/MickeyKay/better-font-awesome-library#features)
 1. [Installation](https://github.com/MickeyKay/better-font-awesome-library#installation)
-1. [Stable release and prerelease rollback](https://github.com/MickeyKay/better-font-awesome-library#stable-release-and-prerelease-rollback)
+1. [Stable release and rollback](https://github.com/MickeyKay/better-font-awesome-library#stable-release-and-rollback)
 1. [Font Awesome 7 and BFAL 3](https://github.com/MickeyKay/better-font-awesome-library#font-awesome-7-and-bfal-3)
 1. [Changelog](https://github.com/MickeyKay/better-font-awesome-library/blob/master/CHANGELOG.md)
 1. [Usage](https://github.com/MickeyKay/better-font-awesome-library#usage)
@@ -35,7 +35,7 @@ The Better Font Awesome Library integrates validated Font Awesome Free metadata 
 ## Installation ##
 The Better Font Awesome Library should ideally be installed via Composer:
 ```
-composer require mickey-kay/better-font-awesome-library:2.1.0
+composer require mickey-kay/better-font-awesome-library:3.0.0
 ```
 
 Alternately, you can install the library manually, which can be useful for development and/or custom builds:
@@ -45,29 +45,29 @@ cd better-font-awesome-library
 npm run build
 ```
 
-## Stable release and prerelease rollback ##
+## Stable release and rollback ##
 
-BFAL 2.1.0 remains the stable release. Composer users can install it with:
+BFAL 3.0.0 is the stable release. Composer users can install it with:
 
 ```
-composer require mickey-kay/better-font-awesome-library:2.1.0
+composer require mickey-kay/better-font-awesome-library:3.0.0
 ```
 
-BFAL 2.1.0 provides validated live Font Awesome Free 5.x metadata with no metadata HTTP on ordinary requests. It supports consumer-controlled asynchronous refresh orchestration, durable last-known-good data in the Better Font Awesome consumer, and a checksummed bundled fallback. The accepted BFA integration supplies WordPress-owned scheduling, retry, locking, migration, and multisite behavior.
+BFAL 3.0.0 defaults to Font Awesome 7 and preserves explicit Font Awesome 5 selection. Ordinary requests perform no metadata or candidate-validation HTTP. BFAL provides validated local metadata, packaged fallback assets, and explicit asynchronous refresh operations while consumers continue to own WordPress persistence, scheduling, locking, retry, freshness, and migration policy.
 
-Normal static Font Awesome stylesheet registration uses anonymous CORS mode on BFAL's exact main and optional v4 shim handles. This preserves Block Editor, Classic Editor, hybrid `wp_editor()` screens, TinyMCE picker, frontend, and v4 compatibility behavior. The runtime version makes WordPress request `?ver=2.1.0` for those handles.
+The stable release promotes the accepted 3.0.0-rc.1 runtime without behavior changes beyond the version identity. The packaged Font Awesome Free 7.3.1 fallback is unchanged, and WordPress now uses `?ver=3.0.0` for BFAL stylesheet and script cache keys.
 
-To roll back from a BFAL 3 prerelease, restore BFAL 2.1.0 and redeploy the resulting lockfile:
+To roll back to the Font Awesome 5 stable line, restore BFAL 2.1.0 and redeploy the resulting lockfile:
 
 ```
 composer require mickey-kay/better-font-awesome-library:2.1.0 --with-all-dependencies
 ```
 
-BFAL follows versions published from repository tags. The stable release does not change the first-caller singleton ownership contract, introduce a post-construction registration API, or alter metadata transport, validation, caching, fallback, or ownership behavior from the accepted rc.2 implementation.
+BFAL follows versions published from repository tags. BFAL 3.0.0 does not change the first-caller singleton ownership contract, introduce a post-construction registration API, or alter channels, metadata transport, validation, caching, fallback, refresh, routing, public APIs, precedence, or ownership behavior from the accepted 3.0.0-rc.1 implementation.
 
 ## Font Awesome 7 and BFAL 3 ##
 
-BFAL 3 changes the default Font Awesome major. Existing tagged BFAL 2.x releases remain the stable Font Awesome 5-compatible line. BFAL 3 release candidates are intended for integration testing, and Better Font Awesome integration and browser acceptance are required before BFAL 3.0.0 stable publication.
+BFAL 3.0.0 changes the default Font Awesome major. Existing tagged BFAL 2.x releases remain the Font Awesome 5-compatible stable line for consumers that cannot yet adopt the new default.
 
 BFAL 3 defaults to the `7.x` release channel when the first caller supplies no `release_channel` argument. Explicit `release_channel => '7.x'` is identical to that default. Consumers that deliberately require the legacy runtime can select `release_channel => '5.x'`. The first caller owns this immutable selection, just like every other initialization argument.
 
