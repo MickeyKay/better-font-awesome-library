@@ -7,7 +7,7 @@
 
 if ( ! class_exists( 'Better_Font_Awesome_Release_Data_V2_Adapter' ) ) :
 	/**
-	 * Adapt validated family/style metadata for future internal consumers.
+	 * Adapt validated family/style metadata for internal consumers.
 	 *
 	 * @internal
 	 */

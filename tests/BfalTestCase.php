@@ -24,6 +24,7 @@ abstract class BfalTestCase extends TestCase {
 
 	protected function get_instance( $args = array() ) {
 		$this->prime_valid_transient();
+		$args = array_merge( array( 'release_channel' => '5.x' ), $args );
 		return Better_Font_Awesome_Library::get_instance( $args );
 	}
 

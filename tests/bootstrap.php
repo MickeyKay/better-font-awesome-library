@@ -106,6 +106,8 @@ function bfa_test_reset_wordpress_state() {
 	$GLOBALS['bfa_test_enqueued_styles']  = array();
 	$GLOBALS['bfa_test_filter_callbacks'] = array();
 	$GLOBALS['bfa_test_http_calls']       = 0;
+	$GLOBALS['bfa_test_http_callback']    = null;
+	$GLOBALS['bfa_test_http_requests']    = array();
 	$GLOBALS['bfa_test_http_response']    = new WP_Error( 'unexpected_http', 'Unexpected HTTP request.' );
 	$GLOBALS['bfa_test_inline_styles']    = array();
 	$GLOBALS['bfa_test_has_current_screen'] = true;
@@ -322,8 +324,20 @@ function wp_json_encode( $value ) {
 }
 
 function wp_remote_post( $url, $args ) {
+	return bfa_test_http_request( 'POST', $url, $args );
+}
+
+function wp_remote_get( $url, $args ) {
+	return bfa_test_http_request( 'GET', $url, $args );
+}
+
+function bfa_test_http_request( $method, $url, $args ) {
 	++$GLOBALS['bfa_test_http_calls'];
-	$GLOBALS['bfa_test_last_http_request'] = compact( 'url', 'args' );
+	$GLOBALS['bfa_test_last_http_request'] = compact( 'method', 'url', 'args' );
+	$GLOBALS['bfa_test_http_requests'][]   = $GLOBALS['bfa_test_last_http_request'];
+	if ( is_callable( $GLOBALS['bfa_test_http_callback'] ) ) {
+		return call_user_func( $GLOBALS['bfa_test_http_callback'], $method, $url, $args );
+	}
 	return $GLOBALS['bfa_test_http_response'];
 }
 

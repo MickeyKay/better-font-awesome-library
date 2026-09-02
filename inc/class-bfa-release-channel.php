@@ -9,8 +9,8 @@ if ( ! class_exists( 'Better_Font_Awesome_Release_Channel' ) ) :
 	/**
 	 * Major-aware release channel value helpers.
 	 *
-	 * This class is internal foundation for release validation. It does not
-	 * select or activate a production release channel.
+	 * This class defines the only release channels that the immutable runtime
+	 * selection may activate.
 	 *
 	 * @internal
 	 */
@@ -19,7 +19,7 @@ if ( ! class_exists( 'Better_Font_Awesome_Release_Channel' ) ) :
 		/** Existing production channel. */
 		const FONT_AWESOME_5 = '5.x';
 
-		/** Inactive Font Awesome 7 foundation channel. */
+		/** Font Awesome 7 channel. */
 		const FONT_AWESOME_7 = '7.x';
 
 		/**
