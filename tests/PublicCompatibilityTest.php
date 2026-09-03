@@ -5,7 +5,7 @@ require_once __DIR__ . '/BfalTestCase.php';
 class PublicCompatibilityTest extends BfalTestCase {
 	public function test_public_constants_are_preserved() {
 		$this->assertSame( 'bfa', Better_Font_Awesome_Library::SLUG );
-		$this->assertSame( '3.0.0', Better_Font_Awesome_Library::VERSION );
+		$this->assertSame( '3.0.1', Better_Font_Awesome_Library::VERSION );
 		$this->assertSame( 'https://api.fontawesome.com', Better_Font_Awesome_Library::FONT_AWESOME_API_BASE_URL );
 		$this->assertSame( 'https://use.fontawesome.com/releases', Better_Font_Awesome_Library::FONT_AWESOME_CDN_BASE_URL );
 		$this->assertSame( 'inc/fallback-release-data.json', Better_Font_Awesome_Library::FALLBACK_RELEASE_DATA_PATH );
@@ -208,8 +208,8 @@ class PublicCompatibilityTest extends BfalTestCase {
 
 		$this->assertArrayHasKey( 'bfa-font-awesome', $GLOBALS['bfa_test_registered_styles'] );
 		$this->assertArrayHasKey( 'bfa-font-awesome-v4-shim', $GLOBALS['bfa_test_registered_styles'] );
-		$this->assertSame( '3.0.0', $GLOBALS['bfa_test_registered_styles']['bfa-font-awesome']['version'] );
-		$this->assertSame( '3.0.0', $GLOBALS['bfa_test_registered_styles']['bfa-font-awesome-v4-shim']['version'] );
+		$this->assertSame( '3.0.1', $GLOBALS['bfa_test_registered_styles']['bfa-font-awesome']['version'] );
+		$this->assertSame( '3.0.1', $GLOBALS['bfa_test_registered_styles']['bfa-font-awesome-v4-shim']['version'] );
 		$this->assertArrayHasKey( 'bfa-font-awesome', $GLOBALS['bfa_test_enqueued_styles'] );
 		$this->assertArrayHasKey( 'bfa-font-awesome-v4-shim', $GLOBALS['bfa_test_enqueued_styles'] );
 		$this->assertArrayHasKey( 'bfa-font-awesome-v4-shim', $GLOBALS['bfa_test_inline_styles'] );
@@ -219,10 +219,10 @@ class PublicCompatibilityTest extends BfalTestCase {
 	public function test_admin_asset_cache_keys_use_the_release_version() {
 		$this->get_instance()->enqueue_admin_scripts();
 
-		$this->assertSame( '3.0.0', $GLOBALS['bfa_test_enqueued_styles']['bfa-admin']['version'] );
-		$this->assertSame( '3.0.0', $GLOBALS['bfa_test_enqueued_styles']['fontawesome-iconpicker']['version'] );
-		$this->assertSame( '3.0.0', $GLOBALS['bfa_test_enqueued_scripts']['bfa-admin']['version'] );
-		$this->assertSame( '3.0.0', $GLOBALS['bfa_test_enqueued_scripts']['fontawesome-iconpicker']['version'] );
+		$this->assertSame( '3.0.1', $GLOBALS['bfa_test_enqueued_styles']['bfa-admin']['version'] );
+		$this->assertSame( '3.0.1', $GLOBALS['bfa_test_enqueued_styles']['fontawesome-iconpicker']['version'] );
+		$this->assertSame( '3.0.1', $GLOBALS['bfa_test_enqueued_scripts']['bfa-admin']['version'] );
+		$this->assertSame( '3.0.1', $GLOBALS['bfa_test_enqueued_scripts']['fontawesome-iconpicker']['version'] );
 	}
 
 	public function test_documented_initialization_and_notice_filters_remain_active() {

@@ -35,7 +35,7 @@ The Better Font Awesome Library integrates validated Font Awesome Free metadata 
 ## Installation ##
 The Better Font Awesome Library should ideally be installed via Composer:
 ```
-composer require mickey-kay/better-font-awesome-library:3.0.0
+composer require mickey-kay/better-font-awesome-library:3.0.1
 ```
 
 Alternately, you can install the library manually, which can be useful for development and/or custom builds:
@@ -47,15 +47,15 @@ npm run build
 
 ## Stable release and rollback ##
 
-BFAL 3.0.0 is the stable release. Composer users can install it with:
+BFAL 3.0.1 is the stable release. Composer users can install it with:
 
 ```
-composer require mickey-kay/better-font-awesome-library:3.0.0
+composer require mickey-kay/better-font-awesome-library:3.0.1
 ```
 
-BFAL 3.0.0 defaults to Font Awesome 7 and preserves explicit Font Awesome 5 selection. Ordinary requests perform no metadata or candidate-validation HTTP. BFAL provides validated local metadata, packaged fallback assets, and explicit asynchronous refresh operations while consumers continue to own WordPress persistence, scheduling, locking, retry, freshness, and migration policy.
+BFAL 3.0.1 defaults to Font Awesome 7 and preserves explicit Font Awesome 5 selection. Ordinary requests perform no metadata or candidate-validation HTTP. BFAL provides validated local metadata, packaged fallback assets, and explicit asynchronous refresh operations while consumers continue to own WordPress persistence, scheduling, locking, retry, freshness, and migration policy.
 
-The stable release promotes the accepted 3.0.0-rc.1 runtime without behavior changes beyond the version identity. The packaged Font Awesome Free 7.3.1 fallback is unchanged, and WordPress now uses `?ver=3.0.0` for BFAL stylesheet and script cache keys.
+The corrective release treats an exact empty provider array as no locally available candidate, then continues to the established transient or bundled fallback. The packaged Font Awesome Free 7.3.1 fallback is unchanged, and WordPress uses `?ver=3.0.1` for BFAL stylesheet and script cache keys.
 
 To roll back to the Font Awesome 5 stable line, restore BFAL 2.1.0 and redeploy the resulting lockfile:
 
@@ -63,7 +63,7 @@ To roll back to the Font Awesome 5 stable line, restore BFAL 2.1.0 and redeploy 
 composer require mickey-kay/better-font-awesome-library:2.1.0 --with-all-dependencies
 ```
 
-BFAL follows versions published from repository tags. BFAL 3.0.0 does not change the first-caller singleton ownership contract, introduce a post-construction registration API, or alter channels, metadata transport, validation, caching, fallback, refresh, routing, public APIs, precedence, or ownership behavior from the accepted 3.0.0-rc.1 implementation.
+BFAL follows versions published from repository tags. BFAL 3.0.1 preserves the first-caller singleton ownership contract, channels, metadata transport, validation, caching, fallback, refresh, routing, public APIs, precedence, and ownership behavior established in 3.0.0.
 
 ## Font Awesome 7 and BFAL 3 ##
 
@@ -132,7 +132,7 @@ Normal frontend, admin, editor, REST, and cron-triggering requests never call th
 
 When BFAL reaches the fallback, it invokes `release_data_refresh_callback` once if configured. Otherwise it fires `bfa_release_data_refresh_requested` with the supported channel and library instance. The handler must only schedule work and return promptly. Scheduling, locking, durable last-known-good persistence, retry backoff, jitter, and freshness policy belong to the consumer.
 
-A provider may return a release array or a declared BFAL release record. Declared records must use the exact supported `schema_version`, `channel`, and `edition`, an allowed `source`, and a fully valid nested release. BFAL rejects mismatches rather than discarding or normalizing them.
+A provider may return a release array or a declared BFAL release record. An exact empty array means that the provider has no locally available candidate yet. Declared records must use the exact supported `schema_version`, `channel`, and `edition`, an allowed `source`, and a fully valid nested release. BFAL rejects mismatches rather than discarding or normalizing them.
 
 An asynchronous worker can call `refresh_release_data()`. For explicit `5.x`, the established operation retains its existing validated transient behavior and release-array return value. For `7.x`, one bounded attempt returns a complete validated schema-2 record or a sanitized `WP_Error` and performs no BFAL persistence. Both paths require TLS, reject redirects and unsafe URLs, and leave the prior validated data untouched on failure.
 
@@ -179,7 +179,7 @@ The following arguments can be used to initialize the library using `Better_Font
 
 #### $args['release_data_provider'] ####
 
-(callable|null) Optional callable that returns an already-resolved release array or BFAL release record. Providers used by normal getters must not perform remote I/O.
+(callable|null) Optional callable that returns an already-resolved release array or BFAL release record. An exact empty array indicates that no local candidate is currently available. Providers used by normal getters must not perform remote I/O.
 
 #### $args['release_data_refresh_callback'] ####
 
