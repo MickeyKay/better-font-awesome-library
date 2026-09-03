@@ -31,6 +31,26 @@ class ReleaseDataRuntimeTest extends BfalTestCase {
 		$this->assertSame( 'fallback', $library->get_release_record()['source'] );
 	}
 
+	public function test_empty_provider_preserves_explicit_five_fallback_behavior() {
+		$refresh_calls = 0;
+		$library       = Better_Font_Awesome_Library::get_instance(
+			array(
+				'release_data_provider'         => function () {
+					return array();
+				},
+				'release_data_refresh_callback' => function () use ( &$refresh_calls ) {
+					++$refresh_calls;
+				},
+			)
+		);
+
+		$this->assertSame( '5.14.0', $library->get_version() );
+		$this->assertSame( 'fallback', $library->get_release_record()['source'] );
+		$this->assertSame( '', $library->get_error( 'provider' ) );
+		$this->assertSame( 1, $refresh_calls );
+		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
+	}
+
 	public function test_normal_request_entrypoints_never_perform_transport() {
 		$library = Better_Font_Awesome_Library::get_instance();
 

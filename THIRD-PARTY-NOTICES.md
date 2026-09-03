@@ -30,13 +30,13 @@ licenses by asset category:
 
 License details: https://fontawesome.com/license/free
 
-For the active Font Awesome 5 channel, BFAL bundles metadata only. Browser CSS
+For the explicit Font Awesome 5 channel, BFAL bundles metadata only. Browser CSS
 and webfonts are fetched from the Font Awesome Free v5 CDN when consumers
 enable those existing BFAL features.
 
-## Font Awesome Free 7.3.1 inactive fallback
+## Font Awesome Free 7.3.1 default fallback
 
-BFAL also packages an inactive cold-start and recovery baseline generated from
+BFAL packages the active default cold-start and recovery baseline generated from
 the exact official npm release `@fortawesome/fontawesome-free@7.3.1`. Its
 reduced Free metadata, four required minified stylesheets, and four WOFF2
 webfonts are under `inc/font-awesome-7-fallback`.
@@ -50,6 +50,6 @@ webfonts are under `inc/font-awesome-7-fallback`.
 - Bundled license: `inc/font-awesome-7-fallback/LICENSE.txt`
 - Reproducible provenance: `inc/font-awesome-7-fallback/provenance.json`
 
-This baseline is not selected by the production runtime in this release. The
-existing Font Awesome 5 fallback remains active and retains its established
-lowest-precedence behavior.
+This baseline is selected by the default Font Awesome 7 production runtime and
+retains its established lowest-precedence behavior. The Font Awesome 5 metadata
+fallback remains available to explicit 5.x consumers.

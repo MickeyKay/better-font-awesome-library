@@ -34,6 +34,106 @@ class FontAwesome7RuntimeTest extends BfalTestCase {
 		$this->assertSame( array(), $GLOBALS['bfa_test_transient_writes'] );
 	}
 
+	public function test_empty_provider_result_uses_packaged_fallback_without_a_diagnostic() {
+		$provider_calls   = 0;
+		$refresh_requests = array();
+		$library          = Better_Font_Awesome_Library::get_instance(
+			array(
+				'release_data_provider'         => function () use ( &$provider_calls ) {
+					++$provider_calls;
+					return array();
+				},
+				'release_data_refresh_callback' => function ( $channel, $instance ) use ( &$refresh_requests ) {
+					$refresh_requests[] = array( $channel, $instance );
+				},
+			)
+		);
+
+		$this->assertSame( '7.3.1', $library->get_version() );
+		$this->assertSame( 'fallback', $library->get_release_record()['source'] );
+		$this->assertStringContainsString( '/font-awesome-7-fallback/', $library->get_stylesheet_url() );
+		$this->assertSame( '', $library->get_error( 'provider' ) );
+		$this->assertSame( 1, $provider_calls );
+		$this->assertCount( 1, $refresh_requests );
+		$this->assertSame( '7.x', $refresh_requests[0][0] );
+		$this->assertSame( $library, $refresh_requests[0][1] );
+		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
+
+		$library->get_icons();
+		$library->get_release_assets();
+		$library->request_release_data_refresh();
+
+		$this->assertCount( 1, $refresh_requests );
+		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
+	}
+
+	public function test_malformed_nonempty_provider_result_keeps_the_validation_diagnostic() {
+		$refresh_requests = 0;
+		$library = Better_Font_Awesome_Library::get_instance(
+			array(
+				'release_data_provider'         => function () {
+					return array( 'version' => 'not-valid' );
+				},
+				'release_data_refresh_callback' => function () use ( &$refresh_requests ) {
+					++$refresh_requests;
+				},
+			)
+		);
+
+		$this->assertSame( '7.3.1', $library->get_version() );
+		$this->assertSame( 'bfa_v2_version_invalid', $library->get_error( 'provider' )->get_error_code() );
+		$this->assertSame( 1, $refresh_requests );
+		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
+	}
+
+	/**
+	 * @dataProvider unavailable_or_failed_provider_result_provider
+	 */
+	public function test_other_unavailable_or_failed_provider_results_keep_their_diagnostics( $provided, $expected_code ) {
+		$library = Better_Font_Awesome_Library::get_instance(
+			array(
+				'release_data_provider' => function () use ( $provided ) {
+					return $provided;
+				},
+			)
+		);
+
+		$this->assertSame( '7.3.1', $library->get_version() );
+		$this->assertSame( $expected_code, $library->get_error( 'provider' )->get_error_code() );
+		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
+	}
+
+	public function unavailable_or_failed_provider_result_provider() {
+		return array(
+			'null'     => array( null, 'bfa_v2_release_invalid' ),
+			'false'    => array( false, 'bfa_v2_release_invalid' ),
+			'WP_Error' => array( new WP_Error( 'provider_unavailable', 'Provider unavailable.' ), 'bfa_provider_error' ),
+		);
+	}
+
+	public function test_provider_accepts_a_valid_font_awesome_seven_release_array() {
+		$record  = Better_Font_Awesome_Release_Data_V2_Validator::parse_record_json(
+			file_get_contents( dirname( __DIR__ ) . '/inc/font-awesome-7-fallback/metadata.json' )
+		)['record'];
+		$refresh_calls = 0;
+		$library       = Better_Font_Awesome_Library::get_instance(
+			array(
+				'release_data_provider'         => function () use ( $record ) {
+					return $record['release'];
+				},
+				'release_data_refresh_callback' => function () use ( &$refresh_calls ) {
+					++$refresh_calls;
+				},
+			)
+		);
+
+		$this->assertSame( '7.3.1', $library->get_version() );
+		$this->assertSame( 'provider', $library->get_release_record()['source'] );
+		$this->assertSame( 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css', $library->get_stylesheet_url() );
+		$this->assertSame( 0, $refresh_calls );
+		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
+	}
+
 	public function test_first_caller_channel_is_immutable_across_later_callers_and_loads() {
 		$filter_calls = 0;
 		add_filter(

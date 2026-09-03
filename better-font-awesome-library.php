@@ -51,7 +51,7 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @var    string
 	 */
-	const VERSION = '3.0.0';
+	const VERSION = '3.0.1';
 
 	/**
 	 * Font awesome GraphQL url.
@@ -644,6 +644,10 @@ class Better_Font_Awesome_Library {
 		}
 
 		$provided = call_user_func( $provider );
+		if ( array() === $provided ) {
+			return array();
+		}
+
 		if ( is_wp_error( $provided ) ) {
 			$this->set_error( 'provider', 'bfa_provider_error', 'The release data provider could not supply Font Awesome metadata.' );
 			return array();

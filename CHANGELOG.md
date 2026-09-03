@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.1
+
+- Treat an exact empty array from `release_data_provider` as a normal indication that no local candidate is available, without recording a provider validation error.
+- Continue resolving the established transient or bundled fallback after that sentinel and requesting asynchronous refresh when fallback is selected.
+- Preserve validation and diagnostics for every other provider result, including malformed data, channel mismatches, and `WP_Error` values.
+- Correct the third-party notice to identify Font Awesome Free 7.3.1 as the active default fallback and Font Awesome Free 5.14.0 as the fallback for explicit 5.x consumers.
+- Update BFAL stylesheet and script cache keys to `3.0.1` without changing editor behavior or packaged runtime assets.
+
 ## 3.0.0
 
 - Promoted the accepted 3.0.0-rc.1 implementation to stable without production behavior changes beyond the BFAL version identity and resulting asset cache keys.
