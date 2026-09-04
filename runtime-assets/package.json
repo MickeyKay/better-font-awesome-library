@@ -1,6 +1,6 @@
 {
   "name": "better-font-awesome-library-runtime-assets",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "private": true,
   "description": "Audit manifest for third-party browser source copied into BFAL release archives.",
   "dependencies": {

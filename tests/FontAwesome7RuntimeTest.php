@@ -67,6 +67,112 @@ class FontAwesome7RuntimeTest extends BfalTestCase {
 		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
 	}
 
+	public function test_valid_legacy_five_transient_is_a_channel_miss_without_a_diagnostic() {
+		$legacy_transient = $this->get_valid_release();
+		$refresh_requests = array();
+		$GLOBALS['bfa_test_transients']['bfa-release-data'] = $legacy_transient;
+		$library = Better_Font_Awesome_Library::get_instance(
+			array(
+				'release_data_refresh_callback' => function ( $channel, $instance ) use ( &$refresh_requests ) {
+					$refresh_requests[] = array( $channel, $instance );
+				},
+			)
+		);
+
+		$this->assertSame( '7.3.1', $library->get_version() );
+		$this->assertSame( 'fallback', $library->get_release_record()['source'] );
+		$this->assertStringContainsString( '/font-awesome-7-fallback/', $library->get_stylesheet_url() );
+		$this->assertSame( '', $library->get_error( 'cache' ) );
+		$this->assertCount( 1, $refresh_requests );
+		$this->assertSame( '7.x', $refresh_requests[0][0] );
+		$this->assertSame( $library, $refresh_requests[0][1] );
+		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
+		$this->assertSame( $legacy_transient, $GLOBALS['bfa_test_transients']['bfa-release-data'] );
+		$this->assertSame( array(), $GLOBALS['bfa_test_transient_writes'] );
+	}
+
+	public function test_repeated_getters_after_legacy_five_transient_miss_are_stable() {
+		$refresh_requests = 0;
+		$GLOBALS['bfa_test_transients']['bfa-release-data'] = $this->get_valid_release();
+		$library = Better_Font_Awesome_Library::get_instance(
+			array(
+				'release_data_refresh_callback' => function () use ( &$refresh_requests ) {
+					++$refresh_requests;
+				},
+			)
+		);
+
+		$first_version = $library->get_version();
+		$first_url     = $library->get_stylesheet_url();
+		$library->get_icons();
+		$library->get_release_icons();
+		$library->get_release_assets();
+		$library->get_version();
+
+		$this->assertSame( '7.3.1', $first_version );
+		$this->assertSame( $first_version, $library->get_version() );
+		$this->assertSame( $first_url, $library->get_stylesheet_url() );
+		$this->assertSame( '', $library->get_error( 'cache' ) );
+		$this->assertSame( 1, $refresh_requests );
+		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
+	}
+
+	public function test_explicit_five_continues_accepting_the_valid_legacy_transient() {
+		$legacy_transient = $this->get_valid_release();
+		$refresh_requests = 0;
+		$GLOBALS['bfa_test_transients']['bfa-release-data'] = $legacy_transient;
+		$library = Better_Font_Awesome_Library::get_instance(
+			array(
+				'release_channel'               => '5.x',
+				'release_data_refresh_callback' => function () use ( &$refresh_requests ) {
+					++$refresh_requests;
+				},
+			)
+		);
+
+		$this->assertSame( '5.15.4', $library->get_version() );
+		$this->assertSame( 'transient', $library->get_release_record()['source'] );
+		$this->assertSame( $legacy_transient, $GLOBALS['bfa_test_transients']['bfa-release-data'] );
+		$this->assertSame( array(), $GLOBALS['bfa_test_transient_writes'] );
+		$this->assertSame( 0, $refresh_requests );
+		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
+	}
+
+	public function test_malformed_seven_transient_keeps_its_validation_diagnostic() {
+		$release = $this->get_schema_two_record( '7.4.1', 'malformed-transient' )['release'];
+		unset( $release['icons'] );
+		$GLOBALS['bfa_test_transients']['bfa-release-data'] = $release;
+
+		$library = Better_Font_Awesome_Library::get_instance();
+
+		$this->assertSame( '7.3.1', $library->get_version() );
+		$this->assertSame( 'fallback', $library->get_release_record()['source'] );
+		$this->assertSame( 'bfa_v2_icons_empty', $library->get_error( 'cache' )->get_error_code() );
+		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
+	}
+
+	public function test_valid_seven_transient_is_accepted_without_fallback_or_refresh() {
+		$release = $this->get_schema_two_record( '7.4.1', 'valid-transient' )['release'];
+		$refresh_requests = 0;
+		$GLOBALS['bfa_test_transients']['bfa-release-data'] = $release;
+		$library = Better_Font_Awesome_Library::get_instance(
+			array(
+				'release_data_refresh_callback' => function () use ( &$refresh_requests ) {
+					++$refresh_requests;
+				},
+			)
+		);
+
+		$this->assertSame( '7.4.1', $library->get_version() );
+		$this->assertSame( 'transient', $library->get_release_record()['source'] );
+		$this->assertSame(
+			'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.4.1/css/all.min.css',
+			$library->get_stylesheet_url()
+		);
+		$this->assertSame( 0, $refresh_requests );
+		$this->assertSame( 0, $GLOBALS['bfa_test_http_calls'] );
+	}
+
 	public function test_malformed_nonempty_provider_result_keeps_the_validation_diagnostic() {
 		$refresh_requests = 0;
 		$library = Better_Font_Awesome_Library::get_instance(
