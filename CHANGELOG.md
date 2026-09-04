@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.2
+
+- Treat a fully validated Font Awesome 5 release in the shared legacy transient as an incompatible cache miss when the immutable 7.x channel is selected, without diagnostics or transient mutation.
+- Continue serving the unchanged bundled Font Awesome 7.3.1 fallback and requesting asynchronous refresh exactly once, with no metadata HTTP on ordinary requests.
+- Preserve explicit 5.x transient acceptance, selected-channel validation diagnostics, provider behavior, and the 3.0.1 empty-provider correction.
+
 ## 3.0.1
 
 - Treat an exact empty array from `release_data_provider` as a normal indication that no local candidate is available, without recording a provider validation error.

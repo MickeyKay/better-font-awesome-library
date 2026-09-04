@@ -35,7 +35,7 @@ The Better Font Awesome Library integrates validated Font Awesome Free metadata 
 ## Installation ##
 The Better Font Awesome Library should ideally be installed via Composer:
 ```
-composer require mickey-kay/better-font-awesome-library:3.0.1
+composer require mickey-kay/better-font-awesome-library:3.0.2
 ```
 
 Alternately, you can install the library manually, which can be useful for development and/or custom builds:
@@ -47,15 +47,15 @@ npm run build
 
 ## Stable release and rollback ##
 
-BFAL 3.0.1 is the stable release. Composer users can install it with:
+BFAL 3.0.2 is the stable release. Composer users can install it with:
 
 ```
-composer require mickey-kay/better-font-awesome-library:3.0.1
+composer require mickey-kay/better-font-awesome-library:3.0.2
 ```
 
-BFAL 3.0.1 defaults to Font Awesome 7 and preserves explicit Font Awesome 5 selection. Ordinary requests perform no metadata or candidate-validation HTTP. BFAL provides validated local metadata, packaged fallback assets, and explicit asynchronous refresh operations while consumers continue to own WordPress persistence, scheduling, locking, retry, freshness, and migration policy.
+BFAL 3.0.2 defaults to Font Awesome 7 and preserves explicit Font Awesome 5 selection. Ordinary requests perform no metadata or candidate-validation HTTP. BFAL provides validated local metadata, packaged fallback assets, and explicit asynchronous refresh operations while consumers continue to own WordPress persistence, scheduling, locking, retry, freshness, and migration policy.
 
-The corrective release treats an exact empty provider array as no locally available candidate, then continues to the established transient or bundled fallback. The packaged Font Awesome Free 7.3.1 fallback is unchanged, and WordPress uses `?ver=3.0.1` for BFAL stylesheet and script cache keys.
+The corrective release treats a fully validated Font Awesome 5 value in the shared legacy transient as an incompatible cache miss when the 7.x channel is selected. It adds no diagnostic, does not mutate the transient, continues to the unchanged packaged Font Awesome Free 7.3.1 fallback, and requests asynchronous refresh once. The BFAL 3.0.1 empty-provider correction remains intact, and WordPress uses `?ver=3.0.2` for BFAL stylesheet and script cache keys.
 
 To roll back to the Font Awesome 5 stable line, restore BFAL 2.1.0 and redeploy the resulting lockfile:
 
@@ -63,7 +63,7 @@ To roll back to the Font Awesome 5 stable line, restore BFAL 2.1.0 and redeploy 
 composer require mickey-kay/better-font-awesome-library:2.1.0 --with-all-dependencies
 ```
 
-BFAL follows versions published from repository tags. BFAL 3.0.1 preserves the first-caller singleton ownership contract, channels, metadata transport, validation, caching, fallback, refresh, routing, public APIs, precedence, and ownership behavior established in 3.0.0.
+BFAL follows versions published from repository tags. BFAL 3.0.2 preserves the first-caller singleton ownership contract, channels, metadata transport, validation, caching, fallback, refresh, routing, public APIs, precedence, and ownership behavior established in 3.0.0.
 
 ## Font Awesome 7 and BFAL 3 ##
 

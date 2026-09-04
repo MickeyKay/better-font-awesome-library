@@ -51,7 +51,7 @@ class Better_Font_Awesome_Library {
 	 *
 	 * @var    string
 	 */
-	const VERSION = '3.0.1';
+	const VERSION = '3.0.2';
 
 	/**
 	 * Font awesome GraphQL url.
@@ -621,7 +621,9 @@ class Better_Font_Awesome_Library {
 				return $this->release_data;
 			}
 
-			$this->set_validation_error( 'cache', $result );
+			if ( ! $this->is_valid_legacy_font_awesome_5_transient( $transient_value ) ) {
+				$this->set_validation_error( 'cache', $result );
+			}
 		}
 
 		// 4. Return validated bundled data immediately and request async refresh.
@@ -683,6 +685,25 @@ class Better_Font_Awesome_Library {
 		return $is_record
 			? Better_Font_Awesome_Release_Data_Validator::validate_record( $data )
 			: Better_Font_Awesome_Release_Data_Validator::validate_release( $data, $source );
+	}
+
+	/**
+	 * Recognize valid established Font Awesome 5 transient data on the 7.x channel.
+	 *
+	 * The shared legacy transient remains untouched and is treated as a cache
+	 * miss. Complete validation prevents arbitrary invalid values from being
+	 * silently ignored.
+	 *
+	 * @param mixed $data Legacy transient value.
+	 * @return bool Whether the value is valid Font Awesome 5 release data.
+	 */
+	private function is_valid_legacy_font_awesome_5_transient( $data ) {
+		if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 !== $this->release_channel ) {
+			return false;
+		}
+
+		$result = Better_Font_Awesome_Release_Data_Validator::validate_release( $data, 'transient' );
+		return $result['valid'];
 	}
 
 	/**
