@@ -118,6 +118,8 @@ function bfa_test_reset_wordpress_state() {
 	$GLOBALS['bfa_test_shortcodes']       = array();
 	$GLOBALS['bfa_test_transients']       = array();
 	$GLOBALS['bfa_test_transient_writes'] = array();
+	$GLOBALS['bfa_test_transient_reads']  = array();
+	$GLOBALS['bfa_test_plugin_dir_path']  = null;
 	$GLOBALS['bfa_test_set_transient_result'] = true;
 }
 
@@ -285,7 +287,7 @@ function plugin_dir_url( $file ) {
 }
 
 function plugin_dir_path( $file ) {
-	return dirname( $file ) . '/';
+	return $GLOBALS['bfa_test_plugin_dir_path'] ?? dirname( $file ) . '/';
 }
 
 function trailingslashit( $value ) {
@@ -305,6 +307,7 @@ function get_current_screen() {
 }
 
 function get_transient( $key ) {
+	$GLOBALS['bfa_test_transient_reads'][] = $key;
 	return array_key_exists( $key, $GLOBALS['bfa_test_transients'] )
 		? $GLOBALS['bfa_test_transients'][ $key ]
 		: false;
