@@ -132,24 +132,38 @@ class AssetDeliveryTest extends BfalTestCase {
 		);
 	}
 
-	/** @dataProvider invalid_modes */
-	public function test_invalid_mode_fails_closed_and_cannot_be_replaced( $mode, $channel, $code, $effective ) {
+	/** @dataProvider invalid_configurations */
+	public function test_invalid_configuration_reports_no_mode_and_cannot_be_replaced( $mode, $channel, $process, $code ) {
 		$library = Better_Font_Awesome_Library::get_instance( array( 'asset_delivery' => $mode, 'release_channel' => $channel ) );
-		$this->assertSame( $effective, $library->get_asset_delivery() );
-		$this->assertSame( $channel, $library->get_release_channel() );
-		$this->assertSame( $code, $library->get_error( 'delivery' )->get_error_code() );
-		$this->assertSame( $library->get_error( 'delivery' ), $library->refresh_release_data() );
+		$this->assertSame( '', $library->get_asset_delivery() );
+		$this->assertSame( 'unsupported' === $channel ? '' : $channel, $library->get_release_channel() );
+		$this->assertSame( $code, $library->get_error( $process )->get_error_code() );
+		$this->assertSame( $library->get_error( $process ), $library->refresh_release_data() );
 		$this->assertSame( $library, Better_Font_Awesome_Library::get_instance( array( 'asset_delivery' => 'automatic', 'release_channel' => '7.x' ) ) );
+		add_filter( 'bfa_init_args', function ( $args ) {
+			$args['asset_delivery'] = 'automatic';
+			$args['release_channel'] = '7.x';
+			return $args;
+		} );
+		$library->load();
+		$this->assertSame( '', $library->get_asset_delivery() );
+		$this->assertSame( 'unsupported' === $channel ? '' : $channel, $library->get_release_channel() );
+		$this->assertSame( $library->get_error( $process ), $library->refresh_release_data() );
+		if ( 'delivery' === $process ) {
+			$library->register_v4_shim_inline_css();
+		}
 		$this->assert_closed( $library );
 	}
 
-	public static function invalid_modes() {
+	public static function invalid_configurations() {
 		return array(
-			array( 'remote-secret', '7.x', 'bfa_asset_delivery_unsupported', '' ),
-			array( null, '7.x', 'bfa_asset_delivery_unsupported', '' ),
-			array( array(), '7.x', 'bfa_asset_delivery_unsupported', '' ),
-			array( false, '7.x', 'bfa_asset_delivery_unsupported', '' ),
-			array( 'bundled-local', '5.x', 'bfa_asset_delivery_channel_unsupported', 'bundled-local' ),
+			array( 'remote-secret', '7.x', 'delivery', 'bfa_asset_delivery_unsupported' ),
+			array( null, '7.x', 'delivery', 'bfa_asset_delivery_unsupported' ),
+			array( array(), '7.x', 'delivery', 'bfa_asset_delivery_unsupported' ),
+			array( false, '7.x', 'delivery', 'bfa_asset_delivery_unsupported' ),
+			array( 'bundled-local', '5.x', 'delivery', 'bfa_asset_delivery_channel_unsupported' ),
+			array( 'automatic', 'unsupported', 'channel', 'bfa_channel_unsupported' ),
+			array( 'bundled-local', 'unsupported', 'channel', 'bfa_channel_unsupported' ),
 		);
 	}
 
@@ -188,10 +202,12 @@ class AssetDeliveryTest extends BfalTestCase {
 				'release_data_refresh_callback' => function () { $this->fail( 'Refresh requested for broken bundle.' ); },
 			) );
 			$this->assertInstanceOf( WP_Error::class, $library->get_error( 'fallback' ) );
+			$this->assertSame( 'bundled-local', $library->get_asset_delivery(), 'A bundle failure does not invalidate the configured delivery mode.' );
 			if ( 'metadata.json' !== $path ) {
 				$this->assertSame( 'bfa_bundled_asset_unavailable', $library->get_error( 'fallback' )->get_error_code() );
 			}
 			$this->assertSame( 'bfa_refresh_disabled', $library->refresh_release_data()->get_error_code() );
+			$library->register_v4_shim_inline_css();
 			$this->assert_closed( $library );
 			$this->assertSame( $candidate, $GLOBALS['bfa_test_transients']['bfa-release-data'] );
 		} finally {
@@ -242,7 +258,6 @@ class AssetDeliveryTest extends BfalTestCase {
 		$this->assertSame( array(), $library->get_icons() );
 		$this->assertSame( array(), $library->get_release_assets() );
 		$library->register_font_awesome_css();
-		$library->register_v4_shim_inline_css();
 		$library->request_release_data_refresh();
 		$this->assertSame( array(), $GLOBALS['bfa_test_registered_styles'] );
 		$this->assertSame( array(), $GLOBALS['bfa_test_inline_styles'] );

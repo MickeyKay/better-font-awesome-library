@@ -304,7 +304,7 @@ The object has the following public methods:
 (string) Returns the immutable selected Font Awesome channel, `7.x` by default or explicit `5.x`. Returns an empty string when an unsupported first-caller value has caused the runtime to fail closed.
 
 #### get_asset_delivery() ####
-(string) Returns the immutable first-caller mode, `automatic` or `bundled-local`. Returns an empty string for an unsupported mode. A supported mode is retained even when the channel or mode/channel combination is invalid; inspect `get_errors()` for configuration failures.
+(string) Returns the immutable first-caller mode, `automatic` or `bundled-local`. Returns an empty string when the mode, channel, or mode/channel combination is unsupported; inspect `get_errors()` for configuration failures. The internal selection remains immutable. A missing or invalid bundle does not invalidate the configuration, so the accessor still returns `bundled-local` in that case.
 
 #### request_release_data_refresh() ####
 Requests asynchronous refresh scheduling through the configured callback or `bfa_release_data_refresh_requested` action. This method performs no remote transport. It does nothing in bundled-local mode or after invalid mode/channel initialization.

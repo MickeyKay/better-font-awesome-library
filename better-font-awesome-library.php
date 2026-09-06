@@ -1844,9 +1844,13 @@ class Better_Font_Awesome_Library {
 	/**
 	 * Get the immutable asset delivery mode.
 	 *
-	 * @return string automatic or bundled-local; empty for an unsupported mode.
+	 * @return string automatic or bundled-local; empty for an unsupported configuration.
 	 */
 	public function get_asset_delivery() {
+		if ( $this->release_channel_invalid || $this->asset_delivery_invalid ) {
+			return '';
+		}
+
 		return $this->asset_delivery;
 	}
 
