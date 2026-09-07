@@ -132,6 +132,7 @@ class Better_Font_Awesome_Library {
 		'release_data_provider'        => null,
 		'release_data_refresh_callback' => null,
 		'release_channel'              => '7.x',
+		'asset_delivery'               => 'automatic',
 	);
 
 	/**
@@ -154,6 +155,20 @@ class Better_Font_Awesome_Library {
 	 * @var bool
 	 */
 	private $release_channel_invalid = false;
+
+	/**
+	 * Immutable asset delivery mode selected with the first caller's channel.
+	 *
+	 * @var string
+	 */
+	private $asset_delivery = '';
+
+	/**
+	 * Whether the selected delivery mode or mode/channel combination is invalid.
+	 *
+	 * @var bool
+	 */
+	private $asset_delivery_invalid = false;
 
 	/**
 	 * Root URL of the library.
@@ -416,9 +431,9 @@ class Better_Font_Awesome_Library {
 		$this->args = apply_filters( 'bfa_init_args', $this->args );
 
 		/*
-		 * Resolve the selected channel exactly once. The established filter remains
-		 * available, but later calls to load() and later singleton callers cannot
-		 * mutate the first caller's selection.
+		 * Resolve the selected channel and delivery mode exactly once. Existing
+		 * filters remain available, but later calls to load() and later singleton
+		 * callers cannot mutate the first caller's selection.
 		 */
 		if ( ! $this->release_channel_resolved ) {
 			$selected = array_key_exists( 'release_channel', $this->args ) ? $this->args['release_channel'] : null;
@@ -432,10 +447,23 @@ class Better_Font_Awesome_Library {
 				$this->set_error( 'channel', 'bfa_channel_unsupported', 'The selected Font Awesome release channel is not supported.' );
 			}
 
+			$delivery = array_key_exists( 'asset_delivery', $this->args ) ? $this->args['asset_delivery'] : null;
+			if ( 'automatic' === $delivery || 'bundled-local' === $delivery ) {
+				$this->asset_delivery = $delivery;
+				if ( 'bundled-local' === $delivery && Better_Font_Awesome_Release_Channel::FONT_AWESOME_5 === $this->release_channel ) {
+					$this->asset_delivery_invalid = true;
+					$this->set_error( 'delivery', 'bfa_asset_delivery_channel_unsupported', 'Bundled-local asset delivery requires the Font Awesome 7 release channel.' );
+				}
+			} else {
+				$this->asset_delivery_invalid = true;
+				$this->set_error( 'delivery', 'bfa_asset_delivery_unsupported', 'The selected Font Awesome asset delivery mode is not supported.' );
+			}
+
 			$this->release_channel_resolved = true;
 		}
 
 		$this->args['release_channel'] = $this->release_channel;
+		$this->args['asset_delivery']  = $this->asset_delivery;
 
 		/**
 		 * Filter the wp_remote_get args.
@@ -576,6 +604,25 @@ class Better_Font_Awesome_Library {
 			return $this->get_empty_release_data();
 		}
 
+		if ( 'bundled-local' === $this->asset_delivery ) {
+			$paths = array_merge(
+				array_column( $result['record']['release']['srisByLicense']['free'], 'path' ),
+				array(
+					'webfonts/fa-brands-400.woff2',
+					'webfonts/fa-regular-400.woff2',
+					'webfonts/fa-solid-900.woff2',
+					'webfonts/fa-v4compatibility.woff2',
+				)
+			);
+			foreach ( $paths as $asset_path ) {
+				$local_path = plugin_dir_path( __FILE__ ) . self::FONT_AWESOME_7_FALLBACK_PATH . $asset_path;
+				if ( ! is_file( $local_path ) || ! is_readable( $local_path ) || 0 === filesize( $local_path ) ) {
+					$this->set_error( 'fallback', 'bfa_bundled_asset_unavailable', 'A bundled Font Awesome asset is missing, unreadable, or empty. Restore the BFAL package to use local asset delivery.' );
+					return $this->get_empty_release_data();
+				}
+			}
+		}
+
 		$this->release_record = $result['record'];
 		$this->using_bundled_font_awesome_7_fallback = true;
 		return $result['record']['release'];
@@ -594,12 +641,18 @@ class Better_Font_Awesome_Library {
 	 * @return  array  Release data.
 	 */
 	private function get_font_awesome_release_data() {
-		if ( $this->release_channel_invalid ) {
+		if ( $this->release_channel_invalid || $this->asset_delivery_invalid ) {
 			return $this->get_empty_release_data();
 		}
 
 		// 1. Reuse validated instance data for this request.
 		if ( ! empty( $this->release_data ) ) {
+			return $this->release_data;
+		}
+
+		// Local delivery pins metadata and assets to the same packaged release.
+		if ( 'bundled-local' === $this->asset_delivery ) {
+			$this->release_data = $this->get_fallback_release_data();
 			return $this->release_data;
 		}
 
@@ -776,6 +829,10 @@ class Better_Font_Awesome_Library {
 			return $this->root_url . self::FONT_AWESOME_7_FALLBACK_PATH . $path;
 		}
 
+		if ( 'bundled-local' === $this->asset_delivery ) {
+			return '';
+		}
+
 		return sprintf( '%s/%s/%s', self::FONT_AWESOME_7_CDN_BASE_URL, $version, $path );
 	}
 
@@ -783,12 +840,13 @@ class Better_Font_Awesome_Library {
 	 * Request asynchronous release data refresh work from a consumer.
 	 *
 	 * The callback or action handler must schedule work and return promptly. BFAL
-	 * does not run remote transport from this method.
+	 * does not run remote transport from this method. Bundled-local delivery
+	 * never requests refresh work, including when the bundle cannot be loaded.
 	 *
 	 * @since 2.1.0
 	 */
 	public function request_release_data_refresh() {
-		if ( $this->release_channel_invalid || $this->refresh_requested ) {
+		if ( $this->release_channel_invalid || $this->asset_delivery_invalid || 'bundled-local' === $this->asset_delivery || $this->refresh_requested ) {
 			return;
 		}
 
@@ -817,6 +875,8 @@ class Better_Font_Awesome_Library {
 	 * Consumers own scheduling, locking, retry backoff, and durable last-known-
 	 * good persistence. This method performs one bounded refresh attempt and
 	 * only replaces the established transient after complete validation.
+	 * Bundled-local delivery returns bfa_refresh_disabled as a WP_Error without
+	 * HTTP, persistence, or changing the active record. It is not a retryable failure.
 	 *
 	 * @since 2.1.0
 	 *
@@ -825,6 +885,14 @@ class Better_Font_Awesome_Library {
 	public function refresh_release_data() {
 		if ( $this->release_channel_invalid ) {
 			return $this->get_error( 'channel' );
+		}
+
+		if ( $this->asset_delivery_invalid ) {
+			return $this->get_error( 'delivery' );
+		}
+
+		if ( 'bundled-local' === $this->asset_delivery ) {
+			return new WP_Error( 'bfa_refresh_disabled', 'Metadata refresh is disabled for bundled-local asset delivery. Update the BFAL package to update Font Awesome.' );
 		}
 
 		if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ) {
@@ -1375,7 +1443,7 @@ class Better_Font_Awesome_Library {
 	 * @since  2.0.1
 	 */
 	public function register_v4_shim_inline_css () {
-		if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ) {
+		if ( $this->asset_delivery_invalid || 'bundled-local' === $this->asset_delivery || Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ) {
 			return;
 		}
 
@@ -1771,6 +1839,19 @@ class Better_Font_Awesome_Library {
 	 */
 	public function get_release_channel() {
 		return $this->release_channel;
+	}
+
+	/**
+	 * Get the immutable asset delivery mode.
+	 *
+	 * @return string automatic or bundled-local; empty for an unsupported configuration.
+	 */
+	public function get_asset_delivery() {
+		if ( $this->release_channel_invalid || $this->asset_delivery_invalid ) {
+			return '';
+		}
+
+		return $this->asset_delivery;
 	}
 
 	/**
