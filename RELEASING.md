@@ -22,6 +22,8 @@ Run the generation command a second time and require an empty diff to verify byt
 
 ## Prepare and verify
 
+Before editing, fetch current master and tags, verify the required reviewed feature commit and tree, and check GitHub releases and Packagist for the proposed version. Report any intervening changes before including them. Never overwrite an existing version.
+
 Set the intended BFAL version and start from a clean checkout of its candidate commit:
 
 ```console
@@ -37,14 +39,19 @@ npm run verify:font-awesome-7-fallback
 git diff --exit-code
 ```
 
-Confirm that `Better_Font_Awesome_Library::VERSION`, both npm manifests, both npm lockfile root records, the compatibility test, and the changelog use the intended release version. `composer.json` intentionally has no version field because Composer derives the package version from the tag.
+Confirm that `Better_Font_Awesome_Library::VERSION`, both npm manifests, both npm lockfile root records, the compatibility test and its stylesheet/script cache-key assertions, and the changelog use the intended release version. `composer.json` intentionally has no version field because Composer derives the package version from the tag.
+
+For a version-only promotion, compare the candidate against the reviewed feature tree. After normalizing only the BFAL version constant, runtime implementation must be byte-identical. Confirm bundled metadata, CSS, fonts, licenses, and provenance are unchanged. Reuse existing consumer integration evidence, recording its exact tested commit and any later head separately; do not repeat the full consumer browser or WordPress matrix unless a behavior change or evidence gap requires it.
 
 ## Build the production archive
 
-Record the reviewed production file count in the release-preparation evidence, then create two verification archives only from the unpushed local tag. The tracked `.gitattributes` rules exclude tests, agent files, development configuration, development locks, build sources, and release tooling. Runtime Composer dependencies belong in `composer.json`. If BFAL has no runtime Composer dependencies, the archive must not contain `vendor`.
+During release preparation, build two provisional archives from the exact committed candidate SHA without creating a tag. Record the candidate commit and tree, reviewed production file count, byte comparison, inventory, size, and SHA-256 in the draft release-preparation PR. Candidate archives are verification evidence, not publication artifacts. After approval and merge, rebuild and reverify from the exact unpushed local release tag before publication; the final archive identity can differ because Git archives include commit identity and timestamps.
+
+Set `ARCHIVE_REF` to the candidate SHA for provisional verification, or to the unpushed local tag for final publication verification. The tracked `.gitattributes` rules exclude tests, agent files, development configuration, development locks, build sources, and release tooling. Runtime Composer dependencies belong in `composer.json`. If BFAL has no runtime Composer dependencies, the archive must not contain `vendor`.
 
 ```console
 RELEASE_VERSION="<version>"
+ARCHIVE_REF="<candidate commit SHA or unpushed local release tag>"
 EXPECTED_FILE_COUNT="<reviewed production file count>"
 ARTIFACT_PATH="better-font-awesome-library-${RELEASE_VERSION}.zip"
 VERIFICATION_ARTIFACT_PATH="better-font-awesome-library-${RELEASE_VERSION}-verification.zip"
@@ -53,12 +60,12 @@ git archive \
   --format=zip \
   --prefix="better-font-awesome-library-${RELEASE_VERSION}/" \
   --output="$ARTIFACT_PATH" \
-  "$RELEASE_VERSION"
+  "$ARCHIVE_REF"
 git archive \
   --format=zip \
   --prefix="better-font-awesome-library-${RELEASE_VERSION}/" \
   --output="$VERIFICATION_ARTIFACT_PATH" \
-  "$RELEASE_VERSION"
+  "$ARCHIVE_REF"
 cmp "$ARTIFACT_PATH" "$VERIFICATION_ARTIFACT_PATH"
 shasum -a 256 "$ARTIFACT_PATH" > "$CHECKSUM_PATH"
 ARCHIVE_FILE_COUNT="$(unzip -Z1 "$ARTIFACT_PATH" | awk '! /\/$/ { count++ } END { print count + 0 }')"
@@ -67,7 +74,7 @@ cat "$CHECKSUM_PATH"
 unzip -l "$ARTIFACT_PATH"
 ```
 
-The two archives must be byte-identical. Before publication, manually confirm the reviewed file count, the single exact versioned root directory, every required runtime file, all version surfaces, and the final SHA-256 checksum. Confirm tests, agent files, development dependencies, build sources, `node_modules`, and any excluded `vendor` directory are absent.
+The two archives must have identical inventories and be byte-identical. Before publication, manually confirm the reviewed file count, the single exact versioned root directory, every required runtime file, all version surfaces, and the final SHA-256 checksum. Confirm tests, agent files, development dependencies, build sources, `node_modules`, and any excluded `vendor` directory are absent.
 
 ## Publish
 
