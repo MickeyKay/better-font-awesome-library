@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.1.0
+
+- Add optional `asset_delivery => 'bundled-local'` for Font Awesome 7 Free. The active version, icon catalog, picker data, CSS, compatibility styles, and WOFF2 fonts all use the same packaged Font Awesome Free 7.3.1 release.
+- In local mode, bypass providers and transients without reading or mutating them, request no background refresh, and perform no remote refresh. Missing or invalid bundled files fail closed without substituting remote assets. New icons arrive through BFAL or embedding-plugin updates.
+- Keep `automatic` as the default, with validated provider or transient metadata ahead of the bundled fallback and consumer-managed asynchronous updates within the selected channel. Ordinary requests continue to perform no metadata HTTP.
+- Preserve first-caller ownership of all initialization arguments, including delivery mode and channel. Later callers cannot change the instance; hook priority remains the ownership mechanism.
+- Reject explicit FA5 with local delivery without switching channels. FA5 remains supported in automatic mode.
+- Promote the reviewed bundled-local implementation without runtime changes beyond the BFAL version constant and resulting stylesheet and script cache keys, now `3.1.0`. Bundled metadata, CSS, fonts, licenses, and provenance remain unchanged.
+
 ## 3.0.2
 
 - Treat a fully validated Font Awesome 5 release in the shared legacy transient as an incompatible cache miss when the immutable 7.x channel is selected, without diagnostics or transient mutation.
