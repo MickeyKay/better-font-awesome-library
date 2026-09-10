@@ -133,6 +133,7 @@ class Better_Font_Awesome_Library {
 		'release_data_refresh_callback' => null,
 		'release_channel'              => '7.x',
 		'asset_delivery'               => 'automatic',
+		'kit_css_url'                  => '',
 	);
 
 	/**
@@ -169,6 +170,18 @@ class Better_Font_Awesome_Library {
 	 * @var bool
 	 */
 	private $asset_delivery_invalid = false;
+
+	/** @var string Immutable, validated hosted Kit stylesheet URL. */
+	private $kit_css_url = '';
+
+	/** @var string Dedicated handle, never associated with a Free manifest. */
+	private const KIT_CSS_HANDLE = 'bfa-font-awesome-kit';
+
+	/** @var Closure|null Stable callbacks across repeated load() calls. */
+	private $stylesheet_tag_filter = null;
+
+	/** @var Closure|null TinyMCE-only stylesheet callback. */
+	private $kit_mce_css_filter = null;
 
 	/**
 	 * Root URL of the library.
@@ -325,14 +338,14 @@ class Better_Font_Awesome_Library {
 		 * This prevents a non-CORS response for the immutable URL from being
 		 * cached before WordPress requests the same URL in an isolated editor.
 		 */
-		add_filter(
-			'style_loader_tag',
-			function ( $html, $handle ) {
+		if ( null === $this->stylesheet_tag_filter ) {
+			$this->stylesheet_tag_filter = function ( $html, $handle ) {
 				return $this->add_font_awesome_crossorigin_attribute( $html, $handle );
-			},
-			10,
-			2
-		);
+			};
+		}
+		if ( false === has_filter( 'style_loader_tag', $this->stylesheet_tag_filter ) ) {
+			add_filter( 'style_loader_tag', $this->stylesheet_tag_filter, 10, 2 );
+		}
 
 		// Add Font Awesome and/or custom CSS to the editor.
 		$this->add_editor_styles();
@@ -448,11 +461,22 @@ class Better_Font_Awesome_Library {
 			}
 
 			$delivery = array_key_exists( 'asset_delivery', $this->args ) ? $this->args['asset_delivery'] : null;
-			if ( 'automatic' === $delivery || 'bundled-local' === $delivery ) {
+			if ( in_array( $delivery, array( 'automatic', 'bundled-local', 'kit-css' ), true ) ) {
 				$this->asset_delivery = $delivery;
 				if ( 'bundled-local' === $delivery && Better_Font_Awesome_Release_Channel::FONT_AWESOME_5 === $this->release_channel ) {
 					$this->asset_delivery_invalid = true;
 					$this->set_error( 'delivery', 'bfa_asset_delivery_channel_unsupported', 'Bundled-local asset delivery requires the Font Awesome 7 release channel.' );
+				}
+				if ( 'kit-css' === $delivery ) {
+					if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 !== $this->release_channel ) {
+						$this->asset_delivery_invalid = true;
+						$this->set_error( 'delivery', 'bfa_asset_delivery_channel_unsupported', 'Kit CSS asset delivery requires the Font Awesome 7 release channel.' );
+					} elseif ( ! $this->is_valid_kit_css_url( $this->args['kit_css_url'] ?? null ) ) {
+						$this->asset_delivery_invalid = true;
+						$this->set_error( 'delivery', 'bfa_kit_css_url_invalid', 'Kit CSS asset delivery requires an official HTTPS CSS-only Kit embed URL.' );
+					} else {
+						$this->kit_css_url = $this->args['kit_css_url'];
+					}
 				}
 			} else {
 				$this->asset_delivery_invalid = true;
@@ -464,6 +488,7 @@ class Better_Font_Awesome_Library {
 
 		$this->args['release_channel'] = $this->release_channel;
 		$this->args['asset_delivery']  = $this->asset_delivery;
+		$this->args['kit_css_url']     = $this->kit_css_url;
 
 		/**
 		 * Filter the wp_remote_get args.
@@ -840,13 +865,13 @@ class Better_Font_Awesome_Library {
 	 * Request asynchronous release data refresh work from a consumer.
 	 *
 	 * The callback or action handler must schedule work and return promptly. BFAL
-	 * does not run remote transport from this method. Bundled-local delivery
-	 * never requests refresh work, including when the bundle cannot be loaded.
+	 * does not run remote transport from this method. Bundled-local and Kit delivery
+	 * never request refresh work, including when the bundle cannot be loaded.
 	 *
 	 * @since 2.1.0
 	 */
 	public function request_release_data_refresh() {
-		if ( $this->release_channel_invalid || $this->asset_delivery_invalid || 'bundled-local' === $this->asset_delivery || $this->refresh_requested ) {
+		if ( $this->release_channel_invalid || $this->asset_delivery_invalid || 'automatic' !== $this->asset_delivery || $this->refresh_requested ) {
 			return;
 		}
 
@@ -875,7 +900,7 @@ class Better_Font_Awesome_Library {
 	 * Consumers own scheduling, locking, retry backoff, and durable last-known-
 	 * good persistence. This method performs one bounded refresh attempt and
 	 * only replaces the established transient after complete validation.
-	 * Bundled-local delivery returns bfa_refresh_disabled as a WP_Error without
+	 * Bundled-local and Kit delivery return bfa_refresh_disabled as a WP_Error without
 	 * HTTP, persistence, or changing the active record. It is not a retryable failure.
 	 *
 	 * @since 2.1.0
@@ -893,6 +918,10 @@ class Better_Font_Awesome_Library {
 
 		if ( 'bundled-local' === $this->asset_delivery ) {
 			return new WP_Error( 'bfa_refresh_disabled', 'Metadata refresh is disabled for bundled-local asset delivery. Update the BFAL package to update Font Awesome.' );
+		}
+
+		if ( 'kit-css' === $this->asset_delivery ) {
+			return new WP_Error( 'bfa_refresh_disabled', 'Free metadata refresh is disabled for Kit CSS asset delivery. The consumer manages Kit metadata separately.' );
 		}
 
 		if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ) {
@@ -1297,10 +1326,13 @@ class Better_Font_Awesome_Library {
 
 	private function get_icon_style_class( $style = '' ) {
 
-		if ( version_compare( $this->get_version(), '5', '>=' ) ) {
+		if ( 'kit-css' === $this->get_asset_delivery() || version_compare( $this->get_version(), '5', '>=' ) ) {
 			switch ( $style ) {
 				case 'brands':
 				return 'fab';
+
+				case 'thin':
+				return 'fat';
 
 				case 'light':
 				return 'fal';
@@ -1329,12 +1361,20 @@ class Better_Font_Awesome_Library {
 	 * @return string  The filtered stylesheet link tag.
 	 */
 	private function add_font_awesome_crossorigin_attribute( $html, $handle ) {
+		$is_kit = 'kit-css' === $this->get_asset_delivery() && self::KIT_CSS_HANDLE === $handle;
+		if ( 'kit-css' === $this->asset_delivery && ! $is_kit ) {
+			return $html;
+		}
 		$font_awesome_handles = array(
 			self::SLUG . '-font-awesome'              => array( self::SLUG . '-font-awesome-css', 'css/all.min.css' ),
 			self::SLUG . '-font-awesome-v5-compat'    => array( self::SLUG . '-font-awesome-v5-compat-css', 'css/v5-font-face.min.css' ),
 			self::SLUG . '-font-awesome-v4-font-face' => array( self::SLUG . '-font-awesome-v4-font-face-css', 'css/v4-font-face.min.css' ),
 			self::SLUG . '-font-awesome-v4-shim'      => array( self::SLUG . '-font-awesome-v4-shim-css', 'css/v4-shims.min.css' ),
 		);
+
+		if ( $is_kit ) {
+			$font_awesome_handles = array( self::KIT_CSS_HANDLE => array( self::KIT_CSS_HANDLE . '-css', '' ) );
+		}
 
 		if ( ! isset( $font_awesome_handles[ $handle ] ) || ! class_exists( 'WP_HTML_Tag_Processor' ) ) {
 			return $html;
@@ -1347,11 +1387,15 @@ class Better_Font_Awesome_Library {
 				continue;
 			}
 
+			if ( $is_kit && ( $this->kit_css_url !== $processor->get_attribute( 'href' ) || 'stylesheet' !== $processor->get_attribute( 'rel' ) ) ) {
+				continue;
+			}
+
 			if ( ! $processor->set_attribute( 'crossorigin', 'anonymous' ) ) {
 				return $html;
 			}
 
-			if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ) {
+			if ( ! $is_kit && Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ) {
 				$integrity = $this->get_release_asset_integrity( $font_awesome_handles[ $handle ][1] );
 				if ( '' === $integrity || ! $processor->set_attribute( 'integrity', $integrity ) ) {
 					return $html;
@@ -1368,6 +1412,17 @@ class Better_Font_Awesome_Library {
 	 * Register and enqueue Font Awesome CSS.
 	 */
 	public function register_font_awesome_css() {
+		if ( $this->release_channel_invalid || $this->asset_delivery_invalid ) {
+			return;
+		}
+		if ( 'kit-css' === $this->asset_delivery ) {
+			if ( ! wp_style_is( self::KIT_CSS_HANDLE, 'registered' ) ) {
+				wp_register_style( self::KIT_CSS_HANDLE, $this->kit_css_url, array(), null );
+			}
+			wp_enqueue_style( self::KIT_CSS_HANDLE );
+			return;
+		}
+
 		if ( Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ) {
 			$this->register_font_awesome_7_css();
 			return;
@@ -1492,6 +1547,25 @@ class Better_Font_Awesome_Library {
 	 * @since  1.0.0
 	 */
 	public function add_editor_styles() {
+		if ( $this->release_channel_invalid || $this->asset_delivery_invalid ) {
+			return;
+		}
+		if ( 'kit-css' === $this->asset_delivery ) {
+			if ( null === $this->kit_mce_css_filter ) {
+				$this->kit_mce_css_filter = function ( $stylesheets ) {
+					if ( in_array( $this->kit_css_url, array_map( 'trim', explode( ',', $stylesheets ) ), true ) ) {
+						return $stylesheets;
+					}
+					$stylesheets = trim( $stylesheets, " ,\t\n\r\0\x0B" );
+					return ( '' === $stylesheets ? '' : $stylesheets . ',' ) . $this->kit_css_url;
+				};
+			}
+			if ( false === has_filter( 'mce_css', $this->kit_mce_css_filter ) ) {
+				add_filter( 'mce_css', $this->kit_mce_css_filter );
+			}
+			return;
+		}
+
 		$stylesheet_url = $this->get_stylesheet_url();
 		if ( '' !== $stylesheet_url ) {
 			add_editor_style( $stylesheet_url );
@@ -1660,6 +1734,17 @@ class Better_Font_Awesome_Library {
 	}
 
 	/**
+	 * Validate only the official hosted CSS embed shape, without transport.
+	 *
+	 * @param mixed $url Initialization value.
+	 * @return bool Whether the URL is supported.
+	 */
+	private function is_valid_kit_css_url( $url ) {
+		// Accept one identifier segment, never URL credentials, ports, queries or fragments.
+		return is_string( $url ) && 1 === preg_match( '~\Ahttps://kit\.fontawesome\.com/[A-Za-z0-9_-]+\.css\z~', $url );
+	}
+
+	/**
 	 * Determine whether or not to use the .min suffix on Font Awesome
 	 * stylesheet URLs.
 	 *
@@ -1725,7 +1810,7 @@ class Better_Font_Awesome_Library {
 	 *----------------------------------------------------------------------------*/
 
 	/**
-	 * Get Font Awesome release version.
+	 * Get the locally resolved Free metadata version, not the hosted Kit version.
 	 *
 	 * @since   2.0.0
 	 *
@@ -1744,6 +1829,9 @@ class Better_Font_Awesome_Library {
 	 * @return  string  Stylesheet URL.
 	 */
 	public function get_stylesheet_url() {
+		if ( 'kit-css' === $this->asset_delivery ) {
+			return 'kit-css' === $this->get_asset_delivery() ? $this->kit_css_url : '';
+		}
 		$path = Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ? 'css/all.min.css' : 'css/all.css';
 		return $this->get_release_asset_url( $path );
 	}
@@ -1756,6 +1844,9 @@ class Better_Font_Awesome_Library {
 	 * @return  string  Stylesheet URL.
 	 */
 	public function get_stylesheet_url_v4_shim() {
+		if ( 'kit-css' === $this->asset_delivery ) {
+			return '';
+		}
 		$path = Better_Font_Awesome_Release_Channel::FONT_AWESOME_7 === $this->release_channel ? 'css/v4-shims.min.css' : 'css/v4-shims.css';
 		return $this->get_release_asset_url( $path );
 	}
@@ -1807,7 +1898,7 @@ class Better_Font_Awesome_Library {
 	}
 
 	/**
-	 * Get Font Awesome release assets.
+	 * Get Free release assets, not a manifest for the hosted Kit.
 	 *
 	 * @since   2.0.0
 	 *
@@ -1844,7 +1935,7 @@ class Better_Font_Awesome_Library {
 	/**
 	 * Get the immutable asset delivery mode.
 	 *
-	 * @return string automatic or bundled-local; empty for an unsupported configuration.
+	 * @return string automatic, bundled-local or kit-css; empty for an unsupported configuration.
 	 */
 	public function get_asset_delivery() {
 		if ( $this->release_channel_invalid || $this->asset_delivery_invalid ) {

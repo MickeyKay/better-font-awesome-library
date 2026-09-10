@@ -114,6 +114,7 @@ function bfa_test_reset_wordpress_state() {
 	$GLOBALS['bfa_test_is_block_editor']  = false;
 	$GLOBALS['bfa_test_localized']        = array();
 	$GLOBALS['bfa_test_registered_styles'] = array();
+	$GLOBALS['bfa_test_style_registration_calls'] = array();
 	$GLOBALS['bfa_test_removed_shortcodes'] = array();
 	$GLOBALS['bfa_test_shortcodes']       = array();
 	$GLOBALS['bfa_test_transients']       = array();
@@ -400,7 +401,12 @@ function _e( $text, $domain = null ) {
 	echo $text;
 }
 
+function wp_style_is( $handle, $status = 'enqueued' ) {
+	return isset( $GLOBALS[ 'registered' === $status ? 'bfa_test_registered_styles' : 'bfa_test_enqueued_styles' ][ $handle ] );
+}
+
 function wp_register_style( $handle, $src, $dependencies = array(), $version = false ) {
+	$GLOBALS['bfa_test_style_registration_calls'][] = $handle;
 	$GLOBALS['bfa_test_registered_styles'][ $handle ] = compact( 'src', 'dependencies', 'version' );
 }
 

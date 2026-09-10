@@ -126,7 +126,7 @@ This first-caller contract is intentional and applies to every initialization ar
 
 ## Local asset delivery ##
 
-The optional `asset_delivery` initialization argument accepts exactly two string values:
+The optional `asset_delivery` initialization argument accepts `automatic`, `bundled-local`, and `kit-css` (see [hosted Kit CSS delivery](#hosted-kit-css-delivery)). The Free delivery modes are:
 
 * `automatic` (default) preserves existing behavior for both `7.x` and explicit `5.x`. Validated provider or transient metadata takes precedence over the bundled fallback. Accepted releases use their matching CDN assets; the FA7 bundled fallback uses packaged assets. Consumer-managed background refresh can discover newer releases within the selected channel.
 * `bundled-local` selects only the packaged Font Awesome Free 7 release. The active version, icon catalog, picker data, CSS, compatibility styles, and WOFF2 fonts all come from that bundle immediately. New Font Awesome releases arrive through BFAL updates, or through updates to a plugin that packages BFAL. Provider data and legacy transients are neither read nor mutated, even if they contain a matching or newer release.
@@ -152,6 +152,38 @@ In local mode, `request_release_data_refresh()` is a no-op: neither the callback
 If bundled metadata cannot be read or validated, or a required CSS/font file is missing, unreadable, or empty at initialization, BFAL reports a fallback error and exposes no active catalog or stylesheet URLs. Missing assets use error code `bfa_bundled_asset_unavailable`; metadata errors retain the existing validator codes. Restore a complete BFAL package to recover. A browser delivery failure leaves the affected icons unavailable. BFAL never substitutes third-party assets or requests refresh work in local mode.
 
 Stylesheet handles, loading flags, editor integration, and existing integrity/CORS handling remain unchanged. FA5 compatibility font faces are included for legacy markup rendered with FA7; this does not add FA5 asset self-hosting. Optional v4 styles still follow `include_v4_shim`. CSS font references stay inside the bundled asset tree and URLs use the BFAL installation URL. Sites that rewrite installation URLs through a CDN must account for that infrastructure separately. This feature controls BFAL's Font Awesome asset delivery only, not requests made by other plugins, themes, or site infrastructure.
+
+## Hosted Kit CSS delivery ##
+
+`asset_delivery => 'kit-css'` selects one hosted Font Awesome v7 Web Fonts Kit through its official CSS-only embed URL. Configure Web Fonts and CSS Only in the Kit settings, then pass the exact stylesheet `href` as `kit_css_url`. This is remote delivery, not bundled-local hosting. See [Font Awesome's CSS-only Kit instructions](https://docs.fontawesome.com/web/setup/use-kit#about-css-only-embed-codes).
+
+```php
+$library = Better_Font_Awesome_Library::get_instance( array(
+    'asset_delivery'  => 'kit-css',
+    'release_channel' => '7.x',
+    'kit_css_url'     => $kit_css_url, // Official HTTPS CSS embed href, not HTML or a token.
+) );
+```
+
+The first caller owns both the mode and URL after the existing initialization filters run. Later callers, later filter changes, and repeated `load()` calls cannot replace them. An invalid first configuration also remains invalid for that instance. No ownership-transfer or late-configuration API is provided. Omitted new arguments preserve automatic Free behavior; `kit_css_url` is ignored outside Kit mode.
+
+The accepted structure is `https://kit.fontawesome.com/KIT_ID.css`, with one nonempty identifier containing only ASCII letters, digits, underscores or hyphens. The exact lowercase HTTPS scheme/host and `.css` suffix are required; credentials, ports, queries, fragments, escapes, whitespace and extra path segments are rejected. `KIT_ID` is a placeholder, not a working Kit. URL validation is local and syntactic only. It does not establish entitlement, publication, version, domain authorization, availability or Kit contents. Unsupported URLs produce `get_error( 'delivery' )` code `bfa_kit_css_url_invalid`; Kit mode with `5.x` produces `bfa_asset_delivery_channel_unsupported`. Unsupported channels retain `bfa_channel_unsupported`. Invalid initialization returns an empty effective mode and stylesheet URLs and enqueues no Font Awesome assets; explicit refresh returns the configuration error. No supplied URL or credential is echoed in these diagnostics.
+
+`get_stylesheet_url()` returns the selected Kit URL. `register_font_awesome_css()` registers/enqueues only `bfa-font-awesome-kit`, without appending a BFAL or WordPress version query. Repeated calls reuse that registration. The existing frontend/admin callbacks use this entry point and a block integration can call it from its normal `enqueue_block_assets` hook. The exact Kit handle, link ID, stylesheet relation and URL receive anonymous CORS. No Free integrity value is applied. Other links are unchanged.
+
+`add_editor_styles()` installs one idempotent `mce_css` filter, preserving other TinyMCE stylesheets and adding the Kit URL once. It does not call `add_editor_style()` with the Kit URL, so WordPress does not fetch/import that CSS as a theme editor style. Free main, v5/v4 compatibility styles and inline Free font faces are not enqueued in Kit mode. `get_stylesheet_url_v4_shim()` is empty; the consumer must require the Kit's own compatibility settings. Existing frontend/admin loading flags and explicit stylesheet entry points retain their roles.
+
+Kit CSS and fonts load in the browser from Font Awesome. BFAL does not fetch, mirror, cache or bundle proprietary assets. Delivery failures can leave icons unavailable; they never trigger server HTTP, authentication retries or a Free replacement. A consumer switching to `bundled-local` must do so explicitly for a subsequent initialization and disclose that Pro-only icons may stop rendering.
+
+### Metadata and consumer handoff
+
+Kit mode changes asset delivery, not BFAL's Free metadata schema. `get_version()`, `get_release_record()`, `get_release_icons()` and `get_release_assets()` still describe locally resolved **Free metadata**, not the Kit's resolved version, entitlement or assets. The existing local-provider, validated-transient and bundled-metadata fallback order is retained, without discovery. `get_icons()` still formats Free records before the established icon filters. Classic `thin` maps to `fat` for rendering, but Thin and Pro membership are not added to the Free validators or bundled catalog.
+
+`request_release_data_refresh()` does nothing in Kit mode. `refresh_release_data()` returns `WP_Error( 'bfa_refresh_disabled', ... )` without HTTP, persistence, changing the active record or adding an admin diagnostic. Do not schedule or retry this disabled Free refresh. Local providers must continue to return already-resolved data without remote I/O.
+
+BFA and other consumers own credentials, Kit validation/catalog acquisition, persistence, background scheduling and status. They must establish first-call ownership, use `get_asset_delivery()` to verify the effective mode and supply validated local picker records through the existing `bfa_icon_array` hook when appropriate. Do not feed Pro data into the Free release provider, interpret Free getters as Kit metadata, or attach Free SRI/base-URL repair to the Kit handle. No BFA-specific preference is built into BFAL.
+
+Consumers must still verify frontend, native block iframe, Classic and hybrid editors with their supported WordPress versions. BFAL's deterministic unit tests cover this library contract, not complete production editor acceptance. No content migration or Pro connection UI is included.
 
 ## Metadata lifecycle ##
 
@@ -210,7 +242,10 @@ The following arguments can be used to initialize the library using `Better_Font
 * `false`
 
 #### $args['asset_delivery'] ####
-(string) Immutable delivery mode: `automatic` (default) or `bundled-local`. Local delivery is FA7-only and pins the catalog and all Font Awesome assets to the packaged release. See [local asset delivery](#local-asset-delivery) for update, ownership, refresh, and failure behavior.
+(string) Immutable delivery mode: `automatic` (default), `bundled-local` or `kit-css`. Local delivery is FA7-only and pins the catalog and all Font Awesome assets to the packaged release. See [local asset delivery](#local-asset-delivery) for update, ownership, refresh, and failure behavior.
+
+#### $args['kit_css_url'] ####
+(string) The official HTTPS CSS-only Kit embed href, used only with `asset_delivery => 'kit-css'` and `release_channel => '7.x'`. Validated without HTTP and frozen on first initialization. See [hosted Kit CSS delivery](#hosted-kit-css-delivery).
 
 #### $args['release_data_provider'] ####
 
@@ -262,7 +297,7 @@ Unprefixed [Font Awesome icon classes](http://fortawesome.github.io/Font-Awesome
 Any additional classes that you wish to remain unprefixed (e.g. my-custom-class).
 
 #### style
-The specific icon style (e.g. `brand` vs. `solid`) to use.
+The specific icon style: `solid` (`fas`), `regular` (`far`), `light` (`fal`), `thin` (`fat`) or `brands` (`fab`). The selected assets must actually include the icon/style. Mapping a style does not add it to the Free catalog.
 
 ### Shortcode Output
 The following shortcode:
@@ -280,13 +315,13 @@ The Better Font Awesome Library object can be accessed with the following code:
 
 The object has the following public methods:
 #### get_version() ####
-(string) Returns the active version of Font Awesome being used.
+(string) Returns the locally resolved Free metadata version. In Kit mode this is not the Kit version.
 
 #### get_stylesheet_url() ####
-(string) Returns the Font Awesome stylesheet URL.
+(string) Returns the effective main stylesheet URL, including the immutable Kit CSS URL in Kit mode.
 
 #### get_stylesheet_url_v4_shim() ####
-(string) Returns the Font Awesome v4 shim stylesheet URL.
+(string) Returns the separate Font Awesome v4 shim stylesheet URL; empty in Kit mode, where compatibility belongs to the Kit.
 
 #### get_icons() ####
 (array) Returns an associative array of icon hex values (index, e.g. \f000) and unprefixed icon names (values, e.g. rocket) for all available icons in the active Font Awesome version.
@@ -304,13 +339,13 @@ The object has the following public methods:
 (string) Returns the immutable selected Font Awesome channel, `7.x` by default or explicit `5.x`. Returns an empty string when an unsupported first-caller value has caused the runtime to fail closed.
 
 #### get_asset_delivery() ####
-(string) Returns the immutable first-caller mode, `automatic` or `bundled-local`. Returns an empty string when the mode, channel, or mode/channel combination is unsupported; inspect `get_errors()` for configuration failures. The internal selection remains immutable. A missing or invalid bundle does not invalidate the configuration, so the accessor still returns `bundled-local` in that case.
+(string) Returns the immutable first-caller mode, `automatic`, `bundled-local` or `kit-css`. Returns an empty string when the mode, channel, or mode/channel combination is unsupported; inspect `get_errors()` for configuration failures. The internal selection remains immutable. A missing or invalid bundle does not invalidate the configuration, so the accessor still returns `bundled-local` in that case.
 
 #### request_release_data_refresh() ####
-Requests asynchronous refresh scheduling through the configured callback or `bfa_release_data_refresh_requested` action. This method performs no remote transport. It does nothing in bundled-local mode or after invalid mode/channel initialization.
+Requests asynchronous refresh scheduling through the configured callback or `bfa_release_data_refresh_requested` action. This method performs no remote transport. It does nothing in bundled-local or Kit mode, or after invalid mode/channel initialization.
 
 #### refresh_release_data() ####
-(array|WP_Error) In automatic mode, performs one bounded refresh attempt in an explicit worker context. Consumers own locking, retry, and durable persistence policy. Bundled-local mode returns `WP_Error( 'bfa_refresh_disabled', ... )` without HTTP, mutation, or an admin diagnostic; do not retry this disabled operation. Invalid initialization returns its configuration error.
+(array|WP_Error) In automatic mode, performs one bounded refresh attempt in an explicit worker context. Consumers own locking, retry, and durable persistence policy. Bundled-local and Kit modes return `WP_Error( 'bfa_refresh_disabled', ... )` without HTTP, mutation, or an admin diagnostic; do not retry this disabled operation. Invalid initialization returns its configuration error.
 
 #### get_prefix() ####
 (string) Returns the version-dependent prefix ('fa' or 'icon') that is used in the icons' CSS classes.
@@ -429,7 +464,7 @@ Applied to the boolean that determines whether or not to suppress all Font Aweso
 ## Actions ##
 
 #### bfa_release_data_refresh_requested ####
-In automatic mode, fires once per BFAL request when no valid provider or transient value is available and bundled fallback data is selected. Handlers receive the immutable selected channel (`5.x` or `7.x`) and BFAL instance. Handlers must schedule asynchronous work and return promptly. This action never fires in bundled-local mode.
+In automatic mode, fires once per BFAL request when no valid provider or transient value is available and bundled fallback data is selected. Handlers receive the immutable selected channel (`5.x` or `7.x`) and BFAL instance. Handlers must schedule asynchronous work and return promptly. This action never fires in bundled-local or Kit mode.
 
 ### Deprecated
 
